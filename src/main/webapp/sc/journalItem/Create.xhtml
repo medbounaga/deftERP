@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+
+    <ui:composition>
+
+        <p:dialog id="JournalItemCreateDlg" widgetVar="JournalItemCreateDialog" modal="true" resizable="false" appendTo="@(body)" header="#{messages.CreateJournalItemTitle}" closeOnEscape="true">
+
+            <h:form id="JournalItemCreateForm">
+
+                <h:panelGroup id="display" rendered="#{journalItemController.selected != null}">
+                    <p:panelGrid columns="2" columnClasses="column">
+
+                        <p:outputLabel value="#{messages.CreateJournalItemLabel_debit}" for="debit" />
+                        <p:inputText id="debit" value="#{journalItemController.selected.debit}" title="#{messages.CreateJournalItemTitle_debit}"/>
+
+                        <p:outputLabel value="#{messages.CreateJournalItemLabel_credit}" for="credit" />
+                        <p:inputText id="credit" value="#{journalItemController.selected.credit}" title="#{messages.CreateJournalItemTitle_credit}"/>
+
+                        <p:outputLabel value="#{messages.CreateJournalItemLabel_date}" for="date" />
+                        <p:calendar id="date" pattern="MM/dd/yyyy" value="#{journalItemController.selected.date}" title="#{messages.CreateJournalItemTitle_date}" required="true" requiredMessage="#{messages.CreateJournalItemRequiredMessage_date}" showOn="button"/>
+
+                        <p:outputLabel value="#{messages.CreateJournalItemLabel_name}" for="name" />
+                        <p:inputText id="name" value="#{journalItemController.selected.name}" title="#{messages.CreateJournalItemTitle_name}" size="64" maxlength="64"/>
+
+                        <p:outputLabel value="#{messages.CreateJournalItemLabel_ref}" for="ref" />
+                        <p:inputText id="ref" value="#{journalItemController.selected.ref}" title="#{messages.CreateJournalItemTitle_ref}" size="64" maxlength="64"/>
+
+                        <p:outputLabel value="#{messages.CreateJournalItemLabel_taxAmount}" for="taxAmount" />
+                        <p:inputText id="taxAmount" value="#{journalItemController.selected.taxAmount}" title="#{messages.CreateJournalItemTitle_taxAmount}"/>
+
+                        <p:outputLabel value="#{messages.CreateJournalItemLabel_quantity}" for="quantity" />
+                        <p:inputText id="quantity" value="#{journalItemController.selected.quantity}" title="#{messages.CreateJournalItemTitle_quantity}"/>
+
+                        <p:outputLabel value="#{messages.CreateJournalItemLabel_active}" for="active" />
+                        <p:selectBooleanCheckbox id="active" value="#{journalItemController.selected.active}" required="true" requiredMessage="#{messages.CreateJournalItemRequiredMessage_active}"/>
+
+                        <p:outputLabel value="#{messages.CreateJournalItemLabel_accountId}" for="accountId" />
+                        <p:selectOneMenu id="accountId" value="#{journalItemController.selected.accountId}"  converter="accountConverter">
+                            <f:selectItem itemLabel="#{messages.SelectOneMessage}"/>
+                            <f:selectItems value="#{accountController.items}"
+                                           var="accountIdItem"
+                                           itemValue="#{accountIdItem}"
+                                           itemLabel="#{accountIdItem.name.toString()}"
+                                           />
+
+                        </p:selectOneMenu>
+
+                        <p:outputLabel value="#{messages.CreateJournalItemLabel_entryId}" for="entryId" />
+                        <p:selectOneMenu id="entryId" value="#{journalItemController.selected.entryId}"  converter="journalEntryConverter">
+                            <f:selectItem itemLabel="#{messages.SelectOneMessage}"/>
+                            <f:selectItems value="#{journalEntryController.items}"
+                                           var="entryIdItem"
+                                           itemValue="#{entryIdItem}"
+                                           itemLabel="#{entryIdItem.name.toString()}"
+                                           />
+
+                        </p:selectOneMenu>
+
+                        <p:outputLabel value="#{messages.CreateJournalItemLabel_journalId}" for="journalId" />
+                        <p:selectOneMenu id="journalId" value="#{journalItemController.selected.journalId}"  converter="journalConverter">
+                            <f:selectItem itemLabel="#{messages.SelectOneMessage}"/>
+                            <f:selectItems value="#{journalController.items}"
+                                           var="journalIdItem"
+                                           itemValue="#{journalIdItem}"
+                                           itemLabel="#{journalIdItem.name.toString()}"
+                                           />
+
+                        </p:selectOneMenu>
+
+                        <p:outputLabel value="#{messages.CreateJournalItemLabel_partnerId}" for="partnerId" />
+                        <p:selectOneMenu id="partnerId" value="#{journalItemController.selected.partnerId}"  converter="partnerConverter">
+                            <f:selectItem itemLabel="#{messages.SelectOneMessage}"/>
+                            <f:selectItems value="#{partnerController.items}"
+                                           var="partnerIdItem"
+                                           itemValue="#{partnerIdItem}"
+                                           itemLabel="#{partnerIdItem.name.toString()}"
+                                           />
+
+                        </p:selectOneMenu>
+
+                        <p:outputLabel value="#{messages.CreateJournalItemLabel_periodId}" for="periodId" />
+                        <p:selectOneMenu id="periodId" value="#{journalItemController.selected.periodId}"  converter="periodConverter">
+                            <f:selectItem itemLabel="#{messages.SelectOneMessage}"/>
+                            <f:selectItems value="#{periodController.items}"
+                                           var="periodIdItem"
+                                           itemValue="#{periodIdItem}"
+                                           itemLabel="#{periodIdItem.name.toString()}"
+                                           />
+
+                        </p:selectOneMenu>
+
+                        <p:outputLabel value="#{messages.CreateJournalItemLabel_productId}" for="productId" />
+                        <p:selectOneMenu id="productId" value="#{journalItemController.selected.productId}"  converter="productConverter">
+                            <f:selectItem itemLabel="#{messages.SelectOneMessage}"/>
+                            <f:selectItems value="#{productController.items}"
+                                           var="productIdItem"
+                                           itemValue="#{productIdItem}"
+                                           itemLabel="#{productIdItem.name.toString()}"
+                                           />
+
+                        </p:selectOneMenu>
+
+                        <p:outputLabel value="#{messages.CreateJournalItemLabel_uomId}" for="uomId" />
+                        <p:selectOneMenu id="uomId" value="#{journalItemController.selected.uomId}"  converter="productUomConverter">
+                            <f:selectItem itemLabel="#{messages.SelectOneMessage}"/>
+                            <f:selectItems value="#{productUomController.items}"
+                                           var="uomIdItem"
+                                           itemValue="#{uomIdItem}"
+                                           itemLabel="#{uomIdItem.name.toString()}"
+                                           />
+
+                        </p:selectOneMenu>
+                    </p:panelGrid>
+                    <p:commandButton actionListener="#{journalItemController.saveNew}" value="#{messages.Save}" update="display,:JournalItemListForm:datalist,:growl" oncomplete="handleSubmit(xhr,status,args,PF('JournalItemCreateDialog'));"/>
+                    <p:commandButton value="#{messages.Cancel}" onclick="PF('JournalItemCreateDialog').hide()"/>
+                </h:panelGroup>
+
+            </h:form>
+
+        </p:dialog>
+
+    </ui:composition>
+
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:jsf="http://xmlns.jcp.org/jsf"
+      xmlns:p="http://primefaces.org/ui">
+
+
+    <h:head>
+        <title>#{messages.Customers}&#160;#{messages.AppName}</title>
+
+        <script type="text/javascript">
+
+
+            $(window).load(function () {
+                $(".loader").fadeOut("slow");
+            });
+        </script>
+
+        <h:outputStylesheet library="css" name="bootstrap.min.css"/> 
+        <h:outputStylesheet library="css" name="bootstrap-reset.css"/>
+        <h:outputStylesheet library="webjars" name="font-awesome/4.4.0/css/font-awesome-jsf.css" />
+        <h:outputStylesheet library="css" name="style-responsive.css"/>
+        <h:outputStylesheet library="css" name="pfcrud.css"/>
+        <h:outputStylesheet library="css" name="style.css"/>
+
+
+        <h:outputScript library="scripts" name="jquery.dcjqaccordion.2.7.js"/>
+        <h:outputScript library="scripts" name="bootstrap.min.js"/>
+        <h:outputScript library="scripts" name="jquery.scrollTo.min.js"/>
+        <h:outputScript library="scripts" name="jquery.slimscroll.js"/>
+        <h:outputScript library="scripts" name="jquery.nicescroll.js"/>
+        <h:outputScript library="scripts" name="scripts.js"/>
+        <h:outputScript library="scripts" name="hover-dropdown.js"/>
+        <h:outputScript library="scripts" name="pfcrud.js"/>
+        
+
+        <f:metadata>
+            <f:viewParam name="id" value="#{customerController.partnerId}"/> 
+            <f:viewAction action="#{customerController.viewCustomer}"/>
+        </f:metadata>
+
+    </h:head>
+    <h:body class="full-width">
+        <f:view locale="#{localeController.locale}" >
+        <div class="loader"></div> 
+        <section id="container" class="hr-menu">           
+            <ui:include src="/sc/header.xhtml"/>               
+            <section id="main-content">
+                <section class="wrapper">
+                    <h:form id="PartnerForm" enctype="multipart/form-data" > 
+                        <h:panelGroup id="content" >           
+                            <ui:include src="#{customerController.page}"/>
+                        </h:panelGroup>               
+                    </h:form> 
+                    </section>
+                </section>
+            </section>
+        <ui:include src="/sc/ajaxLoader.xhtml"/> 
+        </f:view>
+    </h:body>
+</html>

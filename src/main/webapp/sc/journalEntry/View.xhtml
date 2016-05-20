@@ -1,0 +1,191 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+
+    <p:growl id="msgs" widgetVar="growl"/>
+    <div class="row form-header-1">
+        <div class="col-md-8point5" >
+            <p:commandLink update=":JournalEntryForm:content" process="@this" class="form-nav" actionListener="#{journalEntryController.showList}">
+                <h:outputText value="#{messages.JournalEntries}"  />
+            </p:commandLink> 
+            <span> / </span>
+            <p:outputLabel id="namee" value="#{journalEntryController.journalEntry.name}"/> 
+        </div>
+        <div class="col-md-2point5 form-pagination" >
+            <div class="pagination-form-number">
+                <div class="form-number">
+                    #{journalEntryController.journalEntryIndex} / #{journalEntryController.journalEntries.size()}
+                </div>
+                <ul class="pagination">
+                    <li>
+                        <p:commandLink actionListener="#{journalEntryController.previousJournalEntry}" process="@this" styleClass="fa fa-chevron-left" pass:aria-label="Previous" update=":JournalEntryForm:content" oncomplete="setNextFormURL('id',formId)"/>           
+                    </li>
+                    <li>
+                        <p:commandLink actionListener="#{journalEntryController.nextJournalEntry}" process="@this" styleClass="fa fa-chevron-right" pass:aria-label="Next" update=":JournalEntryForm:content" oncomplete="setNextFormURL('id',formId)"/>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-1 form-pagination" >
+            <ul class="pagination">
+                <li class="active-nav-button">
+                    <p:commandLink  styleClass="fa fa-square-o" style="font-size: 17px !important;" update="@none"/>
+                </li>
+                <li >
+                    <p:commandLink process="@this" actionListener="#{journalEntryController.showList}" styleClass="fa fa-bars" style="font-size: 17px !important;" update=":JournalEntryForm:content"/>
+                </li>
+            </ul>
+        </div>
+    </div> 
+
+    <div class="row form-header-3" >
+        <div class="col-md-offset-6 bread-crumb" >    
+            <div class="breadcrumbs flat">
+                <h:link pass:href="#" class="#{(journalEntryController.journalEntry.state == 'Unposted') ? 'active' : ''}"   value="#{messages.Unposted}"/>
+                <h:link pass:href="#" class="#{(journalEntryController.journalEntry.state == 'Posted') ? 'active' : ''}"  value="#{messages.Posted}"/>
+            </div>
+        </div>
+    </div>
+
+    <div class="row form-body">   
+        <div class="row form-body-header">
+            <div class="oe_right oe_button_box col-md-12">
+                <button  class="oe_stat_button btn btn-default" jsf:outcome="#{(journalEntryController.journalEntry.payment.partnerType == 'customer')  ? '/sc/payment/index' : '/sc/supPayment/index' }"  jsf:rendered="#{journalEntryController.journalEntry.payment != null}"> 
+                    <f:param name="id"  value="#{journalEntryController.journalEntry.payment.id}"/>
+                    <div class="stat_button_icon fa fa-bars fa-fw">
+                    </div>
+                    <div>
+                        #{messages.Payment}
+                    </div>
+                </button> 
+                <button  class="oe_stat_button btn btn-default" jsf:outcome="#{(journalEntryController.journalEntry.invoice.type == 'Sale')  ? '/sc/invoice/index' : '/sc/supInvoice/index' }"  jsf:rendered="#{journalEntryController.journalEntry.invoice != null}"> 
+                    <f:param name="id"  value="#{journalEntryController.journalEntry.invoice.id}"/>
+                    <div class="stat_button_icon fa fa-bars fa-fw">
+                    </div>
+                    <div>
+                        <span jsf:rendered="#{journalEntryController.journalEntry.invoice.type == 'Sale'}">#{messages.Invoice}</span>
+                        <span jsf:rendered="#{journalEntryController.journalEntry.invoice.type == 'Purchase'}">#{messages.VendorBill}</span>
+                    </div>
+                </button> 
+            </div>
+        </div>
+        <div class="row form-line-1">
+            <div class="col-md-12" >
+                <p:outputLabel value="#{journalEntryController.journalEntry.name}"/>
+            </div>
+        </div>        
+        <div class="row form-row">
+            <div class="col-md-2point5 form-label">
+                <p:outputLabel value="#{messages.Journal}"/>
+            </div> 
+            <div class="col-md-4">
+                <h:outputText value="#{journalEntryController.journalEntry.journal.name}"/>
+            </div>
+            <div class="col-md-2 form-label">
+                <p:outputLabel value="#{messages.Date}"/>
+            </div>
+            <div class="col-md-3point5 ">
+                <h:outputText value="#{journalEntryController.journalEntry.date}">
+                    <f:convertDateTime pattern="MM-dd-yyyy" />
+                </h:outputText>
+            </div>
+        </div>        
+        <div class="row form-row">
+            <div class="col-md-2point5 form-label">
+                <p:outputLabel value="#{messages.Partner}"/>
+            </div> 
+            <div class="col-md-4">
+                <p:link  class="form-nav" value="#{journalEntryController.journalEntry.partner.name}"  outcome="/sc/customer/index">
+                    <f:param name="id" value="#{journalEntryController.journalEntry.partner.id}"/>
+                </p:link>
+            </div>
+            <div class="col-md-2 form-label">
+                <p:outputLabel value="#{messages.Reference}"/>
+            </div>
+            <div class="col-md-3point5 ">
+                <h:outputText value="#{journalEntryController.journalEntry.ref}"/>
+            </div>  
+        </div>
+        <div class="row form-tabs">
+            <div class="col-md-12">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="active"><a href="#journal-items" role="tab" data-toggle="tab">#{messages.JournalItems}</a></li>
+                </ul>
+                <!-- Tab panes -->
+                <div class="tab-content">
+                    <div class="tab-pane active form-tab" id="journal-items">
+                        <p:dataTable id="journalEntryItems"
+                                     styleClass="fixed-column-percentage-table"
+                                     binding="#{journalEntryItems}"
+                                     value="#{journalEntryController.journalEntry.journalItems}"
+                                     var="item">
+                            
+                            <p:column style="width:2%;">
+                                <f:facet name="header">
+                                    <h:outputText value=""/>
+                                </f:facet>
+                                <h:outputText value=""/>
+                            </p:column>
+
+
+                            <p:column style="width:25%;">
+                                <f:facet name="header">
+                                    <h:outputText value="#{messages.Account}"/>
+                                </f:facet>
+                                <h:outputText value="#{item.account.name}"/>
+                            </p:column>
+
+                            <p:column style="width:33%;">
+                                <f:facet name="header">
+                                    <h:outputText value="#{messages.Label}"/>
+                                </f:facet>
+                                <h:outputText value="#{item.name}"/>
+                            </p:column>                         
+
+                            <p:column styleClass="debit" style="width:20%;">
+                                <f:facet name="header">
+                                    <h:outputText value="#{messages.Debit}"/>
+                                </f:facet>                               
+                                <h:outputText value="#{messages.Currency} #{item.debit}"/>                                            
+                            </p:column>
+                            <p:column styleClass="credit" style="width:20%;">
+                                <f:facet name="header">
+                                    <h:outputText value="#{messages.Credit}"/>
+                                </f:facet>
+                                <h:outputText value="#{messages.Currency} #{item.credit}"/>                                            
+                            </p:column>
+                            <p:columnGroup type="footer">
+                                <p:row styleClass="tableFoot">
+                                    <p:column colspan="3"/>
+                                    <p:column styleClass="total-debit"/>
+                                    <p:column styleClass="total-credit"/>
+                                </p:row>
+                            </p:columnGroup>  
+                        </p:dataTable>                 
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>  
+
+
+    <script type="text/javascript">
+
+        tableId = '#{journalEntryItems.clientId}';
+        sortTable(tableId);
+        addEmptyRow(tableId);
+        columnSum('credit', 'total-credit');
+        columnSum('debit', 'total-debit');
+        
+        var formId = "#{journalEntryController.journalEntry.id}";
+        setFormURL('id', formId);
+        
+        disableStatusLinks();
+
+    </script>
+
+</ui:composition>

@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:p="http://primefaces.org/ui">
+
+
+    <p:growl id="msgs" widgetVar="growl" />
+    <div class="row form-header-1">
+        <div class="col-md-10point5" > 
+            <p:link  class="form-nav" value="#{purchaseOrderController.purchaseOrderLines[0].product.name}"  outcome="/sc/product/index">
+                <f:param name="id" value="#{purchaseOrderController.productId}"/>
+            </p:link>
+            <span> / </span> 
+            <h:outputText value="#{messages.PurchaseOrderLines}"/> 
+        </div>
+        <div class="col-md-1point5 form-pagination" style="display: inline-table;" >
+            <ul class="pagination">
+                <li>
+                    <p:commandLink process="@this" actionListener="#{purchaseOrderController.showOrderLineForm}" styleClass="fa fa-square-o" style="font-size: 17px !important;" update=":PurchaseOrderForm:content"/>           
+                </li>
+                <li class="active-nav-button">
+                    <p:commandLink  styleClass="fa fa-bars" style="font-size: 17px !important;" update="@none"/>
+                </li>
+            </ul>
+        </div>
+    </div> 
+    <div class="row"> 
+        <p:dataTable id="productPurchaseOrders"
+                     binding="#{productPurchaseOrders}"
+                     class="fit-content-table"
+                     value="#{purchaseOrderController.purchaseOrderLines}"
+                     filteredValue="#{purchaseOrderController.filteredPurchaseOrderLines}"
+                     var="item"
+                     selection="#{purchaseOrderController.purchaseOrderLine}"
+                     rowKey="#{item.id}"
+                     paginator="true"
+                     paginatorAlwaysVisible="false"
+                     widgetVar="productPurchaseOrders"
+                     selectionMode="single"
+                     rows="#{messages.MaxRows}">
+
+            <f:facet name="header">
+                <p:outputPanel>
+                    <div class="searchLoader">
+                        <p:graphicImage  name="/img/search-loader.gif"/>
+                    </div>
+                    <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('productPurchaseOrders').filter()" class="search" placeholder="#{messages.Search}"/>               
+                </p:outputPanel>
+            </f:facet>
+
+            <p:ajax event="page" oncomplete="updateTableTotals();"/>
+            <p:ajax event="sort" oncomplete="updateTableTotals();"/>
+            <p:ajax event="filter" global="false" onstart="showSearchLoader();" oncomplete="updateTableTotals(); hideSearchLoader();"/>
+            <p:ajax event="rowSelect"  listener="#{purchaseOrderController.prepareViewOrderByProduct}" update=":PurchaseOrderForm:content"/>
+            
+            <p:column>
+                <f:facet name="header">
+                    <h:outputText value=""/>
+                </f:facet>
+                <h:outputText value=""/>
+            </p:column>
+
+            <p:column sortBy="#{item.product.name}" filterBy="#{item.product.name}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Product}"/>
+                </f:facet>
+                <h:outputText value="#{item.product.name}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.purchaseOrder.name}" filterBy="#{item.purchaseOrder.name}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.PurchaseOrder}"/>
+                </f:facet>
+                <h:outputText value="#{item.purchaseOrder.name}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.purchaseOrder.partner.name}" filterBy="#{item.purchaseOrder.partner.name}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Vendor}"/>
+                </f:facet>
+                <h:outputText value="#{item.purchaseOrder.partner.name}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.quantity}" filterBy="#{item.quantity}" styleClass="quantity">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Quantity}"/>
+                </f:facet>
+                <h:outputText value="#{item.quantity}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.subTotal}" filterBy="#{item.subTotal}" styleClass="amount">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.SubTotal}"/>
+                </f:facet>
+                <h:outputText value="#{messages.Currency} #{item.subTotal}"/>
+            </p:column>
+            <p:column sortBy="#{item.invoiced}" filterBy="#{item.invoiced}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Invoiced}"/>
+                </f:facet>
+                <p:selectBooleanCheckbox value="#{item.invoiced}" disabled="true"/>
+            </p:column>
+            <p:columnGroup type="footer">
+                <p:row styleClass="tableFoot">
+                    <p:column colspan="4"/>
+                    <p:column  styleClass="total-quantity"/>
+                    <p:column  styleClass="total-amount"/>
+                    <p:column/>
+                </p:row>
+            </p:columnGroup>
+
+        </p:dataTable>       
+    </div>  
+    <script type="text/javascript">
+
+        function updateTableTotals() {
+            addEmptyRows(tableId);
+            columnSum('amount', 'total-amount');
+            columnSumNonCurrency('quantity', 'total-quantity');
+            hidePaginator(tableId);
+        }
+
+        var tableId = '#{productPurchaseOrders.clientId}';
+        addEmptyRows(tableId);
+        columnSum('amount', 'total-amount');
+        columnSumNonCurrency('quantity', 'total-quantity');
+        hidePaginator(tableId);
+
+        var listId = "#{purchaseOrderController.productId}";
+        setFormURL('pr', listId);
+
+    </script>
+</ui:composition>

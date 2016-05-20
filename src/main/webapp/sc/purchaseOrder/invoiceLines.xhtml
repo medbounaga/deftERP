@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:p="http://primefaces.org/ui">
+
+
+    <p:dialog id="InvoiceLinesDialog" widgetVar="InvoiceLinesDialog" modal="true" styleClass="disable-scroll" resizable="false"  appendTo="@(body)" header="#{messages.ReceiveBill}" width="850"  closeOnEscape="true">
+        <h:form id="invoicingForm">
+            <div class="row" style="font-size: 13px; padding-bottom: 15px; padding-top: 10px; color:grey;">
+                <div class="col-md-12">
+                    #{messages.InvoicePurchaseGuideMessage}
+                </div>
+            </div>
+            <div class="row" style="padding-bottom: 15px;">
+                <div class="col-md-12">
+                    <p:outputLabel value="#{messages.BillPurchaseQuestion}" style="font-weight:bold; padding-right: 10px; padding-bottom: 10px;"/>               
+                    <p:selectOneMenu style="width: 300px;" id="invoiceMethod" value="#{purchaseOrderController.invoiceMethod}">
+                        <p:ajax listener="#{purchaseOrderController.updateInvoiceMethod}" process=":invoicingForm:invoiceMethod"  update=":invoicingForm" />
+                        <f:selectItem itemLabel="#{messages.ReceiveFullBill}" itemValue="Complete" />
+                        <f:selectItem itemLabel="#{messages.ReceivePartialBill}" itemValue="Partial" />                    
+                    </p:selectOneMenu>
+                </div> 
+            </div> 
+            <div class="row" jsf:id="linesToInvoice" jsf:rendered="#{(purchaseOrderController.invoiceMethod == 'Partial')}"  style="padding-bottom: 15px;">
+                <div class="col-md-12">
+                    <p:dataTable value="#{purchaseOrderController.purchaseOrderLines}"
+                                 var="item"
+                                 rowIndexVar="rowIndex">
+                        
+                         <p:column style="width:45px;">
+                            <p:commandLink styleClass="ui-icon ui-icon-trash" actionListener="#{purchaseOrderController.removeLineToInvoice(rowIndex)}" update=":invoicingForm:linesToInvoice :invoicingForm:receiveInvoice :invoicingForm:receiveViewInvoice"/>
+                        </p:column>
+                      
+                        <p:column>
+                            <f:facet name="header">
+                                <h:outputText value="#{messages.Product}"/>
+                            </f:facet>
+                            <h:outputText value="#{item.product.name}"/>
+                        </p:column>
+
+                        <p:column>
+                            <f:facet name="header">
+                                <h:outputText value="#{messages.Quantity}"/>
+                            </f:facet>
+                            <h:outputText value="#{item.quantity}"/>
+                        </p:column>
+
+                        <p:column>
+                            <f:facet name="header">
+                                <h:outputText value="#{messages.UnitPrice}"/>
+                            </f:facet>
+                            <h:outputText value="#{item.price}"/>
+                        </p:column>  
+
+                        <p:column>
+                            <f:facet name="header">
+                                <h:outputText value="#{messages.SubTotal}"/>
+                            </f:facet>
+                            <h:outputText value="#{item.subTotal}"/>
+                        </p:column>
+
+                        <p:column>
+                            <f:facet name="header">
+                                <h:outputText value="#{messages.Invoiced}"/>
+                            </f:facet>
+                            <h:selectBooleanCheckbox value="#{item.invoiced}" disabled="true"/>
+                        </p:column>
+
+
+                    </p:dataTable>
+                </div> 
+            </div> 
+            <div class="row dialog-footer">
+                <div class="col-md-12">
+                    <p:commandButton  id="receiveViewInvoice" class="btnn btnn-primary"  value="#{messages.ReceiveAndViewBill}"  actionListener="#{purchaseOrderController.createInvoice(purchaseOrderController.purchaseOrder.id, true)}" disabled="#{empty purchaseOrderController.purchaseOrderLines}"/> 
+                    <p:commandButton  id="receiveInvoice" class="btnn btnn-primary" value="#{messages.ReceiveBill}"  actionListener="#{purchaseOrderController.createInvoice(purchaseOrderController.purchaseOrder.id, false)}" disabled="#{empty purchaseOrderController.purchaseOrderLines}"  update=":PurchaseOrderForm:content" oncomplete="PF('InvoiceLinesDialog').hide();"/> 
+                    <a class="btnn btnn-default jsf-btn"  onclick="PF('InvoiceLinesDialog').hide()">#{messages.Cancel}</a>
+                </div> 
+            </div>   
+        </h:form>
+    </p:dialog>
+
+</ui:composition>

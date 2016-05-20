@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="invoiceLines" pageWidth="555" pageHeight="802" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="7dfa19d5-c31a-46a8-96e5-363e2e4edb14">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="invoice" class="Invoice"/>
+	<parameter name="currency" class="java.lang.String"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String"/>
+	<field name="price" class="java.lang.Double"/>
+	<field name="quantity" class="java.lang.Double"/>
+	<field name="productName" class="java.lang.String"/>
+	<field name="taxName" class="java.lang.String"/>
+	<field name="priceSubtotal" class="java.lang.Double"/>
+	<field name="uom" class="java.lang.String"/>
+	<field name="discount" class="java.lang.Double"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="32" splitType="Stretch">
+			<staticText>
+				<reportElement x="313" y="7" width="94" height="20" uuid="96df631e-5485-498e-a19c-55f48308ccaf"/>
+				<textElement>
+					<font size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Unit Price]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="226" y="7" width="87" height="20" uuid="318a5495-4901-4f10-a271-6a521cf5b768"/>
+				<textElement>
+					<font size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Quantity]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="4" y="7" width="122" height="20" uuid="1cc70c65-7ffc-487a-b61d-7204a95286b5"/>
+				<textElement>
+					<font size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Description]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="126" y="7" width="100" height="20" uuid="973e479f-09a7-45f6-8060-f1163393862b"/>
+				<textElement>
+					<font size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Taxes]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="462" y="7" width="92" height="20" uuid="82dac019-4993-4655-8de8-938b29222703"/>
+				<textElement textAlignment="Right">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[SubTotal]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="30" width="555" height="1" uuid="53c2ae3a-4ada-43ff-9217-50c4020bdf5a"/>
+			</line>
+			<staticText>
+				<reportElement x="407" y="7" width="55" height="20" uuid="78eeb3a3-19ae-43c0-88cf-054c0b45c49d"/>
+				<textElement markup="none">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Disc.(%)]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="34" splitType="Stretch">
+			<textField pattern="">
+				<reportElement x="313" y="4" width="94" height="20" uuid="ffdc7a83-39df-4e2a-ba1a-ae61012731b2"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{currency}+" "+$F{price}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="226" y="4" width="87" height="20" uuid="4820059a-1ee2-42e0-9742-924fe280818c"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{quantity}+" "+$F{uom}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="4" y="4" width="122" height="20" uuid="be422d05-3857-44b1-afbc-aaf86031bc42"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{productName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="126" y="4" width="100" height="20" uuid="bb6fdff7-bca7-40db-9394-588a2ff768ac"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{taxName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="462" y="4" width="92" height="20" uuid="bff9fa2e-b569-4f43-b2f3-71e23e0069fa"/>
+				<textElement textAlignment="Right">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{currency}+" "+$F{priceSubtotal}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement x="407" y="4" width="55" height="20" uuid="4fead517-24ea-4a1b-8647-0311f5abce08">
+					<printWhenExpression><![CDATA[$F{discount} > 0d]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{discount}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="88">
+			<textField>
+				<reportElement x="355" y="31" width="199" height="17" uuid="bed980b3-5b47-4cb7-9b59-37065581714e"/>
+				<textElement textAlignment="Right">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{currency}+" "+$P{invoice}.getAmountTax()]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="366" y="55" width="188" height="17" uuid="3e4ab31c-173e-41f0-917c-76052f854a1d"/>
+				<textElement textAlignment="Right">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{currency}+" "+$P{invoice}.getAmountTotal()]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="407" y="8" width="147" height="20" uuid="c4e33271-ec4a-4833-80c8-84e038c8ac72"/>
+				<textElement textAlignment="Right">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{currency}+" "+$P{invoice}.getAmountUntaxed()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="324" y="8" width="83" height="20" uuid="e3ca77b5-5f6a-43bf-b116-67143fa1718f"/>
+				<textElement>
+					<font size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Untaxed Amount]]></text>
+			</staticText>
+			<line>
+				<reportElement x="325" y="51" width="229" height="2" uuid="a8ad5dbc-d487-413f-834c-88be4c51d43c"/>
+				<graphicElement>
+					<pen lineWidth="1.25"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="325" y="55" width="41" height="17" uuid="00819761-0188-467d-968b-1701e80d76d1"/>
+				<textElement>
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="324" y="31" width="31" height="17" uuid="216a1497-8257-47bb-aaf3-358dfc8d4797"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Taxes]]></text>
+			</staticText>
+			<line>
+				<reportElement x="324" y="2" width="230" height="1" uuid="f45e2cf6-abfc-49d9-89d4-1c33ec108033"/>
+				<graphicElement>
+					<pen lineWidth="1.25"/>
+				</graphicElement>
+			</line>
+		</band>
+	</columnFooter>
+</jasperReport>

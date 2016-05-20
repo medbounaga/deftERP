@@ -1,0 +1,37 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+
+
+    <h:head>
+        <title>#{messages.SessionExpired}&#160;#{messages.AppName}</title>
+
+        <h:outputStylesheet library="css" name="bootstrap.min.css"/> 
+        <h:outputStylesheet library="webjars" name="font-awesome/4.4.0/css/font-awesome-jsf.css" />
+        <h:outputStylesheet library="css" name="style-responsive.css"/>
+        <h:outputStylesheet library="css" name="style.css"/>
+
+
+    </h:head>
+
+
+    <h:body class="body-500">
+        <div class="container ">
+
+            <section class="error-wrapper text-center" style="padding-top:150px !important; color: #666666 !important;">
+                <div class="error-desk" style="background: rgba(0,0,0,0.05) !important;">
+                    <h2>Session expired!</h2>
+                    <br></br>
+                    <p class="">Your session has expired due to inactivity.</p>                 
+                </div>
+                <p:link value="Back To Login" class="back-btn" style="color:black !important;background-color: white !important;" outcome="/sc/dashboard.xhtml" >
+
+                    <i class="fa fa-home"></i> </p:link>
+            </section>
+
+        </div>
+
+    </h:body>
+</html>

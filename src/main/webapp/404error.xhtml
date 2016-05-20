@@ -1,0 +1,59 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+
+
+    <h:head>
+        <title>#{messages.PageNotFound}&#160;#{messages.AppName}</title>
+
+        <script type="text/javascript">
+            $(window).load(function () {
+                $(".loader").fadeOut("slow");
+            });
+        </script>
+
+        <h:outputStylesheet library="css" name="bootstrap.min.css"/> 
+        <h:outputStylesheet library="css" name="bootstrap-reset.css"/>
+        <h:outputStylesheet library="webjars" name="font-awesome/4.4.0/css/font-awesome-jsf.css" />
+        <h:outputStylesheet library="css" name="style-responsive.css"/>
+        <h:outputStylesheet library="css" name="pfcrud.css"/>
+        <h:outputStylesheet library="css" name="style.css"/>
+
+
+        <h:outputScript library="scripts" name="jquery.dcjqaccordion.2.7.js"/>
+        <h:outputScript library="scripts" name="bootstrap.min.js"/>
+        <h:outputScript library="scripts" name="jquery.scrollTo.min.js"/>
+        <h:outputScript library="scripts" name="jquery.slimscroll.js"/>
+        <h:outputScript library="scripts" name="jquery.nicescroll.js"/>
+        <h:outputScript library="scripts" name="scripts.js"/>
+        <h:outputScript library="scripts" name="hover-dropdown.js"/>
+        <h:outputScript library="scripts" name="pfcrud.js"/>
+
+
+    </h:head>
+
+
+    <h:body class="body-404">
+
+        <div class="error-head"> </div>
+
+        <div class="container ">
+
+            <section class="error-wrapper text-center">
+                <h1><p:graphicImage  value="#" name="img/404.png"/></h1>
+                <div class="error-desk">
+                    <h2>page not found</h2>
+                    <p class="nrml-txt">We Couldn’t Find This Page</p>
+                </div>
+                <p:link value="Back To Home" class="back-btn" outcome="/sc/dashboard.xhtml" ><i class="fa fa-home"></i>
+                </p:link>
+            </section>
+
+        </div>
+
+    </h:body>
+</html>

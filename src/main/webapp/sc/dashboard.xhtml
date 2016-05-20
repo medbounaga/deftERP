@@ -1,0 +1,807 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+
+
+    <h:head>
+        
+        <title>#{messages.Dashboard}&#160;#{messages.AppName}</title>
+
+        <script type="text/javascript">
+
+
+            $(window).load(function () {
+            $(".loader").fadeOut("slow");
+            });</script>
+
+
+        <h:outputStylesheet library="css" name="bootstrap.min.css"/> 
+        <h:outputStylesheet library="css" name="bootstrap-reset.css"/>
+        <h:outputStylesheet library="webjars" name="font-awesome/4.4.0/css/font-awesome-jsf.css" />
+        <h:outputStylesheet library="css" name="style-responsive.css"/>
+        <h:outputStylesheet library="css" name="pfcrud.css"/>
+        <h:outputStylesheet library="css" name="style.css"/>
+        <h:outputStylesheet library="css" name="morris.css"/>
+
+        <h:outputScript library="scripts" name="jquery.dcjqaccordion.2.7.js"/>
+        <h:outputScript library="scripts" name="bootstrap.min.js"/>
+        <h:outputScript library="scripts" name="jquery.scrollTo.min.js"/>
+        <h:outputScript library="scripts" name="jquery.slimscroll.js"/>
+        <h:outputScript library="scripts" name="jquery.nicescroll.js"/>
+        <h:outputScript library="scripts" name="scripts.js"/>
+        <h:outputScript library="scripts" name="hover-dropdown.js"/>
+        <h:outputScript library="scripts" name="pfcrud.js"/>
+        <h:outputScript library="scripts" name="dashboard.js"/>
+
+
+        <h:outputScript library="scripts" name="morris.min.js"/>
+        <h:outputScript library="scripts" name="raphael-min.js"/>      
+        <h:outputScript library="scripts" name="morris.init.js"/>
+        
+        <script type="text/javascript">
+           function redirectLogin(){
+               alert("fffff");
+                window.location="http://www.tutorialspoint.com";
+                
+            }
+        </script>
+
+
+
+    </h:head>
+
+    <h:body class="full-width">
+        <f:view locale="#{localeController.locale}">
+            <div class="loader"></div> 
+            <section id="container" class="hr-menu" >
+
+                <ui:include src="/sc/header.xhtml"/>  
+
+
+                <section id="main-content">
+                    <section class="wrapper">
+
+                        <h:form id="DashboardForm">  
+
+                            <div class="row dashboard-body">
+                                <div class="row">
+                                    <div class="col-md-7">
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <section class="panel">
+                                                    <header class="panel-heading">
+                                                        <span class="panel-heading-title">#{messages.KeyPerformanceIndicators}</span>  
+                                                    </header>
+                                                    <header class="panel-heading2">
+                                                        <div class="period">
+                                                            <p:selectOneMenu class="period-menu"  value="#{dashBoard.period}" id="compareTableMenu" widgetVar="compareTableMenu" required="true" requiredMessage="#{messages.CustomerRequired}">   
+                                                                <p:ajax process="@this" listener="#{dashBoard.performanceIndicators}" oncomplete="updateCompareTable(xhr, status, args);"/>
+                                                                <f:selectItem itemLabel="#{messages.ThisMonthVsLastMonth}" itemValue="Month"/>
+                                                                <f:selectItem itemLabel="#{messages.ThisWeekVsLastWeek}" itemValue="Week"/>
+                                                                <f:selectItem itemLabel="#{messages.TodayVsYesterday}" itemValue="Day"/>
+                                                                <f:selectItem itemLabel="#{messages.ThisQuarterVsLastQuarter}" itemValue="Quarter"/>
+                                                            </p:selectOneMenu>
+                                                        </div>
+                                                    </header> 
+                                                    <div class="panel-body">
+                                                        <div id="compareTable">
+                                                            <table class="table">
+                                                                <thead>
+                                                                    <tr class="compareTable_header">
+                                                                        <th>#{messages.Indicator}</th>
+                                                                        <th></th>
+                                                                        <th></th>
+                                                                        <th>#{messages.Change}</th>
+                                                                        <th>#{messages.Change}(%)</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <tr class="salesOrderCount">
+                                                                        <td>#{messages.SalesOrdersNumber}</td>
+                                                                        <td></td>
+                                                                        <td></td>
+                                                                        <td></td>
+                                                                        <td></td>
+                                                                    </tr>
+                                                                    <tr class="salesAmount">
+                                                                        <td>#{messages.SalesInvoiced}</td>
+                                                                        <td></td>
+                                                                        <td></td>
+                                                                        <td></td>
+                                                                        <td></td>
+                                                                    </tr>
+                                                                    <tr class="cogs">
+                                                                        <td>#{messages.COGS}</td>
+                                                                        <td></td>
+                                                                        <td></td>
+                                                                        <td></td>
+                                                                        <td></td>
+                                                                    </tr>
+                                                                    <tr class="profit">
+                                                                        <td>#{messages.GrossProfit}</td>
+                                                                        <td></td>
+                                                                        <td></td>
+                                                                        <td></td>
+                                                                        <td></td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </section> 
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <section class="panel">
+                                                    <header class="panel-heading" >                                              
+                                                        <span class="panel-heading-title">#{messages.SalesVsCOGSVsProfit}</span> 
+                                                        <div  class="btn-group pull-right stat-tab chart-nav">
+                                                            <a href="#salesCogsProfitBarTab" class="btn stat-btn active" data-toggle="tab"><i class="fa fa-bar-chart"></i></a>
+                                                            <a href="#salesCogsProfitLineTab" class="btn stat-btn" data-toggle="tab"><i class="fa fa-area-chart"></i></a>
+                                                        </div>
+                                                    </header>
+                                                    <header class="panel-heading2">
+                                                        <div class="period">
+                                                            <p:selectOneMenu  value="#{dashBoard.period}" class="period-menu" widgetVar="salesCogsProfitMenu">   
+                                                                <p:ajax process="@this" listener="#{dashBoard.salesCogsProfit}" oncomplete="updateSalesCogsProfit(xhr, status, args);"/>
+                                                                <f:selectItem itemLabel="#{messages.MonthIntervalLabel}" itemValue="Month"/>
+                                                                <f:selectItem itemLabel="#{messages.QuarterIntervalLabel}" itemValue="Quarter"/>  
+                                                                <f:selectItem itemLabel="#{messages.WeekIntervalLabel}" itemValue="Week"/>
+                                                                <f:selectItem itemLabel="#{messages.DayIntervalLabel}" itemValue="Day"/>                                  
+                                                            </p:selectOneMenu>
+                                                        </div>
+                                                    </header>
+                                                    <div class="panel-body">
+                                                        <div class="tab-content">
+                                                            <div id="salesCogsProfitBarTab" class="tab-pane active" >
+                                                                <div class="row">
+                                                                    <div class="col-md-12">                                                                
+                                                                        <div id="salesCogsProfitBar" style="height:250px;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div id="salesCogsProfitLineTab" class="tab-pane" >
+                                                                <div class="row">
+                                                                    <div class="col-md-12">                                                                
+                                                                        <div id="salesCogsProfitLine" style="height:250px;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>                                           
+                                                </section>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <section class="panel">
+                                                    <header class="panel-heading" >                                              
+                                                        <span class="panel-heading-title">#{messages.PurchasesInvoiced}</span>                                                  
+                                                        <div  class="btn-group pull-right nav stat-tab chart-nav">
+                                                            <a href="#purchasesAmountBarTab" class="btn stat-btn" data-toggle="tab"><i class="fa fa-bar-chart"></i></a>
+                                                            <a href="#purchasesAmountLineTab" class="btn stat-btn active" data-toggle="tab"><i class="fa fa-area-chart"></i></a>
+                                                        </div>
+                                                    </header>
+                                                    <header class="panel-heading2">
+                                                        <div class="period">
+                                                            <p:selectOneMenu  value="#{dashBoard.period}" class="period-menu" widgetVar="purchasesAmountMenu">   
+                                                                <p:ajax process="@this" listener="#{dashBoard.purchasesAmount}" oncomplete="updatePurchasesAmount(xhr, status, args);"/>
+                                                                <f:selectItem itemLabel="#{messages.MonthIntervalLabel}" itemValue="Month"/>
+                                                                <f:selectItem itemLabel="#{messages.QuarterIntervalLabel}" itemValue="Quarter"/>  
+                                                                <f:selectItem itemLabel="#{messages.WeekIntervalLabel}" itemValue="Week"/>
+                                                                <f:selectItem itemLabel="#{messages.DayIntervalLabel}" itemValue="Day"/>
+                                                            </p:selectOneMenu>
+                                                        </div>
+                                                    </header> 
+                                                    <div class="panel-body">
+                                                        <div class="tab-content">
+                                                            <div id="purchasesAmountBarTab" class="tab-pane" >
+                                                                <div class="row">
+                                                                    <div class="col-md-12">                                                                
+                                                                        <div id="purchasesAmountBar" style="height:250px;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div id="purchasesAmountLineTab" class="tab-pane active" >
+                                                                <div class="row">
+                                                                    <div class="col-md-12">                                                                
+                                                                        <div id="purchasesAmountLine" style="height:250px;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </section>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <section class="panel">
+                                                    <header class="panel-heading" >                                              
+                                                        <span class="panel-heading-title">#{messages.VendorPayments}</span>                                                  
+                                                        <div  class="btn-group pull-right nav stat-tab chart-nav">
+                                                            <a href="#vendorPaymentBarTab" class="btn stat-btn active" data-toggle="tab"><i class="fa fa-bar-chart"></i></a>
+                                                            <a href="#vendorPaymentLineTab" class="btn stat-btn" data-toggle="tab"><i class="fa fa-area-chart"></i></a>
+                                                        </div>
+                                                    </header>
+                                                    <header class="panel-heading2">
+                                                        <div class="period">
+                                                            <p:selectOneMenu  value="#{dashBoard.period}" class="period-menu" widgetVar="vendorPaymentMenu">   
+                                                                <p:ajax process="@this" listener="#{dashBoard.vendorPayment}" oncomplete="updateVendorPayment(xhr, status, args);"/>
+                                                                <f:selectItem itemLabel="#{messages.MonthIntervalLabel}" itemValue="Month"/>
+                                                                <f:selectItem itemLabel="#{messages.QuarterIntervalLabel}" itemValue="Quarter"/>  
+                                                                <f:selectItem itemLabel="#{messages.WeekIntervalLabel}" itemValue="Week"/>
+                                                                <f:selectItem itemLabel="#{messages.DayIntervalLabel}" itemValue="Day"/>
+                                                            </p:selectOneMenu>
+                                                        </div>
+                                                    </header> 
+                                                    <div class="panel-body">
+                                                        <div class="tab-content">
+                                                            <div id="vendorPaymentBarTab" class="tab-pane  active" >
+                                                                <div class="row">
+                                                                    <div class="col-md-12">                                                                
+                                                                        <div id="vendorPaymentBar" style="height:250px;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div id="vendorPaymentLineTab" class="tab-pane" >
+                                                                <div class="row">
+                                                                    <div class="col-md-12">                                                                
+                                                                        <div id="vendorPaymentLine" style="height:250px;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </section>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <section class="panel">
+                                                    <header class="panel-heading" >                                              
+                                                        <span class="panel-heading-title">#{messages.CustomerPayments}</span>                                                  
+                                                        <div  class="btn-group pull-right nav stat-tab chart-nav">
+                                                            <a href="#customerPaymentBarTab" class="btn stat-btn active" data-toggle="tab"><i class="fa fa-bar-chart"></i></a>
+                                                            <a href="#customerPaymentLineTab" class="btn stat-btn" data-toggle="tab"><i class="fa fa-area-chart"></i></a>
+                                                        </div>
+                                                    </header>
+                                                    <header class="panel-heading2">
+                                                        <div class="period">
+                                                            <p:selectOneMenu  value="#{dashBoard.period}" class="period-menu" widgetVar="customerPaymentMenu">   
+                                                                <p:ajax process="@this" listener="#{dashBoard.customerPayment}" oncomplete="updateCustomerPayment(xhr, status, args);"/>
+                                                                <f:selectItem itemLabel="#{messages.MonthIntervalLabel}" itemValue="Month"/>
+                                                                <f:selectItem itemLabel="#{messages.QuarterIntervalLabel}" itemValue="Quarter"/>  
+                                                                <f:selectItem itemLabel="#{messages.WeekIntervalLabel}" itemValue="Week"/>
+                                                                <f:selectItem itemLabel="#{messages.DayIntervalLabel}" itemValue="Day"/>
+                                                            </p:selectOneMenu>
+                                                        </div>
+                                                    </header> 
+                                                    <div class="panel-body">
+                                                        <div class="tab-content">
+                                                            <div id="customerPaymentBarTab" class="tab-pane active" >
+                                                                <div class="row">
+                                                                    <div class="col-md-12">                                                                
+                                                                        <div id="customerPaymentBar" style="height:250px;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div id="customerPaymentLineTab" class="tab-pane" >
+                                                                <div class="row">
+                                                                    <div class="col-md-12">                                                                
+                                                                        <div id="customerPaymentLine" style="height:250px;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </section>
+                                            </div>
+                                        </div>  
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <section class="panel" style="height:300px;  ">
+                                                    <header class="panel-heading" >                                              
+                                                        <span class="panel-heading-title">#{messages.NewCustomers}</span>                                                  
+                                                        <div  class="btn-group pull-right nav stat-tab chart-nav">
+                                                            <a href="#newCustomersBarTab" class="btn stat-btn" data-toggle="tab"><i class="fa fa-bar-chart"></i></a>
+                                                            <a href="#newCustomersLineTab" class="btn stat-btn active" data-toggle="tab"><i class="fa fa-area-chart"></i></a>
+                                                        </div>
+                                                    </header>
+                                                    <header class="panel-heading2">
+                                                        <div class="period">
+                                                            <p:selectOneMenu  value="#{dashBoard.period}" class="period-menu" widgetVar="newCustomersMenu">   
+                                                                <p:ajax process="@this" listener="#{dashBoard.newCustomers}" oncomplete="updateNewCustomers(xhr, status, args);"/>
+                                                                <f:selectItem itemLabel="#{messages.MonthIntervalLabel}" itemValue="Month"/>
+                                                                <f:selectItem itemLabel="#{messages.QuarterIntervalLabel}" itemValue="Quarter"/>  
+                                                                <f:selectItem itemLabel="#{messages.WeekIntervalLabel}" itemValue="Week"/>
+                                                                <f:selectItem itemLabel="#{messages.DayIntervalLabel}" itemValue="Day"/>
+                                                            </p:selectOneMenu>
+                                                        </div>
+                                                    </header> 
+                                                    <div class="panel-body">
+                                                        <div class="tab-content">
+                                                            <div id="newCustomersBarTab" class="tab-pane" >
+                                                                <div class="row">
+                                                                    <div class="col-md-12">                                                                
+                                                                        <div id="newCustomersBar" style="height:250px;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div id="newCustomersLineTab" class="tab-pane active" >
+                                                                <div class="row">
+                                                                    <div class="col-md-12">                                                                
+                                                                        <div id="newCustomersLine" style="height:250px;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </section>
+                                            </div>
+                                        </div> 
+                                    </div>
+                                    <div class="col-md-5">
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <section class="panel">
+                                                    <div class="panel-body">
+                                                        <div id="payableReceivable">
+                                                            <table class="table">
+                                                                <tbody>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </section>                                                
+                                            </div> 
+                                        </div> 
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <section class="panel">
+                                                    <header class="panel-heading">
+                                                        <span class="panel-heading-title">#{messages.Reminders}</span>
+                                                    </header>
+                                                    <div class="panel-body">
+                                                        <div id="reminders">
+                                                            <table class="table">
+                                                                <tbody>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </section>                                               
+                                            </div> 
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <section class="panel">
+                                                    <header class="panel-heading">
+                                                        <span class="panel-heading-title">#{messages.TopSalesByProduct}</span>
+                                                        <div  class="btn-group pull-right nav stat-tab chart-nav">
+                                                            <a href="#topSalesByProductTableTab" class="btn stat-btn active" data-toggle="tab"><i class="fa fa-th-list"></i></a>
+                                                            <a href="#topSalesByProductBarTab" class="btn stat-btn" data-toggle="tab"><i class="fa fa-pie-chart"></i></a>
+                                                        </div>
+                                                    </header>
+                                                    <header class="panel-heading2">
+                                                        <div class="period">
+                                                            <p:selectOneMenu value="#{dashBoard.period}" class="period-menu">   
+                                                                <p:ajax process="@this" listener="#{dashBoard.topSalesByProduct}" oncomplete="updateTopSalesByProduct(xhr, status, args);"/>
+                                                                <f:selectItem itemLabel="#{messages.ThisQuarter}" itemValue="Quarter"/>
+                                                                <f:selectItem itemLabel="#{messages.ThisMonth}" itemValue="Month"/>
+                                                                <f:selectItem itemLabel="#{messages.ThisWeek}" itemValue="Week"/>
+                                                                <f:selectItem itemLabel="#{messages.Today}" itemValue="Day"/>
+                                                            </p:selectOneMenu>
+                                                        </div>
+                                                    </header>
+                                                    <div class="panel-body">
+                                                        <div class="tab-content">
+                                                            <div id="topSalesByProductTableTab" class="tab-pane active" >
+                                                                <div class="row">
+                                                                    <div class="col-md-12">                                                                
+                                                                        <table id="topSalesByProductTable" class="table">
+                                                                            <tbody>
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div id="topSalesByProductBarTab" class="tab-pane" >
+                                                                <div class="row">
+                                                                    <div class="col-md-12">                                                                
+                                                                        <div id="topSalesByProductBar" style="height:250px;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </section>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <section class="panel">
+                                                    <header class="panel-heading">
+                                                        <span class="panel-heading-title">#{messages.TopPurchasesByProduct}</span>
+                                                        <div  class="btn-group pull-right nav stat-tab chart-nav">
+                                                            <a href="#topPurchasesByProductTableTab" class="btn stat-btn active" data-toggle="tab"><i class="fa fa-th-list"></i></a>
+                                                            <a href="#topPurchasesByProductBarTab" class="btn stat-btn" data-toggle="tab"><i class="fa fa-pie-chart"></i></a>
+                                                        </div>
+                                                    </header>
+                                                    <header class="panel-heading2">
+                                                        <div class="period">
+                                                            <p:selectOneMenu value="#{dashBoard.period}" class="period-menu">   
+                                                                <p:ajax process="@this" listener="#{dashBoard.topPurchasesByProduct}" oncomplete="updateTopPurchasesByProduct(xhr, status, args);"/>
+                                                                <f:selectItem itemLabel="#{messages.ThisQuarter}" itemValue="Quarter"/>
+                                                                <f:selectItem itemLabel="#{messages.ThisMonth}" itemValue="Month"/>
+                                                                <f:selectItem itemLabel="#{messages.ThisWeek}" itemValue="Week"/>
+                                                                <f:selectItem itemLabel="#{messages.Today}" itemValue="Day"/>
+                                                            </p:selectOneMenu>
+                                                        </div>
+                                                    </header>
+                                                    <div class="panel-body">
+                                                        <div class="tab-content">
+                                                            <div id="topPurchasesByProductTableTab" class="tab-pane active" >
+                                                                <div class="row">
+                                                                    <div class="col-md-12">                                                                
+                                                                        <table id="topPurchasesByProductTable" class="table">
+                                                                            <tbody>
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div id="topPurchasesByProductBarTab" class="tab-pane" >
+                                                                <div class="row">
+                                                                    <div class="col-md-12">                                                                
+                                                                        <div id="topPurchasesByProductBar" style="height:250px;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </section>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <section class="panel">
+                                                    <header class="panel-heading">
+                                                        <span class="panel-heading-title">#{messages.TopSalesByCustomer}</span>
+                                                        <div  class="btn-group pull-right nav stat-tab chart-nav">
+                                                            <a href="#topSalesByCustomerTableTab" class="btn stat-btn active" data-toggle="tab"><i class="fa fa-th-list"></i></a>
+                                                            <a href="#topSalesByCustomerBarTab" class="btn stat-btn" data-toggle="tab"><i class="fa fa-pie-chart"></i></a>
+                                                        </div>
+                                                    </header>
+                                                    <header class="panel-heading2">
+                                                        <div class="period">
+                                                            <p:selectOneMenu value="#{dashBoard.period}" class="period-menu">   
+                                                                <p:ajax process="@this" listener="#{dashBoard.topSalesByCustomer}" oncomplete="updateTopSalesByCustomer(xhr, status, args);"/>
+                                                                <f:selectItem itemLabel="#{messages.ThisQuarter}" itemValue="Quarter"/>
+                                                                <f:selectItem itemLabel="#{messages.ThisMonth}" itemValue="Month"/>
+                                                                <f:selectItem itemLabel="#{messages.ThisWeek}" itemValue="Week"/>
+                                                                <f:selectItem itemLabel="#{messages.Today}" itemValue="Day"/>
+                                                            </p:selectOneMenu>
+                                                        </div>
+                                                    </header>
+                                                    <div class="panel-body">
+                                                        <div class="tab-content">
+                                                            <div id="topSalesByCustomerTableTab" class="tab-pane active" >
+                                                                <div class="row">
+                                                                    <div class="col-md-12">                                                                
+                                                                        <table id="topSalesByCustomerTable" class="table">
+                                                                            <tbody>
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div id="topSalesByCustomerBarTab" class="tab-pane" >
+                                                                <div class="row">
+                                                                    <div class="col-md-12">                                                                
+                                                                        <div id="topSalesByCustomerBar" style="height:250px;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </section>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <section class="panel">
+                                                    <header class="panel-heading">
+                                                        <span class="panel-heading-title">#{messages.TopPurchasesByVendor}</span>
+                                                        <div  class="btn-group pull-right nav stat-tab chart-nav">
+                                                            <a href="#topPurchasesByVendorTableTab" class="btn stat-btn active" data-toggle="tab"><i class="fa fa-th-list"></i></a>
+                                                            <a href="#topPurchasesByVendorBarTab" class="btn stat-btn" data-toggle="tab"><i class="fa fa-pie-chart"></i></a>
+                                                        </div>
+                                                    </header>
+                                                    <header class="panel-heading2">
+                                                        <div class="period">
+                                                            <p:selectOneMenu value="#{dashBoard.period}" class="period-menu" id="topPurchasesByVendor" widgetVar="topPurchasesByVendor">   
+                                                                <p:ajax process="@this" listener="#{dashBoard.topPurchasesByVendor}" oncomplete="updateTopPurchasesByVendor(xhr, status, args);"/>
+                                                                <f:selectItem itemLabel="#{messages.ThisQuarter}" itemValue="Quarter"/>
+                                                                <f:selectItem itemLabel="#{messages.ThisMonth}" itemValue="Month"/>
+                                                                <f:selectItem itemLabel="#{messages.ThisWeek}" itemValue="Week"/>
+                                                                <f:selectItem itemLabel="#{messages.Today}" itemValue="Day"/>
+                                                            </p:selectOneMenu>
+                                                        </div>
+                                                    </header>
+                                                    <div class="panel-body">
+                                                        <div class="tab-content">
+                                                            <div id="topPurchasesByVendorTableTab" class="tab-pane active" >
+                                                                <div class="row">
+                                                                    <div class="col-md-12">                                                                
+                                                                        <table id="topPurchasesByVendorTable" class="table">
+                                                                            <tbody>
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div id="topPurchasesByVendorBarTab" class="tab-pane" >
+                                                                <div class="row">
+                                                                    <div class="col-md-12">                                                                
+                                                                        <div id="topPurchasesByVendorBar" style="height:250px;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </section>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <section class="panel">
+                                                    <header class="panel-heading">
+                                                        <span class="panel-heading-title">#{messages.TopReceivablesByCustomer}</span>
+                                                        <div  class="btn-group pull-right nav stat-tab chart-nav">
+                                                            <a href="#topReceivablesByCustomerTableTab" class="btn stat-btn active" data-toggle="tab"><i class="fa fa-th-list"></i></a>
+                                                            <a href="#topReceivablesByCustomerBarTab" class="btn stat-btn" data-toggle="tab"><i class="fa fa-pie-chart"></i></a>
+                                                        </div>
+                                                    </header>
+                                                    <div class="panel-body">
+                                                        <div class="tab-content">
+                                                            <div id="topReceivablesByCustomerTableTab" class="tab-pane active" >
+                                                                <div class="row">
+                                                                    <div class="col-md-12">                                                                
+                                                                        <table id="topReceivablesByCustomerTable" class="table">
+                                                                            <tbody>
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div id="topReceivablesByCustomerBarTab" class="tab-pane" >
+                                                                <div class="row">
+                                                                    <div class="col-md-12">                                                                
+                                                                        <div id="topReceivablesByCustomerBar" style="height:250px;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </section>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <section class="panel">
+                                                    <header class="panel-heading">
+                                                        <span class="panel-heading-title">#{messages.TopPayablesByVendor}</span>
+                                                        <div  class="btn-group pull-right nav stat-tab chart-nav">
+                                                            <a href="#topPayablesByVendorTableTab" class="btn stat-btn active" data-toggle="tab"><i class="fa fa-th-list"></i></a>
+                                                            <a href="#topPayablesByVendorBarTab" class="btn stat-btn" data-toggle="tab"><i class="fa fa-pie-chart"></i></a>
+                                                        </div>
+                                                    </header>
+                                                    <div class="panel-body">
+                                                        <div class="tab-content">
+                                                            <div id="topPayablesByVendorTableTab" class="tab-pane active" >
+                                                                <div class="row">
+                                                                    <div class="col-md-12">                                                                
+                                                                        <table id="topPayablesByVendorTable" class="table">
+                                                                            <tbody>
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div id="topPayablesByVendorBarTab" class="tab-pane" >
+                                                                <div class="row">
+                                                                    <div class="col-md-12">                                                                
+                                                                        <div id="topPayablesByVendorBar" style="height:250px;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </section>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </h:form> 
+                    </section>
+                </section>
+            </section>
+            <ui:include src="/sc/ajaxLoader.xhtml"/> 
+        </f:view>
+
+        <script type="text/javascript">
+
+                    var compareTable_JSON = JSON.parse('#{dashBoard.getCompareTable()}');
+                    var salesCogsProfit_JSON = JSON.parse('#{dashBoard.getSalesCogsProfit()}');
+                    var purchasesAmount_JSON = JSON.parse('#{dashBoard.getPurchasesAmount()}');
+                    var topSalesByProduct_JSON = JSON.parse('#{dashBoard.getTopSalesByProduct()}');
+                    var topPurchasesByProduct_JSON = JSON.parse('#{dashBoard.getTopPurchasesByProduct()}');
+                    var topPurchasesByVendor_JSON = JSON.parse('#{dashBoard.getTopPurchasesByVendor()}');
+                    var topSalesByCustomer_JSON = JSON.parse('#{dashBoard.getTopSalesByCustomer()}');
+                    var topReceivablesByCustomer_JSON = JSON.parse('#{dashBoard.getTopReceivablesByCustomer()}');
+                    var topPayablesByVendor_JSON = JSON.parse('#{dashBoard.getTopPayablesByVendor()}');
+                    var newCustomers_JSON = JSON.parse('#{dashBoard.getNewCustomers()}');
+                    var customerPayment_JSON = JSON.parse('#{dashBoard.getCustomerPayment()}');
+                    var vendorPayment_JSON = JSON.parse('#{dashBoard.getVendorPayment()}');
+                    var reminders_JSON = JSON.parse('#{dashBoard.getReminders()}');
+                    var payableReceivable_JSON = JSON.parse('#{dashBoard.getPayableReceivable()}');
+                    var purchasesAmountBarChart;
+                    var purchasesAmountLineChart;
+                    var salesCogsProfitBarChart;
+                    var salesCogsProfitLineChart;
+                    var vendorPaymentBarChart;
+                    var vendorPaymentLineChart;
+                    var customerPaymentBarChart;
+                    var customerPaymentLineChart;
+                    var newCustomersBarChart;
+                    var newCustomersLineChart;
+                    var purchasesAmountArray;
+                    var salesCogsProfitArray;
+                    var vendorPaymentArray;
+                    var customerPaymentArray;
+                    var newCustomersArray;
+                    var topPurchasesByProductArray;
+                    var topPurchasesByVendorArray;
+                    var topSalesByProductArray;
+                    var topSalesByCustomerArray;
+                    var topPayablesByVendorArray;
+                    var topReceivablesByCustomerArray;
+                    
+                    var today = '#{messages.Today}';
+                    var yesterday = '#{messages.Yesterday}';
+                    var thisMonth = '#{messages.ThisMonth}';
+                    var lastMonth = '#{messages.LastMonth}';
+                    var thisWeek = '#{messages.ThisWeek}';
+                    var lastWeek = '#{messages.LastWeek}';
+                    var thisQuarter = '#{messages.ThisQuarter}';
+                    var lastQuarter = '#{messages.LastQuarter}';
+                    
+                    var currency = '#{messages.Currency}';
+                    var salesToConfirm = '#{messages.SalesToConfirm}';
+                    var purchasesToConfirm = '#{messages.PurchasesToConfirm}';
+                    var invoicesToConfirm = '#{messages.InvoicesToConfirm}';
+                    var billsToConfirm = '#{messages.BillsToConfirm}';
+                    var receivables = '#{messages.Receivables}';
+                    var payables = '#{messages.Payables}';
+                    var sales = '#{messages.Sales}';
+                    var COGS = '#{messages.COGS}';
+                    var profit = '#{messages.Profit}';
+                    var purchases = '#{messages.Purchases}';
+                    var newCustomers = '#{messages.NewCustomers}';
+                    var bank = '#{messages.Bank}';
+                    var cash = '#{messages.Cash}';                    
+                    
+                    
+                    $(document).ready(function () {
+                    compareTable();
+                    fillSalesCogsProfitArray();
+                    salesCogsProfitBar();
+                    fillPurchasesAmountArray();
+                    purchasesAmountLine();
+                    fillVendorPaymentArray();
+                    vendorPaymentBar();
+                    fillCustomerPaymentArray();
+                    customerPaymentBar();
+                    fillNewCustomersArray();
+                    newCustomersLine();
+                    fillTopSalesByProductArray();
+                    topSalesByProductTable();
+                    fillTopPurchasesByProductArray();
+                    topPurchasesByProductTable();
+                    fillTopSalesByCustomerArray();
+                    topSalesByCustomerTable();
+                    fillTopPurchasesByVendorArray();
+                    topPurchasesByVendorTable();
+                    fillTopReceivablesByCustomerArray();
+                    topReceivablesByCustomerTable();
+                    fillTopPayablesByVendorArray();
+                    topPayablesByVendorTable();
+                    reminders();
+                    payableReceivable();
+            });
+                    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            if ($(e.target).attr('href') === '#purchasesAmountBarTab' &amp; $('#purchasesAmountBar').contents().length === 0) {
+            if (purchasesAmountArray.length > 0){
+            purchasesAmountBar();
+            }
+            }
+
+            else if ($(e.target).attr('href') === '#salesCogsProfitLineTab' &amp; $('#salesCogsProfitLine').contents().length === 0) {
+            if (salesCogsProfitArray.length > 0){
+            salesCogsProfitLine();
+            }
+            }
+
+            else if ($(e.target).attr('href') === '#vendorPaymentLineTab' &amp; $('#vendorPaymentLine').contents().length === 0) {
+            if (vendorPaymentArray.length > 0){
+            vendorPaymentLine();
+            }
+            }
+
+            else if ($(e.target).attr('href') === '#customerPaymentLineTab' &amp; $('#customerPaymentLine').contents().length === 0) {
+            if (customerPaymentArray.length > 0){
+            customerPaymentLine();
+            }
+            }
+
+            else if ($(e.target).attr('href') === '#newCustomersBarTab' &amp; $('#newCustomersBar').contents().length === 0) {
+            if (newCustomersArray.length > 0){
+            newCustomersBar();
+            }
+            }
+
+            else if ($(e.target).attr('href') === '#topPurchasesByProductBarTab' &amp; $('#topPurchasesByProductBar').contents().length === 0) {
+            if (topPurchasesByProductArray.length > 0){
+            topPurchasesByProductBar();
+            }
+            }
+
+            else if ($(e.target).attr('href') === '#topPurchasesByVendorBarTab' &amp; $('#topPurchasesByVendorBar').contents().length === 0) {
+            if (topPurchasesByVendorArray.length > 0){
+            topPurchasesByVendorBar();
+            }
+            }
+
+            else if ($(e.target).attr('href') === '#topSalesByProductBarTab' &amp; $('#topSalesByProductBar').contents().length === 0) {
+            if (topSalesByProductArray.length > 0){
+            topSalesByProductBar();
+            }
+            }
+
+            else if ($(e.target).attr('href') === '#topSalesByCustomerBarTab' &amp; $('#topSalesByCustomerBar').contents().length === 0) {
+            if (topSalesByCustomerArray.length > 0){
+            topSalesByCustomerBar();
+            }
+            }
+
+            else if ($(e.target).attr('href') === '#topPayablesByVendorBarTab' &amp; $('#topPayablesByVendorBar').contents().length === 0) {
+            if (topPayablesByVendorArray.length > 0){
+            topPayablesByVendorBar();
+            }
+            }
+
+            else if ($(e.target).attr('href') === '#topReceivablesByCustomerBarTab' &amp; $('#topReceivablesByCustomerBar').contents().length === 0) {
+            if (topReceivablesByCustomerArray.length > 0){
+            topReceivablesByCustomerBar();
+            }
+            }
+
+            });
+                    $('.stat-tab .stat-btn').click(function () {
+
+            $(this).addClass('active');
+                    $(this).siblings('.btn').removeClass('active');
+            });
+
+        </script>
+
+
+    </h:body>
+</html>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:p="http://primefaces.org/ui">
+
+
+    <p:dialog id="QuantityUpdateDialog" styleClass="disable-scroll" widgetVar="QuantityUpdateDialog" modal="true" resizable="false" appendTo="@(body)" header="#{messages.UpdateProductQuantity}" width="900" closeOnEscape="true">
+        <h:form id="QuantityUpdateForm">
+
+            <div class="row" style="padding-left: 20px; padding-bottom:10px; padding-top:10px">
+                <div class="col-md-6 form-label">
+                    <p:outputLabel value="#{messages.Product}"/>
+                </div> 
+                <div class="col-md-6">
+                    <h:outputText value="#{inventoryController.productInventory.product.name}"/>
+                </div>
+            </div>
+            
+            <div class="row" style="padding-left: 20px; padding-bottom:10px;">
+                <div class="col-md-6 form-label">
+                    <p:outputLabel value="#{messages.NewQuantityOnHand}" for="newQuantity"/>
+                </div> 
+                <div class="col-md-6">
+                    <p:spinner value="#{inventoryController.newQuantityOnHand}" 
+                                           class="required" 
+                                           id="newQuantity"  
+                                           stepFactor="#{messages.stepFactor}"
+                                           size="14"                                           
+                                           required="true" 
+                                           requiredMessage="#{messages.QuantityOnHandRequired}" 
+                                           converterMessage="#{messages.InvalidOnHandQuantity}"/>   
+                </div> 
+            </div>
+
+            <div class="row dialog-footer">
+                <div class="col-md-12">
+                    <p:commandButton class="btnn btnn-primary" value="#{messages.Apply}" process="@form"  actionListener="#{inventoryController.updateQuantity}"  update=":InventoryForm:content, :QuantityUpdateForm,:InventoryForm:msgs" oncomplete="handleSubmit(xhr,status,args,PF('QuantityUpdateDialog'));"/>
+                    <a class="btnn btnn-default jsf-btn"  onclick="PF('QuantityUpdateDialog').hide();">#{messages.Cancel}</a>
+                </div> 
+            </div>   
+        </h:form>
+    </p:dialog>
+
+</ui:composition>

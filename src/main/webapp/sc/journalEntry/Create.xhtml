@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+
+    <ui:composition>
+
+        <p:dialog id="JournalEntryCreateDlg" widgetVar="JournalEntryCreateDialog" modal="true" resizable="false" appendTo="@(body)" header="#{messages.CreateJournalEntryTitle}" closeOnEscape="true">
+
+            <h:form id="JournalEntryCreateForm">
+
+                <h:panelGroup id="display" rendered="#{journalEntryController.selected != null}">
+                    <p:panelGrid columns="2" columnClasses="column">
+
+                        <p:outputLabel value="#{messages.CreateJournalEntryLabel_name}" for="name" />
+                        <p:inputText id="name" value="#{journalEntryController.selected.name}" title="#{messages.CreateJournalEntryTitle_name}" size="64" maxlength="64"/>
+
+                        <p:outputLabel value="#{messages.CreateJournalEntryLabel_ref}" for="ref" />
+                        <p:inputText id="ref" value="#{journalEntryController.selected.ref}" title="#{messages.CreateJournalEntryTitle_ref}" size="64" maxlength="64"/>
+
+                        <p:outputLabel value="#{messages.CreateJournalEntryLabel_date}" for="date" />
+                        <p:calendar id="date" pattern="MM/dd/yyyy" value="#{journalEntryController.selected.date}" title="#{messages.CreateJournalEntryTitle_date}"  showOn="button"/>
+
+                        <p:outputLabel value="#{messages.CreateJournalEntryLabel_state}" for="state" />
+                        <p:inputTextarea rows="4" cols="30" id="state" value="#{journalEntryController.selected.state}" title="#{messages.CreateJournalEntryTitle_state}" />
+
+                        <p:outputLabel value="#{messages.CreateJournalEntryLabel_active}" for="active" />
+                        <p:selectBooleanCheckbox id="active" value="#{journalEntryController.selected.active}" required="true" requiredMessage="#{messages.CreateJournalEntryRequiredMessage_active}"/>
+
+                        <p:outputLabel value="#{messages.CreateJournalEntryLabel_journalId}" for="journalId" />
+                        <p:selectOneMenu id="journalId" value="#{journalEntryController.selected.journalId}"  converter="journalConverter">
+                            <f:selectItem itemLabel="#{messages.SelectOneMessage}"/>
+                            <f:selectItems value="#{journalController.items}"
+                                           var="journalIdItem"
+                                           itemValue="#{journalIdItem}"
+                                           itemLabel="#{journalIdItem.name.toString()}"
+                                           />
+
+                        </p:selectOneMenu>
+
+                        <p:outputLabel value="#{messages.CreateJournalEntryLabel_partnerId}" for="partnerId" />
+                        <p:selectOneMenu id="partnerId" value="#{journalEntryController.selected.partnerId}"  converter="partnerConverter">
+                            <f:selectItem itemLabel="#{messages.SelectOneMessage}"/>
+                            <f:selectItems value="#{partnerController.items}"
+                                           var="partnerIdItem"
+                                           itemValue="#{partnerIdItem}"
+                                           itemLabel="#{partnerIdItem.name.toString()}"
+                                           />
+
+                        </p:selectOneMenu>
+
+                        <p:outputLabel value="#{messages.CreateJournalEntryLabel_periodId}" for="periodId" />
+                        <p:selectOneMenu id="periodId" value="#{journalEntryController.selected.periodId}"  converter="periodConverter">
+                            <f:selectItem itemLabel="#{messages.SelectOneMessage}"/>
+                            <f:selectItems value="#{periodController.items}"
+                                           var="periodIdItem"
+                                           itemValue="#{periodIdItem}"
+                                           itemLabel="#{periodIdItem.name.toString()}"
+                                           />
+
+                        </p:selectOneMenu>
+                    </p:panelGrid>
+                    <p:commandButton actionListener="#{journalEntryController.saveNew}" value="#{messages.Save}" update="display,:JournalEntryListForm:datalist,:growl" oncomplete="handleSubmit(xhr,status,args,PF('JournalEntryCreateDialog'));"/>
+                    <p:commandButton value="#{messages.Cancel}" onclick="PF('JournalEntryCreateDialog').hide()"/>
+                </h:panelGroup>
+
+            </h:form>
+
+        </p:dialog>
+
+    </ui:composition>
+
+</html>
