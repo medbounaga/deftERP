@@ -19,8 +19,14 @@
 * Flexible configuration: taxes, accounting journals and accounts, product categories, units of measure, etc.
 * ........
 
-## Test this application on OpenShift ### 
+## Test this application on OpenShift 
 username: github -- password:github
 
-<a href="http://erp-mohammedbounaga.rhcloud.com/"><img src="https://allclouds.net/wp-content/uploads/2015/08/OpenShift-Logo-e1440595191561.png"/></a>
+## Bugs & Workaround
 
+
+## Licensing
+
+This work is licensed under an <a rel="license" href="http://www.apache.org/licenses/LICENSE-2.0">Apache License Version 2.0</a>.
+
+<div class="footer"><span class="footerTitle"><span class="uc">M</span>ohammed<span class="uc">B</span>ounaga</span></div>
