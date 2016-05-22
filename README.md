@@ -6,6 +6,8 @@
 
 [Download the code from GitHub](https://github.com/medbounaga/CasaERP)
 
+<img src="https://s32.postimg.org/loi5yboyt/Dashboard.png"/>
+
 ## Features
 
 * Dashboard: performance reports and charts for different time periods organized by different criteria.
@@ -14,16 +16,33 @@
 * Track order status.
 * Track product availability, reservation, future inventory forecasts, and current inventory value.
 * Generate PDF documents.
-* Generate accounting entries.
+* Generate accounting journal entries.
 * Manage customer and vendor profiles.
 * Flexible configuration: taxes, accounting journals and accounts, product categories, units of measure, etc.
 * ........
+
+
+## Releases
+
+
+v1.1.1 (In progress)
+
+Add support for French language, add manufacturing module, accounting module improvements
+
+v1.1.0
+
+Dashboard, configuration, user interface improvements, Accounting modules, generate PDF documents
+
+v1.0
+
+Sales, Purchases,  Inventory modules
+
 
 ## Developers who contributed to this work
 
 Currently none
 
-*contributors are welcome!*
+*contributions are welcome! Just fork to your github and issue pull request!
 
 
 ## Test this application on OpenShift 
@@ -38,6 +57,6 @@ username: github -- password:github
 
 Copyright 2016 Mohammed Bounaga
 
-This work is licensed under an <a rel="license" href="http://www.apache.org/licenses/LICENSE-2.0">Apache License Version 2.0</a>.
+This work is licensed under <a rel="license" href="http://www.apache.org/licenses/LICENSE-2.0">Apache License Version 2.0</a>.
 
-<div class="footer"><span class="footerTitle"><span class="uc">M</span>ohammed<span class="uc">B</span>ounaga</span></div>
+
