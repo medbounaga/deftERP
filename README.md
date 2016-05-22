@@ -6,7 +6,7 @@
 
 [Download the code from GitHub](https://github.com/medbounaga/CasaERP)
 
-<img src="https://s32.postimg.org/loi5yboyt/Dashboard.png"/>
+<img src="https://s32.postimg.org/vv433fc2t/Dashboard.png"/>
 
 ## Features
 
@@ -27,11 +27,11 @@
 
 v1.1.1 (In progress)
 
-Add support for French language, add manufacturing module, accounting module improvements
+support for French language, manufacturing module, accounting module improvements
 
 v1.1.0
 
-Dashboard, configuration, user interface improvements, Accounting modules, generate PDF documents
+Dashboard, configuration, accounting module, user interface improvements, generate PDF documents
 
 v1.0
 
