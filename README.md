@@ -1,7 +1,7 @@
 # CasaERP - Java EE 7
 
 * *Author* : Mohammed Bounaga
-* *Technologies* : Java EE 7 (JSF 2.2, JPA 2.1,EJB Lite 3.2, CDI 1.1, Bean Validation 1.1), PrimeFaces 5.x, Bootstrap 3.x, JQuery 2.x , Morris Charts, JasperReports
+* *Technologies* : Java EE 7 (JSF 2.2, JPA 2.1,EJB Lite 3.2, CDI 1.1, Bean Validation 1.1), PrimeFaces 5.x, OmniFaces 2.x, Bootstrap 3.x, FontAwesome 4.x, JQuery 2.x , Morris Charts 0.5.x, JasperReports 6.x
 * *Application Servers* : WildFly 9, Glassfish 4
 
 [Download the code from GitHub](https://github.com/medbounaga/CasaERP)
@@ -18,7 +18,7 @@
 * Generate PDF documents.
 * Generate accounting journal entries.
 * Manage customer and vendor profiles.
-* Flexible configuration: taxes, accounting journals and accounts, product categories, units of measure, etc.
+* Configuration: taxes, accounting journals and accounts, product categories, units of measure, etc.
 * ........
 
 
@@ -42,11 +42,14 @@ Sales, Purchases,  Inventory modules
 
 Currently none
 
-*contributions are welcome! Just fork to your github and issue pull request!
+*contributions are welcome!* 
+
+If you have any improvement suggestions or bug fix, just fork to your GitHub and issue pull requests*
 
 
 ## Test this application on OpenShift 
-username: github -- password:github
+* *username* : github  
+* *password* : github
 
 <a href="http://erp-mohammedbounaga.rhcloud.com/"><img src="https://allclouds.net/wp-content/uploads/2015/08/OpenShift-Logo-e1440595191561.png"/></a>
 
