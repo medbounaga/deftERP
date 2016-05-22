@@ -67,8 +67,7 @@ public class User implements Serializable {
     @Lob
     @Column(name = "image")
     private byte[] image;
-    @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "user")
-    private List<LoginHistory> loginHistory;
+
 
     public User() {
     }
@@ -141,14 +140,6 @@ public class User implements Serializable {
         this.active = active;
     }
 
-    @XmlTransient
-    public List<LoginHistory> getLoginHistory() {
-        return loginHistory;
-    }
-
-    public void setLoginHistory(List<LoginHistory> loginHistory) {
-        this.loginHistory = loginHistory;
-    }
 
     @Override
     public int hashCode() {

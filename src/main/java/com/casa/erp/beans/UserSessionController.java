@@ -1,11 +1,9 @@
 package com.casa.erp.beans;
 
 import com.casa.erp.beans.util.JsfUtil;
-import com.casa.erp.entities.LoginHistory;
 import com.casa.erp.entities.User;
 import com.casa.erp.facade.LoginFacade;
 import java.io.Serializable;
-import java.util.Date;
 import javax.enterprise.context.SessionScoped;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
@@ -35,10 +33,7 @@ public class UserSessionController implements Serializable {
         
         user = loginFacade.userExist(username, password);
         
-        if (user != null) {
-            if(user.getUserType().equals("User")){
-                loginFacade.createLoginHistory(new LoginHistory(user, new Date()));
-            }            
+        if (user != null) {           
             loggedIn = true;
             return "/sc/dashboard.xhtml?faces-redirect=true";
 

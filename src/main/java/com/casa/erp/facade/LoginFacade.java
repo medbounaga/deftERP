@@ -4,8 +4,6 @@
  * and open the template in the editor.
  */
 package com.casa.erp.facade;
-
-import com.casa.erp.entities.LoginHistory;
 import com.casa.erp.entities.User;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -39,8 +37,5 @@ public class LoginFacade {
         }
     }
 
-    public void createLoginHistory(LoginHistory entity) {
-        em.persist(entity);
-    }
 
 }
