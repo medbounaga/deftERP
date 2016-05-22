@@ -1,7 +1,7 @@
 package com.casa.erp.converters;
 
 import com.casa.erp.entities.ProductCategory;
-import com.casa.erp.facade.ProductCategoryFacade;
+import com.casa.erp.dao.ProductCategoryFacade;
 import com.casa.erp.beans.util.JsfUtil;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -10,6 +10,13 @@ import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.convert.Converter;
 import javax.faces.convert.FacesConverter;
+
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
 
 @FacesConverter(value = "productCategoryConverter")
 public class ProductCategoryConverter implements Converter {

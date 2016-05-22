@@ -7,7 +7,7 @@ import com.casa.erp.entities.Inventory;
 import com.casa.erp.entities.Partner;
 import com.casa.erp.entities.Product;
 import com.casa.erp.entities.PurchaseOrder;
-import com.casa.erp.facade.DeliveryOrderFacade;
+import com.casa.erp.dao.DeliveryOrderFacade;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -31,6 +31,12 @@ import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import org.apache.commons.lang.SerializationUtils;
 import org.primefaces.context.RequestContext;
+
+/**
+ *
+ * @author MOHAMMED BOUNAGA
+ */
+
 
 @Named(value = "supDeliveryOrderController")
 @ViewScoped

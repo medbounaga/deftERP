@@ -27,9 +27,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 /**
- *
- * @author MOHAMMED
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
  */
+
 @Entity
 @Table(name = "journal_entry")
 @XmlRootElement

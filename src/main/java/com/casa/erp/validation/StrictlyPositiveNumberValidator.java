@@ -4,6 +4,13 @@ package com.casa.erp.validation;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
+
 public class StrictlyPositiveNumberValidator implements ConstraintValidator<StrictlyPositiveNumber, Object> {
 
     @Override

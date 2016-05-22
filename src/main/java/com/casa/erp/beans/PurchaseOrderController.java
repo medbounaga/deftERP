@@ -11,7 +11,7 @@ import com.casa.erp.entities.Partner;
 import com.casa.erp.entities.Product;
 import com.casa.erp.entities.PurchaseOrder;
 import com.casa.erp.entities.PurchaseOrderLine;
-import com.casa.erp.facade.PurchaseOrderFacade;
+import com.casa.erp.dao.PurchaseOrderFacade;
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -37,6 +37,13 @@ import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import org.apache.commons.lang.SerializationUtils;
 import org.primefaces.context.RequestContext;
+
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
 
 @Named(value = "purchaseOrderController")
 @ViewScoped

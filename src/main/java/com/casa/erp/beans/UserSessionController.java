@@ -2,13 +2,20 @@ package com.casa.erp.beans;
 
 import com.casa.erp.beans.util.JsfUtil;
 import com.casa.erp.entities.User;
-import com.casa.erp.facade.LoginFacade;
+import com.casa.erp.dao.LoginFacade;
 import java.io.Serializable;
 import javax.enterprise.context.SessionScoped;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
+
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
 
 @Named(value = "userSessionController")
 @SessionScoped

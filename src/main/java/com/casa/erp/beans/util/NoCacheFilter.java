@@ -13,6 +13,13 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
+
 @WebFilter(filterName="noCacheFilter")
 public class NoCacheFilter implements Filter {
 

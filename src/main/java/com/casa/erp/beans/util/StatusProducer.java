@@ -4,6 +4,13 @@ import java.util.HashMap;
 import java.util.ResourceBundle;
 import javax.enterprise.inject.Produces;
 
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
+
 
 
 public class StatusProducer {

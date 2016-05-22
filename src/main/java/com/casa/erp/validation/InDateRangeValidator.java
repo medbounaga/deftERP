@@ -4,6 +4,13 @@ import java.util.Date;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import org.joda.time.DateTime;
+
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
  
 public class InDateRangeValidator implements ConstraintValidator<InDateRange, Date> {
 

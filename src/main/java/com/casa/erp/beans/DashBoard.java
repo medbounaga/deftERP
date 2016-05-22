@@ -1,7 +1,7 @@
 package com.casa.erp.beans;
 
 import com.casa.erp.beans.util.UserLocale;
-import com.casa.erp.facade.DashBoardFacade;
+import com.casa.erp.dao.DashBoardFacade;
 import com.google.gson.Gson;
 import java.io.Serializable;
 import java.util.List;
@@ -15,6 +15,13 @@ import org.joda.time.DateTimeConstants;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.primefaces.context.RequestContext;
+
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
 
 @Named(value = "dashBoard")
 @ViewScoped

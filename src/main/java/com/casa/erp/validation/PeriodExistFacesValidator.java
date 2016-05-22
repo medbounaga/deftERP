@@ -1,7 +1,7 @@
 
 package com.casa.erp.validation;
 
-import com.casa.erp.facade.InvoiceFacade;
+import com.casa.erp.dao.InvoiceFacade;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import javax.faces.application.FacesMessage;
@@ -11,6 +11,13 @@ import javax.faces.validator.FacesValidator;
 import javax.faces.validator.Validator;
 import javax.faces.validator.ValidatorException;
 import javax.inject.Inject;
+
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
 
 
 

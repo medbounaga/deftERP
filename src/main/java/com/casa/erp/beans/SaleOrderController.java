@@ -13,7 +13,7 @@ import com.casa.erp.entities.Partner;
 import com.casa.erp.entities.Product;
 import com.casa.erp.entities.SaleOrder;
 import com.casa.erp.entities.SaleOrderLine;
-import com.casa.erp.facade.SaleOrderFacade;
+import com.casa.erp.dao.SaleOrderFacade;
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import javax.inject.Named;
 import javax.faces.view.ViewScoped;
-
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
@@ -42,6 +41,13 @@ import net.sf.jasperreports.engine.JasperPrint;
 import org.apache.commons.lang.SerializationUtils;
 import org.primefaces.context.RequestContext;
 import org.primefaces.event.SelectEvent;
+
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
 
 @Named(value = "saleOrderController")
 @ViewScoped

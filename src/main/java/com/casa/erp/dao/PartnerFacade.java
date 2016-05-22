@@ -1,4 +1,4 @@
-package com.casa.erp.facade;
+package com.casa.erp.dao;
 
 import com.casa.erp.entities.Account;
 import com.casa.erp.entities.Partner;
@@ -8,10 +8,17 @@ import javax.inject.Named;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
+
 @Stateless
 public class PartnerFacade {
 
-    @PersistenceContext(unitName = "com.casa_ERPapplication_war_1.0-SNAPSHOTPU")
+    @PersistenceContext(unitName = "CasaERP_PU")
     private EntityManager em;
 
     public Partner create(Partner entity) {

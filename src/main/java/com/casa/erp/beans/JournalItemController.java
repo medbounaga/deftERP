@@ -3,7 +3,7 @@ package com.casa.erp.beans;
 import com.casa.erp.beans.util.JsfUtil;
 import com.casa.erp.entities.Journal;
 import com.casa.erp.entities.JournalItem;
-import com.casa.erp.facade.JournalItemFacade;
+import com.casa.erp.dao.JournalItemFacade;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -12,6 +12,13 @@ import javax.inject.Named;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
+
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
 
 @Named(value = "journalItemController")
 @ViewScoped

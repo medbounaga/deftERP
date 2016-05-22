@@ -14,6 +14,13 @@ import com.casa.erp.beans.UserSessionController;
 import javax.inject.Inject;
 import javax.servlet.annotation.WebFilter;
 
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
+
 @WebFilter(filterName = "loginFilter")
 public class LoginFilter implements Filter {
 

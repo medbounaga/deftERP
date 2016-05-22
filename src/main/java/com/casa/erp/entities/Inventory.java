@@ -17,9 +17,12 @@ import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- *
- * @author MOHAMMED
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
  */
+
 @Entity
 @Table(name = "inventory")
 @XmlRootElement

@@ -1,7 +1,7 @@
 package com.casa.erp.converters;
 
 import com.casa.erp.entities.DeliveryOrder;
-import com.casa.erp.facade.DeliveryOrderFacade;
+import com.casa.erp.dao.DeliveryOrderFacade;
 import com.casa.erp.beans.util.JsfUtil;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -10,6 +10,13 @@ import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.convert.Converter;
 import javax.faces.convert.FacesConverter;
+
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
 
 @FacesConverter(value = "deliveryOrderConverter")
 public class DeliveryOrderConverter implements Converter {

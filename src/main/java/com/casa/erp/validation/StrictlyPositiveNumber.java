@@ -10,6 +10,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
+
 
 
 @Constraint(validatedBy = StrictlyPositiveNumberValidator.class)
@@ -20,7 +27,6 @@ import java.lang.annotation.Target;
 public @interface StrictlyPositiveNumber
 {
 
-//   String message() default "{org.agoncal.application.petstore.constraints.Email.message}";
     String message() default "";
 
    Class<?>[] groups() default {};

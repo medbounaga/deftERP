@@ -34,9 +34,12 @@ import javax.xml.bind.annotation.XmlTransient;
 import org.apache.commons.io.IOUtils;
 
 /**
- *
- * @author MOHAMMED
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
  */
+
 @Entity
 @Table(name = "partner")
 @XmlRootElement

@@ -2,6 +2,13 @@ package com.casa.erp.beans.util;
 
 import java.util.Calendar;
 
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
+
 public class IdGenerator {
 
     public String generateSaleId(int id) {

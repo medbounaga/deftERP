@@ -7,7 +7,7 @@ import com.casa.erp.entities.JournalEntry;
 import com.casa.erp.entities.JournalItem;
 import com.casa.erp.entities.Partner;
 import com.casa.erp.entities.Payment;
-import com.casa.erp.facade.PaymentFacade;
+import com.casa.erp.dao.PaymentFacade;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -17,6 +17,13 @@ import javax.inject.Named;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import org.apache.commons.lang.SerializationUtils;
+
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
 
 @Named(value = "supPaymentController")
 @ViewScoped

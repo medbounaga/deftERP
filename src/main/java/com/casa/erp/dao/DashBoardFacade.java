@@ -1,4 +1,4 @@
-package com.casa.erp.facade;
+package com.casa.erp.dao;
 
 import java.util.List;
 import javax.ejb.Stateless;
@@ -7,13 +7,17 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
 /**
- *
- * @author MOHAMMED
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
  */
+
+
 @Stateless
 public class DashBoardFacade {
 
-    @PersistenceContext(unitName = "com.casa_ERPapplication_war_1.0-SNAPSHOTPU")
+    @PersistenceContext(unitName = "CasaERP_PU")
     private EntityManager em;
     
     public List<Object[]> getQuarters(int interval) {

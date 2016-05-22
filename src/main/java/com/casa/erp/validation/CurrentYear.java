@@ -10,6 +10,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
+
 
 
 @Constraint(validatedBy = CurrentYearValidator.class)
@@ -20,8 +27,8 @@ import java.lang.annotation.Target;
 public @interface CurrentYear
 {
 
-//   String message() default "{org.agoncal.application.petstore.constraints.Email.message}";
-    String message() default "{CurrentYearDate}";
+
+   String message() default "{CurrentYearDate}";
 
    Class<?>[] groups() default {};
 

@@ -1,7 +1,7 @@
 package com.casa.erp.converters;
 
 import com.casa.erp.entities.JournalItem;
-import com.casa.erp.facade.JournalItemFacade;
+import com.casa.erp.dao.JournalItemFacade;
 import com.casa.erp.beans.util.JsfUtil;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -10,6 +10,13 @@ import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.convert.Converter;
 import javax.faces.convert.FacesConverter;
+
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
 
 @FacesConverter(value = "journalItemConverter")
 public class JournalItemConverter implements Converter {

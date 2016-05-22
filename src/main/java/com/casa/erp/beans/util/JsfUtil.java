@@ -14,6 +14,13 @@ import javax.faces.context.FacesContext;
 import javax.faces.validator.ValidatorException;
 import org.primefaces.context.RequestContext;
 
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
+
 public class JsfUtil {
 
     public static void addErrorMessage(Exception ex, String defaultMsg) {

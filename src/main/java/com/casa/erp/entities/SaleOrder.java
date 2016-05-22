@@ -27,9 +27,12 @@ import javax.validation.constraints.Size;
 
 
 /**
- *
- * @author MOHAMMED
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
  */
+
 @Entity
 @Table(name = "sale_order")
 @NamedQueries({

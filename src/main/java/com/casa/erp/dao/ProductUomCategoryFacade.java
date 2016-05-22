@@ -1,5 +1,5 @@
 
-package com.casa.erp.facade;
+package com.casa.erp.dao;
 
 
 import com.casa.erp.entities.ProductUomCategory;
@@ -9,13 +9,17 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 /**
- *
- * @author MOHAMMED
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
  */
+
+
 @Stateless
 public class ProductUomCategoryFacade {
 
-    @PersistenceContext(unitName = "com.casa_ERPapplication_war_1.0-SNAPSHOTPU")
+    @PersistenceContext(unitName = "CasaERP_PU")
     private EntityManager em;
 
 

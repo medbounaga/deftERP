@@ -4,7 +4,7 @@ import com.casa.erp.beans.util.JsfUtil;
 import com.casa.erp.entities.Product;
 import com.casa.erp.entities.ProductCategory;
 import com.casa.erp.entities.ProductUom;
-import com.casa.erp.facade.ProductFacade;
+import com.casa.erp.dao.ProductFacade;
 import com.casa.erp.validation.StrictlyPositiveNumber;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +25,13 @@ import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
 
 @Named(value = "productController")
 @ViewScoped

@@ -5,7 +5,7 @@ import static com.casa.erp.beans.util.Countries.Version.SECOND;
 import com.casa.erp.beans.util.JsfUtil;
 import com.casa.erp.entities.Account;
 import com.casa.erp.entities.Partner;
-import com.casa.erp.facade.PartnerFacade;
+import com.casa.erp.dao.PartnerFacade;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -23,6 +23,13 @@ import javax.faces.context.FacesContext;
 import javax.servlet.http.Part;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
 
 @Named(value = "customerController")
 @ViewScoped

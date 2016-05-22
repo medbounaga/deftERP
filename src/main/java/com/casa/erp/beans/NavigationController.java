@@ -4,6 +4,13 @@ package com.casa.erp.beans;
 import java.io.Serializable;
 import javax.enterprise.context.SessionScoped;
 import javax.inject.Named;
+
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
  
 
 @Named(value = "navigationBean")

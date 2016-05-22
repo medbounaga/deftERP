@@ -2,12 +2,19 @@ package com.casa.erp.beans;
 
 import com.casa.erp.beans.util.JsfUtil;
 import com.casa.erp.entities.ProductCategory;
-import com.casa.erp.facade.ProductCategoryFacade;
+import com.casa.erp.dao.ProductCategoryFacade;
 import java.io.Serializable;
 import java.util.List;
 import javax.inject.Named;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
+
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
 
 @Named(value = "productCategoryController")
 @ViewScoped

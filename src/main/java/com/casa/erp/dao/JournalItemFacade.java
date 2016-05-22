@@ -1,9 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package com.casa.erp.facade;
+
+package com.casa.erp.dao;
 
 import com.casa.erp.entities.Journal;
 import com.casa.erp.entities.JournalItem;
@@ -15,13 +11,16 @@ import javax.persistence.PersistenceContext;
 import org.joda.time.DateTime;
 
 /**
- *
- * @author MOHAMMED
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
  */
+
 @Stateless
 public class JournalItemFacade {
 
-    @PersistenceContext(unitName = "com.casa_ERPapplication_war_1.0-SNAPSHOTPU")
+    @PersistenceContext(unitName = "CasaERP_PU")
     private EntityManager em;
 
     public Journal findJournal(Object code) {

@@ -2,7 +2,7 @@ package com.casa.erp.beans;
 
 import com.casa.erp.beans.util.JsfUtil;
 import com.casa.erp.entities.User;
-import com.casa.erp.facade.UserFacade;
+import com.casa.erp.dao.UserFacade;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -18,6 +18,13 @@ import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.servlet.http.Part;
 import org.apache.commons.io.IOUtils;
+
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
 
 @Named(value = "userController")
 @ViewScoped

@@ -43,14 +43,11 @@
         </div>
     </div> 
     <div class="row form-header-2">
-        <div class="col-md-5 record-status-buttons">  
+        <div class="col-md-12 record-status-buttons">  
             <p:commandButton class="btnn btnn-primary" value="#{messages.Edit}" actionListener="#{accountController.prepareEditAccount(accountController.account.id)}"  update="AccountForm:content" disabled="#{userSessionController.user.userType != 'Admin'}" />               
             <p:commandButton class="btnn btnn-default" value="#{messages.Create}" actionListener="#{accountController.prepareCreateAccount}" update="AccountForm:content" disabled="#{userSessionController.user.userType != 'Admin'}" /> 
             <p:commandButton class="btnn btnn-default" value="#{messages.Delete}" actionListener="#{accountController.deleteAccount(accountController.account.id)}" update="AccountForm:content" disabled="#{userSessionController.user.userType != 'Admin'}"/>
-        </div>
-        <div class="col-md-7" style="padding-top: 10px; color: red;">
-            #{messages.AccountsAdminAccess}
-        </div>           
+        </div>          
     </div>
     <div class="row form-body-full">                   
         <div class="row">

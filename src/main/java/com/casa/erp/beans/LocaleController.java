@@ -12,6 +12,13 @@ import javax.faces.context.FacesContext;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 
+/**
+ * 
+ * @author MOHAMMED BOUNAGA
+ * 
+ * github.com/medbounaga
+ */
+
 @Named(value = "localeController")
 @SessionScoped
 public class LocaleController implements Serializable {
