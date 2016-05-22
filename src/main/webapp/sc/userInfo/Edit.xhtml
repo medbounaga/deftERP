@@ -1,0 +1,145 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+
+
+    <p:growl id="msgs" widgetVar="growl"/>
+    <h:selectBooleanCheckbox  id="imageModified" value="#{userController.imageModified}" style="display: none;" />
+    <div class="row form-header-1">
+        <div class="col-md-12" >
+            <p:commandLink class="form-nav" value="#{messages.Users}" process="@this" actionListener="#{userController.showUserList}" update=":UserForm:content"/>
+            <span> / </span>
+            <span>#{messages.Edit}</span>
+        </div>
+    </div> 
+    <div class="row form-header-2" style="padding-top: 5px;">
+        <div class="col-md-12 record-status-buttons">   
+            <h:commandButton id="saveBtn" action="#{userController.updateUser(userController.user.id)}"  value="#{messages.Save}" styleClass="btnn btnn-primary jsf-btn">
+                <f:ajax execute="@form"  render=":UserForm:content"/> 
+            </h:commandButton>
+            <p:commandButton class="btnn btnn-default" value="#{messages.Discard}" process="@this" actionListener="#{userController.cancelEditUser(userController.user.id)}"  update=":UserForm:content" /> 
+        </div>
+    </div>
+    <div class="row form-body-full">  
+        <div class="row">
+            <div class="col-md-1point5">
+                <p:graphicImage  value="#" name="#{userController.getFormDefaultImage()}"  binding="#{altImage}" style="display: none;" />
+                <h:inputFile style="display:none;"   id="pictureUpload"  value="#{userController.image}" binding="#{upload}" validator="#{userController.validateImage}" />
+                <div class="form_image">
+                    <o:graphicImage rendered="#{userController.user.image != null}"  value="#{userController.user.image}" dataURI="true" />   
+                    <p:graphicImage rendered="#{userController.user.image == null}"  value="#" name="#{userController.getFormDefaultImage()}"  />
+                    <div class="form_image_buttons" style="position: absolute; width: 100%;">
+                        <a class="fa fa-pencil form_image_edit" id="upload_link"/>
+                        <a class="fa fa-trash-o form_image_remove" id="remove_link"/> 
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6point5">
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.FullName}" for="fullName"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <p:inputText id="fullName" value="#{userController.user.name}" class="fullWidth required" required="true" requiredMessage="#{messages.FullNameRequired}" maxlength="55"/>
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.UserType}" for="userType"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <p:selectOneMenu class="fullWidth required" id="userType" value="#{userController.user.userType}" required="true" requiredMessage="#{messages.UserTypeRequired}">   
+                            <f:selectItem  itemLabel="&#160;" />
+                            <f:selectItems value="#{userController.userTypes}"
+                                           var="userType"
+                                           itemValue="#{userType}"
+                                           itemLabel="#{userType.toString()}"/>
+                        </p:selectOneMenu>
+                    </div>
+                </div>                                      
+            </div>
+            <div class="col-md-5point5">
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.UserName}" for="userName"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <p:inputText id="userName" value="#{userController.user.login}" class="fullWidth required" required="true" requiredMessage="#{messages.UserNameRequired}" maxlength="55"/>
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Password}" for="password"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <p:inputText id="password" value="#{userController.user.password}" class="fullWidth required" required="true" requiredMessage="#{messages.PasswordRequired}" maxlength="55"/>
+                    </div>
+                </div>
+                <div class="row form-row" style="padding-top: 5px;">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Active}" for="active"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <p:selectBooleanCheckbox id="active" value="#{userController.user.active}" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>  
+    
+    
+     <script>
+        
+
+        $(function () {
+            $("#upload_link").on('click', function (e) {
+                e.preventDefault();
+                $("#UserForm\\:pictureUpload:hidden").trigger('click');
+            });
+        });
+
+        $(function () {
+            $("#remove_link").on('click', function (e) {
+                e.preventDefault();
+                var source = $("[id='#{altImage.clientId}']").attr('src');
+                $(".form_image img").attr('src', source);
+                $("[id='#{upload.clientId}']").val('');
+                $("#UserForm\\:imageModified").prop('checked', true);
+                       
+            });
+        });
+
+        $("[id='#{upload.clientId}']").change(
+                function ()
+                {
+                    readPicture(this, $(".form_image img"));
+                    $("#UserForm\\:imageModified").prop('checked', true);
+                }          
+        );
+
+        function readPicture(input, output) {
+            if (input.files)
+            {
+                if (input.files[0])
+                {
+                    var reader = new FileReader();
+                    reader.onload = function (e)
+                    {
+                        output.attr('src', e.target.result);
+                    };
+                    reader.readAsDataURL(input.files[0]);
+                }
+            }
+        }
+
+
+    </script>
+
+</ui:composition>

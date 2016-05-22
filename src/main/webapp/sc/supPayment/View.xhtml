@@ -1,0 +1,166 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+
+
+    <p:growl id="msgs" widgetVar="growl"/>
+    <ui:include src="/sc/confirmation.xhtml"/>
+    <div class="row form-header-1">
+        <div class="col-md-12" jsf:rendered="#{empty supPaymentController.partialListType}" >
+            <p:commandLink update=":PaymentForm:content" process="@this" value="#{messages.VendorPayments}" class="form-nav" actionListener="#{supPaymentController.showSupplierPaymentList}"/>
+            <span> / </span>
+            <p:outputLabel id="namee" value="#{supPaymentController.payment.name}"/> 
+        </div>
+        <div class="col-md-12" jsf:rendered="#{supPaymentController.partialListType == 'partner'}"> 
+            <p:link  class="form-nav" value="#{supPaymentController.payment.partner.name}"  outcome="/sc/supplier/index">
+                <f:param name="id" value="#{supPaymentController.payment.partner.id}"/>
+            </p:link>
+            <span> / </span> 
+            <p:commandLink update=":PaymentForm:content" process="@this" class="form-nav" actionListener="#{supPaymentController.showSupplierPaymentList}">
+                <h:outputText   value="#{messages.VendorPayments}"/>
+            </p:commandLink>
+            <span> / </span> 
+            <p:outputLabel value="#{supPaymentController.payment.name}"/> 
+        </div>
+    </div> 
+    <div class="row form-header-2">
+        <div class="col-md-8point5">
+            <p:commandButton class="btnn btnn-primary" value="#{messages.Edit}" actionListener="#{supPaymentController.prepareSupPaymentEdit(supPaymentController.payment.id)}"  update=":PaymentForm:content"/>               
+            <p:commandButton class="btnn btnn-default" value="#{messages.Create}" actionListener="#{supPaymentController.prepareSupPaymentCreate}" update=":PaymentForm:content" /> 
+            <p:commandButton class="btnn btnn-default" value="#{messages.Delete}" actionListener="#{supPaymentController.deleteSupPayment(supPaymentController.payment.id)}" update=":PaymentForm:content">
+                <p:confirm header="#{messages.ConfirmationHeader}"  message="#{messages.ConfirmMessage}" icon="ui-icon-alert"/>
+            </p:commandButton>
+            <p:commandButton class="btnn btnn-default" value="#{messages.Duplicate}" actionListener="#{supPaymentController.duplicateSupPayment(supPaymentController.payment.id)}" update=":PaymentForm:content" />
+        </div> 
+        <div class="col-md-2point5 form-pagination">
+            <div class="pagination-form-number">
+                <div class="form-number">
+                    #{supPaymentController.paymentIndex} / #{supPaymentController.payments.size()}
+                </div>
+                <ul class="pagination">
+                    <li>
+                        <p:commandLink actionListener="#{supPaymentController.previousPayment}" process="@this" styleClass="fa fa-chevron-left" pass:aria-label="Previous" update=":PaymentForm:content" oncomplete="setNextFormURL('id', formId)"/>           
+                    </li>
+                    <li>
+                        <p:commandLink actionListener="#{supPaymentController.nextPayment}" process="@this" styleClass="fa fa-chevron-right" pass:aria-label="Next" update=":PaymentForm:content" oncomplete="setNextFormURL('id', formId)"/>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-1 form-pagination" >
+            <ul class="pagination" >
+                <li class="active-nav-button">
+                    <p:commandLink  styleClass="fa fa-square-o" style="font-size: 17px !important;" update="@none"/>
+                </li>
+                <li >
+                    <p:commandLink process="@this" actionListener="#{supPaymentController.showSupplierPaymentList}" styleClass="fa fa-bars" style="font-size: 17px !important;" update=":PaymentForm:content"/>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="row form-header-3" >
+        <div class="col-md-6 record-status-buttons">      
+            <p:commandButton
+                value="#{messages.Validate}" 
+                process="@this"
+                rendered="#{(supPaymentController.payment.state == 'Draft')}" 
+                class="btnn btnn-primary"
+                actionListener="#{supPaymentController.validateSupPayment(supPaymentController.payment.id)}" 
+                update=":PaymentForm:content"/>        
+        </div>
+        <div class="col-md-offset-6 bread-crumb" >    
+            <div class="breadcrumbs flat">
+                <h:link class="#{(supPaymentController.payment.state == 'Draft') ? 'active' : ''}"  value="#{messages.Draft}"/>
+                <h:link class="#{(supPaymentController.payment.state == 'Posted') ? 'active' : ''}"  value="#{messages.Posted}"/>
+            </div>
+        </div>
+    </div>
+    <div class="row form-body" style="padding-bottom: 100px !important;" > 
+        <div class="row form-body-header">
+            <div class="oe_right oe_button_box col-md-12">
+                <button  class="oe_stat_button btn btn-default" jsf:outcome="/sc/journalEntry/index" jsf:rendered="#{supPaymentController.payment.journalEntry != null}"> 
+                    <f:param name="id"  value="#{supPaymentController.payment.journalEntry.id}"/>
+                    <div class="stat_button_icon fa fa-bars fa-fw">
+                    </div>
+                    <div>
+                        #{messages.JournalEntry}
+                    </div>
+                </button>
+                <button  class="oe_stat_button btn btn-default" jsf:outcome="/sc/supInvoice/index" jsf:rendered="#{supPaymentController.payment.invoice != null}"> 
+                    <f:param name="id"  value="#{supPaymentController.payment.invoice.id}"/>
+                    <div class="stat_button_icon fa fa-bars fa-fw">
+                    </div>
+                    <div>
+                        #{messages.PaidBill}
+                    </div>
+                </button>
+            </div>
+        </div>
+        <div class="row form-line-1">
+            <div class="col-md-12" >
+                <p:outputLabel value="#{supPaymentController.payment.name}"/>
+            </div>
+        </div>
+        <div class="row form-row">
+            <div class="col-md-2point5 form-label">
+                <p:outputLabel value="#{messages.PaymentType}"/>
+            </div> 
+            <div class="col-md-4">
+                <h:outputText value="#{messages.ReceiveMoney}" rendered="#{supPaymentController.payment.type == 'in'}"/>
+                <h:outputText value="#{messages.SendMoney}" rendered="#{supPaymentController.payment.type == 'out'}"/>
+            </div>
+            <div class="col-md-2point5 form-label">
+                <p:outputLabel value="#{messages.PaymentDate}"/>
+            </div>
+            <div class="col-md-3">
+                <h:outputText id="date" value="#{supPaymentController.payment.date}">
+                    <f:convertDateTime pattern="MM-dd-yyyy" />
+                </h:outputText>
+            </div>
+        </div>
+        <div class="row form-row">
+            <div class="col-md-2point5 form-label">
+                <p:outputLabel value="#{messages.Vendor}"/>
+            </div> 
+            <div class="col-md-9point5">
+                <p:link  class="form-nav" value="#{supPaymentController.payment.partner.name}"  outcome="/sc/supplier/index">
+                    <f:param name="id" value="#{supPaymentController.payment.partner.id}"/>
+                </p:link>
+            </div>
+        </div>
+        <div class="row form-row">
+            <div class="col-md-2point5 form-label">
+                <p:outputLabel value="#{messages.PaymentMethod}"/>
+            </div> 
+            <div class="col-md-9point5">
+                <h:outputText value="#{supPaymentController.payment.journal.name}"/>
+            </div>
+        </div>
+        <div class="row form-row">
+            <div class="col-md-2point5 form-label">
+                <p:outputLabel value="#{messages.PaymentAmount}"/>
+            </div> 
+            <div class="col-md-9point5">
+                <h:outputText value="#{messages.Currency} #{supPaymentController.payment.amount}" style="font-weight: bold;"/>                    
+            </div>
+        </div>
+        <div class="row form-row" jsf:rendered="#{supPaymentController.payment.type == 'out'}">
+            <div class="col-md-2point5 form-label">
+                <p:outputLabel value="#{messages.OutstandingAmount}"/>
+            </div> 
+            <div class="col-md-9point5">
+                <h:outputText value="#{messages.Currency} #{supPaymentController.payment.overpayment}"/>                    
+            </div>
+        </div>
+    </div>  
+    <script type="text/javascript">
+        var formId = "#{supPaymentController.payment.id}";
+        setFormURL('id', formId);
+        
+        disableStatusLinks();
+    </script>
+</ui:composition>

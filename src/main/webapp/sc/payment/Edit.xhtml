@@ -1,0 +1,216 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+
+
+    <p:growl id="msgs" widgetVar="growl"/>
+    <div class="row form-header-1">
+         <div class="col-md-12" jsf:rendered="#{empty paymentController.partialListType}" >
+            <p:commandLink update=":PaymentForm:content" process="@this" value="#{messages.CustomerPayments}" class="form-nav" actionListener="#{paymentController.showPaymentList}"/>
+            <span> / </span>
+            <p:outputLabel value="#{paymentController.payment.name}"/> 
+            <span> / </span>
+            <p:outputLabel value="#{messages.Edit}"/> 
+        </div>
+        <div class="col-md-12" jsf:rendered="#{paymentController.partialListType == 'partner'}"> 
+            <p:link  class="form-nav" value="#{paymentController.payment.partner.name}"  outcome="/sc/customer/index">
+                <f:param name="id" value="#{paymentController.payment.partner.id}"/>
+            </p:link>
+            <span> / </span> 
+            <p:commandLink update=":PaymentForm:content" process="@this" class="form-nav" actionListener="#{paymentController.showPaymentList}">
+                <h:outputText   value="#{messages.CustomerPayments}"/>
+            </p:commandLink>
+            <span> / </span> 
+            <p:outputLabel value="#{paymentController.payment.name}"/> 
+            <span> / </span>
+            <p:outputLabel value="#{messages.Edit}"/> 
+        </div>
+    </div> 
+    <div class="row form-header-3" >
+        <div class="col-md-6 record-status-buttons">   
+            <p:commandButton class="btnn btnn-primary" value="#{messages.Save}" process=":PaymentForm:content" actionListener="#{paymentController.updatePayment(paymentController.payment.id)}"  update=":PaymentForm:content" /> 
+            <p:commandButton class="btnn btnn-default" value="#{messages.Discard}" process="@this" actionListener="#{paymentController.cancelEdit(paymentController.payment.id)}"  update=":PaymentForm:content" /> 
+        </div>
+        <div class="col-md-offset-6 bread-crumb" >    
+            <div class="breadcrumbs flat">
+                <h:link pass:href="#" class="active"  value="#{messages.Draft}"/>
+                <h:link pass:href="#" class=""  value="#{messages.Posted}"/>
+            </div>
+        </div>
+    </div>
+    <div class="row form-body" style="padding-bottom: 100px !important;" >                   
+        <div class="row form-line-1">
+            <div class="col-md-12" >
+                <p:outputLabel value="#{paymentController.payment.name}"/>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.PaymentType}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <h:selectOneRadio value="#{paymentController.paymentType}" layout="pageDirection">
+                            <f:selectItem itemLabel="#{messages.ReceiveMoney}" itemValue="receive money" />
+                            <f:selectItem itemLabel="#{messages.SendMoney}" itemValue="send money" />                           
+                        </h:selectOneRadio>  
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Customer}" for="partnerMenu"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <p:selectOneMenu class="fullWidth required" onchange="showPartnerList();" id="partnerMenu" widgetVar="partnerMenu" value="#{paymentController.payment.partner}" required="true" requiredMessage="#{messages.CustomerRequired}" converter="partnerConverter">   
+                    <f:selectItem  itemLabel="&#160;" />
+                    <f:selectItems value="#{paymentController.topNCustomers}"
+                                   var="partner"
+                                   itemValue="#{partner}"
+                                   itemLabel="#{partner.name.toString()}"/>
+                    <f:selectItem itemLabel="#{messages.SearchMore}" itemValue=""/>
+                </p:selectOneMenu>
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.PaymentMethod}" for="paymentJournal"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <p:selectOneMenu id="paymentJournal" styleClass="required fullWidth" value="#{paymentController.payment.journal}" required="true" requiredMessage="#{messages.PaymentMethodRequired}" converter="journalConverter">
+                            <f:selectItem  itemLabel="&#160;"/>
+                            <f:selectItems value="#{journalController.paymentJournals}"
+                                           var="journal"
+                                           itemValue="#{journal}"
+                                           itemLabel="#{journal.name.toString()}"
+                                           />
+                        </p:selectOneMenu> 
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.PaymentAmount}" for="amount"/>
+                    </div> 
+                    <div class="col-md-8">                     
+                        #{messages.Currency}
+                        <p:spinner value="#{paymentController.payment.amount}" 
+                                                       id="amount"
+                                                       class="required"
+                                                       required="true" 
+                                                       min="0"                                                                       
+                                                       stepFactor="#{messages.stepFactor}"                                                  
+                                                       size="17"                                                        
+                                                       requiredMessage="#{messages.PaidAmountRequired}" 
+                                                       converterMessage="#{messages.InvalidPaidAmount}"/>
+                        
+                        
+                        
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.PaymentDate}" for="paymentDate"/>
+                    </div>
+                    <div class="col-md-8">
+                        <p:calendar id="paymentDate" styleClass="required"  pattern="MM-dd-yyyy" value="#{paymentController.payment.date}"  required="true" requiredMessage="#{messages.DateRequired}" converterMessage="#{messages.InvalidDate}" locale="#{messages.CalendarLanguage}"/>                                           
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
+  <p:dialog id="PartnerListDialog" modal="true" styleClass="disable-scroll item-select-dialog" widgetVar="PartnerList"  resizable="false" closable="true"  appendTo="@(body)"  header="#{messages.SearchCustomer}" width="#{messages.ItemSelectDialogWidth}" closeOnEscape="true">
+        <h:form>
+            
+            <p:dataTable id="PartnerTable"
+                         class="fit-content-table"
+                         binding="#{partners}"
+                         value="#{customerController.customerList}"  
+                         filteredValue="#{customerController.filteredPartners}"
+                         var="item"
+                         rowKey="#{item.id}"
+                         paginator="true"
+                         paginatorAlwaysVisible="true"
+                         paginatorPosition="top"
+                         selection="#{paymentController.customer}"
+                         selectionMode="single"
+                         widgetVar="PartnerTable"
+                         rows="#{messages.DialogMaxRows}">
+
+                <f:facet name="header">
+                    <p:outputPanel>
+                        <div class="searchLoader">
+                            <p:graphicImage  name="/img/search-loader.gif"/>
+                        </div>
+                        <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('PartnerTable').filter()" class="search" placeholder="#{messages.Search}"/>               
+                    </p:outputPanel>
+                </f:facet>
+                
+                <p:ajax event="page" oncomplete="updateTable(partnersTableId);"/>
+                <p:ajax event="sort" oncomplete="updateTable(partnersTableId);"/>
+                <p:ajax event="filter" global="false" onstart="showSearchLoader();" oncomplete="updateTable(partnersTableId); hideSearchLoader();"/>      
+                <p:ajax event="rowSelect" resetValues="true"  listener="#{paymentController.onSelectCustomer}" onstart="PF('PartnerList').hide(); PF('PartnerTable').clearFilters();" update=":PaymentForm:partnerMenu"/>
+
+                
+                 <p:column>
+                    <f:facet name="header">
+                        <h:outputText value=""/>
+                    </f:facet>
+                    <h:outputText value=""/>
+                </p:column>
+
+                <p:column sortBy="#{item.name}" filterBy="#{item.name}">
+                    <f:facet name="header">
+                        <h:outputText value="#{messages.Name}"/>
+                    </f:facet>
+                    <h:outputText value="#{item.name}"/>
+                </p:column>
+                <p:column sortBy="#{item.phone}" filterBy="#{item.phone}">
+                    <f:facet name="header">
+                        <h:outputText value="#{messages.Phone}"/>
+                    </f:facet>
+                    <h:outputText value="#{item.phone}"/>
+                </p:column>
+                <p:column sortBy="#{item.email}" filterBy="#{item.email}">
+                    <f:facet name="header">
+                        <h:outputText value="#{messages.Email}"/>
+                    </f:facet>
+                    <h:outputText value="#{item.email}"/>
+                </p:column>
+
+            </p:dataTable>
+        </h:form>
+    </p:dialog>
+
+
+    <script type="text/javascript">
+        
+        $("#PaymentForm\\:partnerMenu_input option:first-of-type").attr("value", "");
+
+
+        function showPartnerList() {
+            $("#PaymentForm\\:partnerMenu_input option:first-of-type").attr("value", "");
+            if (PF('partnerMenu').getSelectedLabel() === '#{messages.SearchMore}') {
+                PF('partnerMenu').selectValue('');
+                PF('PartnerList').show();
+            }
+        }
+        
+        function updateTable(tableId) {
+            addEmptyRows(tableId);
+        }
+        
+        var partnersTableId = '#{partners.clientId}';
+        addEmptyRows(partnersTableId);
+        
+        disableStatusLinks();
+
+    </script>
+</ui:composition>

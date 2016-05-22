@@ -1,0 +1,345 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+
+
+    <!-- page start-->
+    <p:growl id="msgs" widgetVar="growl"/>
+    <div class="row form-header-1">
+        <div class="col-md-12" jsf:rendered="#{empty purchaseOrderController.partialListType}" >
+            <p:commandLink update=":PurchaseOrderForm:content" process="@this" class="form-nav" actionListener="#{purchaseOrderController.showOrderList}">
+                <h:outputText  value="#{messages.PurchaseOrders}"/>
+            </p:commandLink> 
+            <span> / </span>
+            <h:outputText id="namee" value="#{purchaseOrderController.purchaseOrder.name}"/> 
+        </div>
+        <div class="col-md-12" jsf:rendered="#{purchaseOrderController.partialListType == 'partner'}"> 
+            <p:link  class="form-nav" value="#{purchaseOrderController.purchaseOrder.partner.name}"  outcome="/sc/supplier/index">
+                <f:param name="id" value="#{purchaseOrderController.purchaseOrder.partner.id}"/>
+            </p:link>
+            <span> / </span> 
+            <p:commandLink update=":PurchaseOrderForm:content" process="@this" class="form-nav" actionListener="#{purchaseOrderController.showOrderList}">
+                <h:outputText   value="#{messages.PurchaseOrders}"/>
+            </p:commandLink>
+            <span> / </span> 
+            <p:outputLabel value="#{purchaseOrderController.purchaseOrder.name}"/> 
+        </div>
+    </div> 
+    <div class="row form-header-2" >
+        <div class="col-md-8point5">
+            <p:commandButton class="btnn btnn-primary" value="#{messages.Edit}" actionListener="#{purchaseOrderController.prepareEdit(purchaseOrderController.purchaseOrder.id)}" update=":PurchaseOrderForm:content" /> 
+            <p:commandButton class="btnn btnn-default" value="#{messages.Delete}" actionListener="#{purchaseOrderController.deleteOrder(purchaseOrderController.purchaseOrder.id)}" update=":PurchaseOrderForm:content" /> 
+            <p:commandButton class="btnn btnn-default" value="#{messages.Create}" actionListener="#{purchaseOrderController.prepareCreate}" update=":PurchaseOrderForm:content" /> 
+            <p:commandButton class="btnn btnn-default" value="#{messages.Duplicate}" actionListener="#{purchaseOrderController.duplicatePurchaseOrder(purchaseOrderController.purchaseOrder.id)}" update=":PurchaseOrderForm:content" />
+        </div> 
+        <div class="col-md-2point5 form-pagination" >
+            <div class="pagination-form-number">
+                <div class="form-number">
+                    #{purchaseOrderController.purchaseOrderIndex} / #{purchaseOrderController.purchaseOrders.size()}
+                </div>
+                <ul class="pagination">
+                    <li>
+                        <p:commandLink actionListener="#{purchaseOrderController.previousPurchaseOrder}" styleClass="fa fa-chevron-left" pass:aria-label="Previous" update=":PurchaseOrderForm:content" oncomplete="setNextFormURL('id',formId)"/>           
+                    </li>
+                    <li>
+                        <p:commandLink actionListener="#{purchaseOrderController.nextPurchaseOrder}" styleClass="fa fa-chevron-right" pass:aria-label="Next" update=":PurchaseOrderForm:content" oncomplete="setNextFormURL('id',formId)"/>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-1 form-pagination" >
+            <ul class="pagination">
+                <li class="active-nav-button">
+                    <p:commandLink  styleClass="fa fa-square-o" style="font-size: 17px !important;" update="@none"/>
+                </li>
+                <li >
+                    <p:commandLink process="@this" actionListener="#{purchaseOrderController.showOrderList}" styleClass="fa fa-bars" style="font-size: 17px !important;" update=":PurchaseOrderForm:content"/>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="row form-header-3" >
+        <div class="col-md-6 record-status-buttons">
+            <p:commandButton
+                value="#{messages.ConfirmOrder}"
+                rendered="#{(purchaseOrderController.purchaseOrder.state == 'Quotation')}" 
+                class="btnn btnn-primary"
+                actionListener="#{purchaseOrderController.confirmPurchase(purchaseOrderController.purchaseOrder.id)}" 
+                update=":PurchaseOrderForm:content"/>
+            <p:commandButton  
+                value="#{messages.ReceiveBill}"
+                rendered="#{(purchaseOrderController.purchaseOrder.invoiceMethod == 'Partial') and (purchaseOrderController.purchaseOrder.state == 'Purchase Order')}" 
+                class="btnn btnn-primary"
+                actionListener="#{purchaseOrderController.prepareInvoicing(purchaseOrderController.purchaseOrder.id)}"
+                oncomplete="if (!args.validationFailed) {PF('InvoiceLinesDialog').show()}"
+                update=":PurchaseOrderForm:content, :invoicingForm"/>
+
+            <p:commandButton  
+                value="#{messages.ReceiveProducts}"
+                rendered="#{((purchaseOrderController.purchaseOrder.state == 'Purchase Order') and (purchaseOrderController.purchaseOrder.deliveryCreated != true))}" 
+                class="btnn btnn-primary"
+                actionListener="#{purchaseOrderController.createDeliveryOrder(purchaseOrderController.purchaseOrder.id)}" 
+                update=":PurchaseOrderForm:content"/> 
+            <p:commandButton 
+                value="#{messages.Cancel}"
+                rendered="#{(purchaseOrderController.purchaseOrder.state != 'Cancelled') and (purchaseOrderController.purchaseOrder.state != 'Done')}" 
+                class="btnn btnn-default"
+                actionListener="#{purchaseOrderController.cancelOrder(purchaseOrderController.purchaseOrder.id)}" 
+                update=":PurchaseOrderForm:content"/>
+            <p:commandButton 
+                value="#{messages.Print}" 
+                ajax="false"
+                class="btnn btnn-default"
+                process="@this"
+                actionListener="#{purchaseOrderController.printOrder}"/>
+
+        </div>
+        <div class="col-md-6 bread-crumb" >    
+            <div class="breadcrumbs flat">
+                <h:link pass:href='' class="#{(purchaseOrderController.purchaseOrder.state == 'Quotation') ? 'active' : ''}"  value="#{messages.RequestForQuotation}"/>
+                <h:link class="#{(purchaseOrderController.purchaseOrder.state == 'Purchase Order') ? 'active' : ''}"  value="#{messages.PurchaseOrder}"/>  
+                <h:link class="#{(purchaseOrderController.purchaseOrder.state == 'Done') ? 'active' : ''}"  value="#{messages.Done}"/>
+                <h:link rendered="#{(purchaseOrderController.purchaseOrder.state == 'Cancelled')}"  class="active"  value="#{messages.Cancelled}"/>
+            </div>
+        </div>
+    </div>
+
+    <div class="row form-body"> 
+        <div class="row form-body-header">
+            <div class="oe_right oe_button_box col-md-12">
+                <button class="oe_stat_button btn btn-default" jsf:outcome="/sc/supInvoice/index" jsf:rendered="#{not empty purchaseOrderController.purchaseOrder.invoices}">
+                    <f:param name="purchase"  value="#{purchaseOrderController.purchaseOrder.id}"/>
+                    <div class="stat_button_icon fa fa-pencil-square-o fa-fw">
+                    </div>
+                    <div>
+                        <strong>
+                            <span class="oe_form_field oe_form_field_float oe_form_field_monetary">
+                                <span class="oe_form_char_content">#{purchaseOrderController.purchaseOrder.invoices.size()}</span>
+                            </span>
+                        </strong>
+                        <br></br>
+                        #{messages.Bills}
+                    </div>
+                </button>
+                <button disabled="true" type="button" class="oe_stat_button btn btn-default oe_right customerButton" jsf:rendered="#{(empty purchaseOrderController.purchaseOrder.invoices) and (purchaseOrderController.purchaseOrder.invoiceMethod == 'Complete')}">
+                    <div class="stat_button_icon fa fa-pencil-square-o fa-fw">
+                    </div>
+                    <div>
+                        <strong>
+                            <span class="oe_form_field oe_form_field_float oe_form_field_monetary">
+                                <span class="oe_form_char_content">0</span>
+                            </span>
+                        </strong>
+                        <br></br>
+                        #{messages.Bills}
+                    </div>
+                </button>
+                <button class="oe_stat_button btn btn-default" jsf:outcome="/sc/supDeliveryOrder/index" jsf:rendered="#{not empty purchaseOrderController.purchaseOrder.deliveryOrders}">
+                    <f:param name="purchase"  value="#{purchaseOrderController.purchaseOrder.id}"/>
+                    <div class="stat_button_icon fa fa fa-truck fa-fw"></div>
+                    <div>
+                        <strong>
+                            <span class="oe_form_field oe_form_field_float oe_form_field_monetary">
+                                <span class="oe_form_char_content">#{purchaseOrderController.purchaseOrder.deliveryOrders.size()}</span>
+                            </span>
+                        </strong>
+                        <br></br>
+                        #{messages.InShipments}
+                    </div>
+                </button>
+                <button disabled="true" type="button" class="oe_stat_button btn btn-default oe_right customerButton" jsf:rendered="#{(purchaseOrderController.purchaseOrder.deliveryCreated == true) and (purchaseOrderController.purchaseOrder.deliveryOrders.size() == 0)}">
+                    <div class="stat_button_icon fa fa-truck fa-fw">
+                    </div>
+                    <div>
+                        <strong>
+                            <span class="oe_form_field oe_form_field_float oe_form_field_monetary">
+                                <span class="oe_form_char_content">0</span>
+                            </span>
+                        </strong>
+                        <br></br>
+                        #{messages.InShipments}
+                    </div>
+                </button>
+            </div>
+        </div>
+        <div class="row form-line-1">
+            <div class="col-md-12" >
+                <h:outputText value="#{purchaseOrderController.purchaseOrder.name}"/> 
+            </div>
+        </div>
+        <div class="row" style="padding-left: 20px; margin-bottom:10px">
+            <div class="col-md-2point5 form-label">
+                <h:outputText value="#{messages.Vendor}"/>
+            </div> 
+            <div class="col-md-4">
+                <p:link  class="form-nav" value="#{purchaseOrderController.purchaseOrder.partner.name}"  outcome="/sc/supplier/index">
+                    <f:param name="id" value="#{purchaseOrderController.purchaseOrder.partner.id}"/>
+                </p:link>
+            </div>
+            <div class="col-md-2 form-label">
+                <h:outputText value="#{messages.OrderDate}"/> 
+            </div>
+            <div class="col-md-3point5 ">
+                <h:outputText value="#{purchaseOrderController.purchaseOrder.date}">
+                    <f:convertDateTime pattern="MM-dd-yyyy" />
+                </h:outputText>
+            </div>
+        </div>
+        <div class="row" style="padding-bottom: 15px; padding-left: 20px; margin-bottom:20px">
+            <div class="col-md-2point5 form-label">
+                <h:outputText value="#{messages.VendorReference}"/>
+            </div>
+            <div class="col-md-9point5">
+                <h:outputText value="#{purchaseOrderController.purchaseOrder.reference}"/>
+            </div>
+        </div>
+
+        <div class="row"  style="padding-left: 15px;padding-right: 15px; margin-bottom:10px">
+            <div class="col-md-12" >
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="active"><a href="#form-tab-1" class="form-tab" role="tab" data-toggle="tab">#{messages.Products}</a></li>
+                    <li><a href="#form-tab-2" class="form-tab" role="tab" data-toggle="tab">#{messages.OtherInfo}</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane active" id="form-tab-1" style="padding: 10px;">
+
+                        <p:dataTable id="purchaseLines"
+                                     value="#{purchaseOrderController.purchaseOrder.purchaseOrderLines}"
+                                     binding="#{purchaseLines}"
+                                     class="fit-content-table"
+                                     var="item">
+
+                            <p:column>
+                                <f:facet name="header">
+                                    <h:outputText value=""/>
+                                </f:facet>
+                                <h:outputText value=""/>
+                            </p:column>
+                            <p:column>
+                                <f:facet name="header">
+                                    <h:outputText value="#{messages.Product}"/>
+                                </f:facet>
+                                <p:link  class="form-nav" value="#{item.product.description}"  outcome="/sc/product/index">
+                                    <f:param name="id" value="#{item.product.id}"/>
+                                </p:link>
+                            </p:column>
+                            <p:column>
+                                <f:facet name="header">
+                                    <h:outputText value="#{messages.Quantity}"/>
+                                </f:facet>
+                                <h:outputText value="#{item.quantity}"/>
+                            </p:column>
+                            <p:column>
+                                <f:facet name="header">
+                                    <h:outputText value="#{messages.UnitOfMeasure}"/>
+                                </f:facet>
+                                <h:outputText value="#{item.uom}"/>
+                            </p:column>  
+                             <p:column>
+                                <f:facet name="header">
+                                    <h:outputText value="#{messages.Invoiced}"/>
+                                </f:facet>
+                                <p:selectBooleanCheckbox value="#{item.invoiced}" disabled="true"/>
+                            </p:column>
+                            <p:column>
+                                <f:facet name="header">
+                                    <h:outputText value="#{messages.Tax}"/>
+                                </f:facet>
+                                <h:outputText value="#{item.tax.name}"/>
+                            </p:column>         
+                            <p:column>
+                                <f:facet name="header">
+                                    <h:outputText value="#{messages.UnitPrice}"/>
+                                </f:facet>
+                                #{messages.Currency}
+                                <h:outputText value="#{item.price}"/>
+                            </p:column>
+                            <p:column>
+                                <f:facet name="header">
+                                    <h:outputText value="#{messages.SubTotal}"/>
+                                </f:facet>
+                                #{messages.Currency}
+                                <h:outputText value="#{item.subTotal}"/>
+                            </p:column>
+                        </p:dataTable> 
+
+                        <div jsf:id="OrderTotal" style="text-align: right; padding-right: 15px"> 
+                            <div class="row" style="margin-top: 26px; font-size: 15px; padding-bottom:5px;">
+                                <div class="col-md-4 col-md-offset-6">
+                                    <h:outputText value="#{messages.UntaxedAmount}"/>
+                                </div> 
+                                <div class="col-md-2" style="padding-right:0px">
+                                    #{messages.Currency}
+                                    <h:outputText id="amountUntaxed" value="#{purchaseOrderController.purchaseOrder.amountUntaxed}"/>                      
+                                </div>
+                            </div>
+                            <div class="row" style="font-size: 15px; padding-bottom:5px;">
+                                <div class="col-md-2 col-md-offset-8">
+                                    <h:outputText value="#{messages.Taxes}"/>
+                                </div> 
+                                <div class="col-md-2" style="padding-right:0px">
+                                    #{messages.Currency}
+                                    <h:outputText id="amountTax" value="#{purchaseOrderController.purchaseOrder.amountTax}"/>
+                                </div>
+                            </div>
+                            <div class="row" style="font-size: 20px;">
+                                <div class="col-md-2 col-md-offset-8 form-label-2">
+                                    <h:outputText value="#{messages.Totall}"/>
+                                </div> 
+                                <div class="col-md-2 form-label-2" style="padding-right:0px">
+                                    #{messages.Currency}
+                                    <h:outputText id="amountTotal" value="#{purchaseOrderController.purchaseOrder.amountTotal}"/>
+                                </div>
+                            </div> 
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h:outputText id="notes" value="#{purchaseOrderController.purchaseOrder.notes}"/>
+                            </div> 
+                        </div>
+                    </div>
+
+                    <div class="tab-pane" id="form-tab-2" style="padding-top: 41px; padding-bottom: 62px;">
+                        <div class="row" style="padding-bottom: 15px; padding-left: 20px; margin-bottom:10px">
+                            <div class="col-md-2point5 form-label">
+                                <h:outputText value="#{messages.ProductsReceived}"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <p:selectBooleanCheckbox id="shipped" value="#{purchaseOrderController.purchaseOrder.shipped}" disabled="true" />
+                            </div>
+                        </div>
+
+                        <div class="row" style="padding-bottom: 15px; padding-left: 20px; margin-bottom:10px">
+                            <div class="col-md-2point5 form-label">
+                                <h:outputText value="#{messages.Paid}"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <p:selectBooleanCheckbox id="paid" value="#{purchaseOrderController.purchaseOrder.paid}" disabled="true" />
+                            </div>
+                        </div> 
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>  
+
+    <script type="text/javascript">
+
+        var tableId = '#{purchaseLines.clientId}';
+        addEmptyRow(tableId);
+
+        var formId = "#{purchaseOrderController.purchaseOrder.id}";
+        setFormURL('id', formId);
+        
+        disableStatusLinks();
+        
+        setActiveTab();
+
+    </script>
+
+</ui:composition>

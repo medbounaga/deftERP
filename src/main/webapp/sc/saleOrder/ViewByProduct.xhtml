@@ -1,0 +1,174 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+
+
+    <p:growl id="msgs" widgetVar="growl"/>
+    <div class="row form-header-1" style="padding-bottom: 6px !important;">
+         <div class="col-md-8point5" >
+            <p:link  class="form-nav" value="#{saleOrderController.saleOrderLine.product.name}"  outcome="/sc/product/index">
+                <f:param name="id" value="#{saleOrderController.saleOrderLine.product.id}"/>
+            </p:link>
+            <span> / </span> 
+            <p:commandLink update=":SaleOrderForm:content" process="@this" class="form-nav" actionListener="#{saleOrderController.showOrderLineList}" >
+                <h:outputText   value="#{messages.SaleOrderLines}"/>
+            </p:commandLink>
+        </div>
+        <div class="col-md-2point5 form-pagination" >
+            <div class="pagination-form-number">
+                <div class="form-number">
+                    #{saleOrderController.orderLineIndex} / #{saleOrderController.saleOrderLines.size()}
+                </div>
+                <ul class="pagination">
+                    <li>
+                        <p:commandLink actionListener="#{saleOrderController.previousOrderLine}" process="@this" styleClass="fa fa-chevron-left" pass:aria-label="Previous" update=":SaleOrderForm:content" oncomplete="setNextFormURL('lineId',formId)"/>           
+                    </li>
+                    <li>
+                        <p:commandLink actionListener="#{saleOrderController.nextOrderLine}" process="@this" styleClass="fa fa-chevron-right" pass:aria-label="Next" update=":SaleOrderForm:content" oncomplete="setNextFormURL('lineId',formId)"/>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-1 form-pagination" >
+            <ul class="pagination">
+                <li class="active-nav-button">
+                    <p:commandLink  styleClass="fa fa-square-o" style="font-size: 17px !important;" update="@none"/>
+                </li>
+                <li >
+                    <p:commandLink process="@this" actionListener="#{saleOrderController.showOrderLineList}" styleClass="fa fa-bars" style="font-size: 17px !important;" update=":SaleOrderForm:content"/>
+                </li>
+            </ul>
+        </div>
+    </div> 
+    <div class="row form-body" style="padding-bottom: 100px !important;" >                   
+        <div class="row form-line-1">
+            <div class="col-md-12" >
+                <p:outputLabel value="#{saleOrderController.saleOrderLine.saleOrder.name}"/>
+                <span> / </span> 
+                <p:outputLabel value="#{saleOrderController.saleOrderLine.product.name}"/>  
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6point5">
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.SaleOrder}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <p:commandLink update=":SaleOrderForm:content" process="@this" value="#{saleOrderController.saleOrderLine.saleOrder.name}" class="form-nav" actionListener="#{saleOrderController.showForm(saleOrderController.saleOrderLine.saleOrder.id)}"/>
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Product}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <p:link  class="form-nav" value="#{saleOrderController.saleOrderLine.product.name}"  outcome="/sc/product/index">
+                            <f:param name="id" value="#{saleOrderController.saleOrderLine.product.id}"/>
+                        </p:link>
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.UnitOfMeasure}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <h:outputText value="#{saleOrderController.saleOrderLine.uom}"/>
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Quantity}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <h:outputText value="#{saleOrderController.saleOrderLine.quantity}"/>
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.UnitPrice}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        #{messages.Currency}
+                        <h:outputText value="#{saleOrderController.saleOrderLine.price}"/>
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Discount}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <h:outputText value="#{saleOrderController.saleOrderLine.discount}"/>
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.SubTotal}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        #{messages.Currency}
+                        <h:outputText value="#{saleOrderController.saleOrderLine.subTotal}"/>                    
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Taxess}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        #{messages.Currency}
+                        <h:outputText value="#{saleOrderController.lineTax}"/>
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Total}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        #{messages.Currency}
+                        <h:outputText value="#{saleOrderController.lineTotal}"/>                    
+                    </div>
+                </div>
+                
+            </div>
+            <div class="col-md-5point5">
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Customer}"/>
+                    </div>
+                    <div class="col-md-8 ">
+                        <p:link  class="form-nav" value="#{saleOrderController.saleOrderLine.saleOrder.partner.name}"  outcome="/sc/supplier/index">
+                            <f:param name="id" value="#{saleOrderController.saleOrderLine.saleOrder.partner.id}"/>
+                        </p:link>
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.OrderDate}"/>
+                    </div>
+                    <div class="col-md-8 ">
+                        <h:outputText id="date" value="#{saleOrderController.saleOrderLine.saleOrder.date}">
+                            <f:convertDateTime pattern="MM-dd-yyyy" />
+                        </h:outputText>
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Invoiced}"/>
+                    </div>
+                    <div class="col-md-8 ">
+                        <p:selectBooleanCheckbox value="#{saleOrderController.saleOrderLine.invoiced}" disabled="true" />
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>  
+    <script type="text/javascript">
+        var formId = "#{saleOrderController.saleOrderLine.id}";
+        setFormURL('lineId', formId);
+    </script>
+</ui:composition>

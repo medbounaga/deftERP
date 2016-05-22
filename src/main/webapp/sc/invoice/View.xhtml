@@ -1,0 +1,497 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+
+
+    <p:growl id="msgs" widgetVar="growl"/>
+    <ui:include src="/sc/confirmation.xhtml"/>
+    <div class="row form-header-1">
+        <div class="col-md-12" jsf:rendered="#{empty invoiceController.partialListType}" >
+            <p:commandLink update=":InvoiceForm:content" process="@this" class="form-nav" actionListener="#{invoiceController.showInvoiceList}">
+                <h:outputText   value="#{messages.CustomerInvoices}"/>
+            </p:commandLink> 
+            <span> / </span>
+            <p:outputLabel id="namee" value="#{invoiceController.invoice.name}" /> 
+        </div>
+        <div class="col-md-12" jsf:rendered="#{invoiceController.partialListType == 'partner'}"> 
+            <p:link  class="form-nav" value="#{invoiceController.invoice.partner.name}"  outcome="/sc/customer/index">
+                <f:param name="id" value="#{invoiceController.invoice.partner.id}"/>
+            </p:link>
+            <span> / </span> 
+            <p:commandLink update=":InvoiceForm:content" process="@this" class="form-nav" actionListener="#{invoiceController.showInvoiceList}">
+                <h:outputText   value="#{messages.Invoices}"/>
+            </p:commandLink>
+            <span> / </span> 
+            <p:outputLabel value="#{invoiceController.invoice.name}"/> 
+        </div>
+        <div class="col-md-12" jsf:rendered="#{invoiceController.partialListType == 'saleOrder'}"> 
+            <p:link  class="form-nav" value="#{invoiceController.invoice.saleOrder.name}"  outcome="/sc/saleOrder/index">
+                <f:param name="id" value="#{invoiceController.invoice.saleOrder.id}"/>
+            </p:link>
+            <span> / </span> 
+            <p:commandLink update=":InvoiceForm:content" process="@this" class="form-nav" actionListener="#{invoiceController.showInvoiceList}">
+                <h:outputText   value="#{messages.Invoices}"/>
+            </p:commandLink>
+            <span> / </span> 
+            <p:outputLabel value="#{invoiceController.invoice.name}"/> 
+        </div>
+    </div> 
+
+    <div class="row form-header-2">
+        <div class="col-md-8point5">
+            <p:commandButton class="btnn btnn-primary" value="#{messages.Edit}" actionListener="#{invoiceController.prepareEdit(invoiceController.invoice.id)}"  update=":InvoiceForm:content" rendered="#{(invoiceController.invoice.state != 'Cancelled')}" />               
+            <p:commandButton class="btnn btnn-default" value="#{messages.Create}" actionListener="#{invoiceController.prepareCreate}" update=":InvoiceForm:content" /> 
+            <p:commandButton class="btnn btnn-default" value="#{messages.Delete}" actionListener="#{invoiceController.deleteInvoice(invoiceController.invoice.id)}" update=":InvoiceForm:content">
+                <p:confirm header="#{messages.ConfirmationHeader}"  message="#{messages.ConfirmMessage}" icon="ui-icon-alert"/>
+            </p:commandButton>
+            <p:commandButton class="btnn btnn-default" value="#{messages.Duplicate}" actionListener="#{invoiceController.duplicateInvoice(invoiceController.invoice.id)}" update=":InvoiceForm:content" />
+        </div> 
+        <div class="col-md-2point5 form-pagination">
+            <div class="pagination-form-number">
+                <div class="form-number">
+                    #{invoiceController.invoiceIndex} / #{invoiceController.invoices.size()}
+                </div>
+                <ul class="pagination">
+                    <li>
+                        <p:commandLink actionListener="#{invoiceController.previousInvoice}" process="@this" styleClass="fa fa-chevron-left" pass:aria-label="Previous" update=":InvoiceForm:content" oncomplete="setNextFormURL('id',formId)"/>           
+                    </li>
+                    <li>
+                        <p:commandLink actionListener="#{invoiceController.nextInvoice}" process="@this" styleClass="fa fa-chevron-right" pass:aria-label="Next" update=":InvoiceForm:content" oncomplete="setNextFormURL('id',formId)"/>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-1 form-pagination" >
+            <ul class="pagination" >
+                <li class="active-nav-button">
+                    <p:commandLink  styleClass="fa fa-square-o" style="font-size: 17px !important;" update="@none"/>
+                </li>
+                <li >
+                    <p:commandLink process="@this" actionListener="#{invoiceController.showInvoiceList}" styleClass="fa fa-bars" style="font-size: 17px !important;" update=":InvoiceForm:content"/>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="row form-header-3" >
+        <div class="col-md-6 record-status-buttons">   
+            <p:commandButton
+                value="#{messages.Validate}" 
+                process="@this"
+                rendered="#{(invoiceController.invoice.state == 'Draft')}" 
+                class="btnn btnn-primary"
+                actionListener="#{invoiceController.validateInvoice(invoiceController.invoice.id)}" 
+                update=":InvoiceForm:content"/>
+            <p:commandButton  
+                value="#{messages.RegisterPayment}"
+                process="@this"
+                resetValues="true"
+                class="btnn btnn-primary"
+                actionListener="#{invoiceController.preparePayment(invoiceController.invoice.id)}" 
+                update=":InvoiceForm:content :paymentForm"
+                rendered="#{(invoiceController.invoice.state == 'Open')}" 
+                oncomplete="if (!args.validationFailed) {PF('PaymentDialog').show()}"/>        
+            <p:commandButton 
+                value="#{messages.CancelInvoice}" 
+                rendered="#{invoiceController.invoice.state != 'Cancelled'}" 
+                class="btnn btnn-default"
+                actionListener="#{invoiceController.cancelInvoice(invoiceController.invoice.id)}" 
+                update=":InvoiceForm:content">
+                <p:confirm header="#{messages.ConfirmationHeader}"  message="#{messages.ConfirmMessage}" icon="ui-icon-alert"/>
+            </p:commandButton>
+            <p:commandButton 
+                value="#{messages.Print}" 
+                ajax="false"
+                class="btnn btnn-default"
+                process="@this"
+                actionListener="#{invoiceController.printInvoice}"/>
+
+        </div>
+        <div class="col-md-6 bread-crumb" >    
+            <div class="breadcrumbs flat">
+                <h:link class="#{(invoiceController.invoice.state == 'Draft') ? 'active' : ''}"  value="#{messages.Draft}"/>
+                <h:link rendered="#{(invoiceController.invoice.state == 'Cancelled')}"  class="active"  value="#{messages.Cancelled}"/>
+                <h:link class="#{(invoiceController.invoice.state == 'Open') ? 'active' : ''}"  value="#{messages.Open}"/>
+                <h:link class="#{(invoiceController.invoice.state == 'Paid') ? 'active' : ''}"  value="#{messages.Paid}"/>
+            </div>
+        </div>
+    </div>
+
+    <div class="row alert-info" style="background-color: #d9edf7; border-color: #bce8f1; color: #31708f !important; padding: 15px;" jsf:rendered="#{(invoiceController.invoice.residual > 0) and (not empty invoiceController.outstandingPayments) and (invoiceController.invoice.state != 'Draft')}">
+        #{messages.OutstandingCreditsAlert1}
+        <a href="#outstanding" id="alert-info-link" class="alert-link" style="font-weight: bold; font-size: 14px;" onclick="return false;">
+            #{messages.OutstandingCreditsAlert2}
+        </a>      
+        #{messages.OutstandingCreditsAlert3}
+    </div>
+
+    <div class="row form-body"> 
+        <div class="row form-body-header">
+            <div class="oe_right oe_button_box col-md-12">
+                <button  class="oe_stat_button btn btn-default" jsf:outcome="/sc/saleOrder/index" jsf:rendered="#{invoiceController.invoice.saleOrder != null}"> 
+                    <f:param name="id"  value="#{invoiceController.invoice.saleOrder.id}"/>
+                    <div class="stat_button_icon fa fa-bars fa-fw">
+                    </div>
+                    <div style="font-size:12.5px;">
+                        #{messages.SaleOrder}
+                    </div>
+                </button>
+                <button  class="oe_stat_button btn btn-default" jsf:outcome="/sc/journalEntry/index" jsf:rendered="#{invoiceController.invoice.journalEntry != null}"> 
+                    <f:param name="id"  value="#{invoiceController.invoice.journalEntry.id}"/>
+                    <div class="stat_button_icon fa fa-bars fa-fw">
+                    </div>
+                    <div style="font-size:12.5px;">
+                        #{messages.JournalEntry}
+                    </div>
+                </button>
+            </div>
+        </div>
+        <div class="row form-line-1">
+            <div class="col-md-12">
+                <p:outputLabel value="#{invoiceController.invoice.name}"/>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Customer}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <p:link  class="form-nav" style="display:block;" value="#{invoiceController.invoice.partner.name}"  outcome="/sc/customer/index">
+                            <f:param name="id" value="#{invoiceController.invoice.partner.id}"/>
+                        </p:link>
+                        <h:outputText style="display:block;" value="#{invoiceController.invoice.partner.street}"/>
+                        <h:outputText style="display:block;" value="#{invoiceController.invoice.partner.city}"/>
+                        <h:outputText style="display:block;" value="#{invoiceController.country}"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.InvoiceDate}"/>
+                    </div>
+                    <div class="col-md-8 ">
+                        <h:outputText  value="#{invoiceController.invoice.date}">
+                            <f:convertDateTime pattern="MM-dd-yyyy" />
+                        </h:outputText>
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Origin}"/>                       
+                    </div>
+                    <div class="col-md-8 ">
+                        <h:outputText  value="#{invoiceController.invoice.origin}"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row"  style="padding-left: 15px; padding-right: 15px; margin-bottom:10px; margin-top:20px;">
+            <div class="col-md-12" >
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="active"><a href="#form-tab-1" class="form-tab" role="tab" data-toggle="tab">#{messages.InvoiceLines}</a></li>
+                    <li><a href="#form-tab-2" role="tab" class="form-tab" data-toggle="tab">#{messages.OtherInfo}</a></li>
+                </ul>
+                <!-- Tab panes -->
+                <div class="tab-content">
+                    <div class="tab-pane active" id="form-tab-1" style="padding-top: 20px; padding-bottom: 40px;">
+
+                        <p:dataTable id="invoiceLines"
+                                     binding="#{customerInvoiceLines}"
+                                     class="fit-content-table"
+                                     value="#{invoiceController.invoice.invoiceLines}"
+                                     var="item"
+                                     rowKey="#{item.id}">
+
+                            <p:column>
+                                <f:facet name="header">
+                                    <h:outputText value=""/>
+                                </f:facet>
+                                <h:outputText value=""/>
+                            </p:column>
+
+                            <p:column>
+                                <f:facet name="header">
+                                    <h:outputText value="#{messages.Product}"/>
+                                </f:facet>
+                                <p:link  class="form-nav" value="#{item.product.description}"  outcome="/sc/product/index">
+                                    <f:param name="id" value="#{item.product.id}"/>
+                                </p:link>
+                            </p:column>
+
+                            <p:column>
+                                <f:facet name="header">
+                                    <h:outputText value="#{messages.Account}"/>
+                                </f:facet>
+                                <h:outputText value="#{item.account.name}"/>
+                            </p:column>
+
+                            <p:column>
+                                <f:facet name="header">
+                                    <h:outputText value="#{messages.Quantity}"/>
+                                </f:facet>
+                                <h:outputText value="#{item.quantity}"/>
+                            </p:column>
+
+                            <p:column>
+                                <f:facet name="header">
+                                    <h:outputText value="#{messages.UnitPrice}"/>
+                                </f:facet>
+                                #{messages.Currency}
+                                <h:outputText value="#{item.price}"/>
+                            </p:column>
+
+                            <p:column>
+                                <f:facet name="header">
+                                    <h:outputText value="#{messages.Discount}"/>
+                                </f:facet>
+                                <h:outputText value="#{item.discount}"/>
+                            </p:column>
+
+                            <p:column>
+                                <f:facet name="header">
+                                    <h:outputText value="#{messages.Tax}"/>
+                                </f:facet>
+                                <h:outputText value="#{item.tax.name}"/>
+                            </p:column>
+
+                            <p:column>
+                                <f:facet name="header">
+                                    <h:outputText value="#{messages.SubTotal}"/>
+                                </f:facet>
+                                #{messages.Currency}
+                                <h:outputText value="#{item.priceSubtotal}"/>
+                            </p:column>
+                        </p:dataTable>    
+
+                        <div class="form-totals" style="text-align: right; padding-right: 15px;"> 
+                            <div class="row" style="margin-top: 26px; font-size: 15px; padding-bottom:5px;">
+                                <div class="col-md-3 col-md-offset-7">
+                                    <h:outputText value="#{messages.UntaxedAmount}"/>
+                                </div> 
+                                <div class="col-md-2" style="padding-right:0px;">
+                                    #{messages.Currency}
+                                    <h:outputText id="amountUntaxed" value="#{invoiceController.invoice.amountUntaxed}"/>                       
+                                </div>
+                            </div>
+                            <div class="row" style="font-size: 15px; padding-bottom:5px;">
+                                <div class="col-md-3 col-md-offset-7">
+                                    <h:outputText value="#{messages.Taxes}"/>
+                                </div> 
+                                <div class="col-md-2" style="padding-right:0px;">
+                                    #{messages.Currency}
+                                    <h:outputText id="amountTax" value="#{invoiceController.invoice.amountTax}"/>
+                                </div>
+                            </div>
+                            <div class="row" style="font-size: 20px;">
+                                <div class="col-md-3 col-md-offset-7 form-label-2">
+                                    <h:outputText value="#{messages.Totall}"/>
+                                </div> 
+                                <div class="col-md-2 form-label-2" style="padding-right:0px">
+                                    #{messages.Currency}
+                                    <h:outputText id="amountTotal" value="#{invoiceController.invoice.amountTotal}"/>
+                                </div>
+                            </div> 
+
+                            <div class="invoice-payments" rendered="#{not empty invoiceController.invoice.invoicePayments}" style="margin-top:10px; margin-bottom: 5px;">
+                                <ui:repeat value="#{invoiceController.invoice.invoicePayments}" var="item">
+                                    <div class="row" style="margin-bottom: 5px;">
+                                        <div class="col-md-1 col-md-offset-7" style="padding-left:0px;">
+                                            <a data-toggle="dropdown" class="dropdown-toggle fa fa-info-circle" href="#" style="float:left;"/>
+                                            <div class="dropdown-menu payment-menu" style="position: absolute;left: -410px; top: -105px; width: 400px; padding-top: 0px;">
+                                                <div class="row" style="padding-left:3px; padding-top:7px; padding-bottom:7px; margin:0px; background-color: rgba(0, 0, 0, .05); border-bottom: 2px solid rgba(0, 0, 0, .08); border-top-left-radius:4px; border-top-right-radius:4px; font-size: 16px; font-weight: bold;">
+                                                    <div class="col-md-12">
+                                                        <p:outputLabel value="#{messages.PaymentInformation}" style="margin:0px;"/>
+                                                    </div> 
+                                                </div>
+                                                <div class="row" style="padding-left: 20px; margin-top: 10px;">
+                                                    <div class="col-md-6 form-label">
+                                                        <p:outputLabel value="#{messages.Name}:"/>
+                                                    </div> 
+                                                    <div class="col-md-6">
+                                                        <h:outputText value="#{item.name}"/>
+                                                    </div>
+                                                </div>
+                                                <div class="row" style="padding-left: 20px;">
+                                                    <div class="col-md-6 form-label">
+                                                        <p:outputLabel value="#{messages.Date}:"/>
+                                                    </div> 
+                                                    <div class="col-md-6">
+                                                        <h:outputText value="#{item.date}">
+                                                            <f:convertDateTime pattern="MM/dd/yyyy" />
+                                                        </h:outputText>
+                                                    </div>
+                                                </div>
+                                                <div class="row" style="padding-left: 20px; ">
+                                                    <div class="col-md-6 form-label">
+                                                        <p:outputLabel value="#{messages.PaymentMethod}:"/>
+                                                    </div> 
+                                                    <div class="col-md-6">
+                                                        <h:outputText value="#{item.journalEntry.journal.name}"/>
+                                                    </div>
+                                                </div>
+                                                <div class="row" style="padding-left: 20px; ">
+                                                    <div class="col-md-6 form-label">
+                                                        <p:outputLabel value="#{messages.Amount}:"/>
+                                                    </div> 
+                                                    <div class="col-md-6">
+                                                        #{messages.Currency} 
+                                                        <h:outputText value="-#{item.paidAmount}"/>
+                                                    </div>
+                                                </div>
+                                                <div class="row" style="padding-bottom:2px; padding-top:2px; margin:0px;">
+                                                    <div class="col-md-12">
+                                                        <p:button styleClass="btnn btnn-primary" value="#{messages.OpenPayment}" outcome="/sc/journalEntry/index">
+                                                            <f:param name="id" value="#{item.journalEntry.id}"/> 
+                                                        </p:button>
+                                                    </div> 
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4" style="padding-right:0px;">
+                                            <div style="float:left; display:inline; font-style: italic;">
+                                                <h:outputText value="#{messages.PaidOn}" style="padding-right:4px;"/>
+                                                <h:outputText id="date" value="#{item.date}">
+                                                    <f:convertDateTime pattern="MM/dd/yyyy" />
+                                                </h:outputText>
+                                            </div>
+                                            #{messages.Currency} 
+                                            <h:outputText value="-#{item.paidAmount}"/>  
+                                        </div> 
+                                    </div>
+                                </ui:repeat>
+                            </div>
+
+                            <div class="row" style="font-size: 17px; font-weight: normal !important;">
+                                <div class="col-md-3 col-md-offset-7 form-label-2">
+                                    <h:outputText value="#{messages.AmountDue} :"/>
+                                </div> 
+                                <div class="col-md-2 form-label-2" style="padding-right:0px">
+                                    #{messages.Currency}
+                                    <h:outputText  value="#{invoiceController.invoice.residual}"/>
+                                </div>
+                            </div> 
+
+                            <div class="row" jsf:rendered="#{(invoiceController.invoice.residual > 0) and (not empty invoiceController.outstandingPayments) and (invoiceController.invoice.state != 'Draft')}" style="margin-top:8px;">
+                                <div id="outstanding" class="col-md-offset-7 form-label-2">
+                                    <p:outputLabel value="#{messages.OutstandingCredits}" style="float:left; font-weight: bold;"/>                               
+                                </div>
+                            </div>
+
+                            <ui:repeat value="#{invoiceController.outstandingPayments}" var="item" rendered="#{(invoiceController.invoice.residual > 0) and (not empty invoiceController.outstandingPayments) and (invoiceController.invoice.state != 'Draft')}">
+
+                                <div class="row" style="margin-bottom: 5px;">
+                                    <div class="col-md-1 col-md-offset-7 outstanding-payments-add" style="padding-left:0px;  padding-right:0px;">
+                                        <p:commandLink  value="#{messages.Add}" actionListener="#{invoiceController.payOutstandingPayment(item.id, invoiceController.invoice.id)}" process="@this" update=":InvoiceForm:content" style="float:left;"/>  
+                                    </div>
+                                    <div class="col-md-2">                    
+                                        <h:outputText value="#{item.name}" style="float:left;"/>
+                                    </div> 
+                                    <div class="col-md-2" style="padding-right:0px;">
+                                        #{messages.Currency}
+                                        <h:outputText  value="#{item.overpayment}"/>
+                                    </div>
+                                </div>
+                            </ui:repeat>
+                        </div> 
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h:outputText id="notes" value="#{invoiceController.invoice.comment}"/>
+                            </div> 
+                        </div>
+                    </div>
+
+                    <div class="tab-pane" id="form-tab-2" style="padding-top: 20px; padding-bottom: 40px;">
+
+                        <div class="row form-row">
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.Journal}"/>
+                            </div> 
+                            <div class="col-md-4">
+                                <h:outputText value="#{invoiceController.invoice.journal.name}"/>
+                            </div>
+                            <div class="col-md-2 form-label">
+                                <p:outputLabel value="#{messages.Account}"/>
+                            </div>
+                            <div class="col-md-3point5 ">
+                                <h:outputText value="#{invoiceController.invoice.account.name}"/>
+                            </div>
+                        </div>
+
+                        <div class="row" style="padding-bottom: 15px; margin-bottom:10px; padding-top: 15px;">
+                            <div class="col-md-12">
+
+                                <p:dataTable id="invoiceTaxes"
+                                             binding="#{invoiceTaxes}"
+                                             class="fit-content-table"
+                                             value="#{invoiceController.invoice.invoiceTaxes}"
+                                             var="item"
+                                             rowKey="#{item.id}">
+
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value=""/>
+                                        </f:facet>
+                                        <h:outputText value=""/>
+                                    </p:column>
+
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="#{messages.TaxDescription}"/>
+                                        </f:facet>
+                                        <h:outputText value="#{item.tax.name}"/>
+                                    </p:column>
+
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="#{messages.TaxAccount}"/>
+                                        </f:facet>
+                                        <h:outputText value="#{item.account.name}"/>
+                                    </p:column>
+
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="#{messages.BaseAmount}"/>
+                                        </f:facet>
+                                        #{messages.Currency}
+                                        <h:outputText value="#{item.baseAmount}"/>
+                                    </p:column>
+
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="#{messages.TaxAmount}"/>
+                                        </f:facet>
+                                        #{messages.Currency}
+                                        <h:outputText value="#{item.taxAmount}"/>
+                                    </p:column>
+
+                                </p:dataTable>
+                            </div>
+                        </div>                
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>  
+
+    <script type="text/javascript">
+        var tableId = '#{customerInvoiceLines.clientId}';
+        addEmptyRow(tableId);
+        tableId = '#{invoiceTaxes.clientId}';
+        addEmptyRow(tableId);
+
+        var formId = "#{invoiceController.invoice.id}";
+        setFormURL('id', formId);
+
+        disableStatusLinks();
+
+        setActiveTab();
+    </script>
+
+</ui:composition>

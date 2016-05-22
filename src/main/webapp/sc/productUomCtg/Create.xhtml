@@ -1,0 +1,41 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+
+
+    <p:growl id="msgs" widgetVar="growl"/>
+    <div class="row form-header-1">
+        <div class="col-md-12" >
+            <p:commandLink class="form-nav" value="#{messages.ProductUomCategory}" process="@this" actionListener="#{productUomCategoryController.showProductUomCategoryList}" update=":ProductUomCategoryForm:content"/>
+            <span> / </span>
+            <span>#{messages.New}</span>
+        </div>
+    </div> 
+    <div class="row form-header-2" style="padding-top: 5px;">
+        <div class="col-md-12 record-status-buttons">   
+            <p:commandButton class="btnn btnn-primary" value="#{messages.Save}" process=":ProductUomCategoryForm:content" actionListener="#{productUomCategoryController.createProductUomCategory}"  update=":ProductUomCategoryForm:content" /> 
+            <p:commandButton class="btnn btnn-default" value="#{messages.Discard}" process="@this" actionListener="#{productUomCategoryController.showProductUomCategoryList}"  update=":ProductUomCategoryForm:content" /> 
+        </div>
+    </div>
+    <div class="row form-body-full">  
+        <div class="row">
+            <div class="col-md-6">
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Name}" for="name" />
+                    </div> 
+                    <div class="col-md-8">
+                        <p:inputText id="name" value="#{productUomCategoryController.productUomCategory.name}" class="fullWidth required" required="true" requiredMessage="#{messages.ProductUomCategoryNameRequired}" maxlength="55"/>
+                    </div>
+                </div>
+            </div>
+        </div>    
+    </div>  
+    <script type="text/javascript">
+        setListURL();
+    </script>
+</ui:composition>

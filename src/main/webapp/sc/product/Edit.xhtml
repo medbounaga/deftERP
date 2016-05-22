@@ -1,0 +1,267 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough"
+                xmlns:o="http://omnifaces.org/ui">
+
+    <p:growl id="msgs" widgetVar="growl"/>
+    <h:selectBooleanCheckbox  id="imageModified" value="#{productController.imageModified}" style="display: none;" />
+    <div class="row form-header-1">
+        <div class="col-md-12" >
+            <p:commandLink styleClass="form-nav" value="#{messages.Products}" process="@this" actionListener="#{productController.showProducts}" update=":ProductForm:content"/>
+            <span> / </span>
+            <span>#{messages.New}</span>
+        </div>
+    </div> 
+    <div class="row form-header-2" style="padding-bottom: 5px; padding-top: 5px;" >
+        <div class="col-md-12">
+            <h:commandButton id="saveBtn" action="#{productController.editProduct(productController.product.id)}"  value="#{messages.Save}" class="btnn btnn-primary jsf-btn">
+                <f:ajax execute="@form"  render=":ProductForm:content"/> 
+            </h:commandButton>
+            <p:commandButton class="btnn btnn-default" value="#{messages.Discard}"  process="@this" actionListener="#{productController.cancelEditProduct(productController.product.id)}" update=":ProductForm:content"/>
+        </div> 
+    </div>
+    <div class="row form-body"> 
+        <div class="row" style="margin-top: 12px; padding-left: 20px; padding-bottom: 10px;">
+            <div class="col-md-1point5">
+                <p:graphicImage  value="#" name="img/placeholder.png"  binding="#{altImage}" style="display: none;" />
+                <h:inputFile style="display:none;"   id="pictureUpload"  value="#{productController.image}" binding="#{upload}" validator="#{productController.validateImage}" />
+                <div class="form_image">
+                    <o:graphicImage rendered="#{productController.product.image != null}"  value="#{productController.product.image}" dataURI="true" />   
+                    <p:graphicImage rendered="#{productController.product.image == null}"  value="#" name="img/placeholder.png"  />
+                    <div class="form_image_buttons" style="position: absolute; width: 100%;">
+                        <a class="fa fa-pencil form_image_edit" id="upload_link"/>
+                        <a class="fa fa-trash-o form_image_remove" id="remove_link"/> 
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5" style="margin-top: 0px;"> 
+                <p:inputText id="name" value="#{productController.product.name}" style="display: block; margin-bottom: 10px; margin-top:5px;" class="required form-name-input fullWidth" required="true" requiredMessage="#{messages.ProductNameRequired}" maxlength="40" placeholder="#{messages.Name}"/>
+                <div>
+                    <p:selectBooleanCheckbox widgetVar="isSold" id="isSold" value="#{productController.product.saleOk}"/>   
+                    <p:outputLabel value="#{messages.CanBeSold}" style="padding-left: 5px; font-weight: bold;"/>
+                </div>
+                <div>
+                    <p:selectBooleanCheckbox widgetVar="isPurchased" id="isPurchases" value="#{productController.product.purchaseOk}"/>   
+                    <p:outputLabel value="#{messages.CanBePurchased}" style="padding-left: 5px; font-weight: bold;"/>
+                </div>             
+            </div> 
+        </div>
+        <div class="row"  style="padding-left: 15px;padding-right: 15px; margin-bottom:10px">
+            <div class="col-md-12" >
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="active"><a href="#form-tab-1" class="form-tab" role="tab" data-toggle="tab">#{messages.Information}</a></li>
+                    <li><a href="#form-tab-2" class="form-tab" role="tab" data-toggle="tab">#{messages.Inventory}</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane active" id="form-tab-1" style="padding-top: 15px; padding-bottom: 20px;">
+                        <div class="row" style="padding-bottom: 15px; padding-left: 20px">
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.ProductCategory}" for="productCategoryMenu"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <p:selectOneMenu id="productCategoryMenu" class="fullWidth required" value="#{productController.product.category}" required="true" requiredMessage="#{messages.ProductCategoryRequired}" converter="productCategoryConverter">   
+                                    <f:selectItem  itemLabel="&#160;" />
+                                    <f:selectItems value="#{productCategoryController.productCategories}"
+                                                   var="productCategory"
+                                                   itemValue="#{productCategory}"
+                                                   itemLabel="#{productCategory.name.toString()}"/>
+                                </p:selectOneMenu>
+                            </div>
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.UnitOfMeasure}" for="unitOfMeasureMenu"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <p:selectOneMenu id="unitOfMeasureMenu" class="fullWidth required" value="#{productController.product.uom}" required="true" requiredMessage="#{messages.UnitOfMeasureRequired}" converter="productUomConverter">   
+                                    <f:selectItem  itemLabel="&#160;" />
+                                    <f:selectItems value="#{productUomController.activeUoms}"
+                                                   var="unitOfMeasure"
+                                                   itemValue="#{unitOfMeasure}"
+                                                   itemLabel="#{unitOfMeasure.name.toString()}"/>
+                                </p:selectOneMenu>
+                            </div>                           
+                        </div>
+
+                        <div class="row" style="padding-bottom: 15px; padding-left: 20px">
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.SalePrice}" for="salePrice"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <p:spinner id="salePrice" 
+                                           class="required"  
+                                           value="#{productController.product.salePrice}" 
+                                           min="0" 
+                                           size="10" 
+                                           stepFactor="#{messages.stepFactor}"  
+                                           required="true" 
+                                           converterMessage="#{messages.InvalidSalePrice}" 
+                                           requiredMessage="#{messages.SalePriceRequired}"/>
+
+                            </div>
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.InternalReference}"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <p:inputText id="internalReference" value="#{productController.product.defaultCode}"  maxlength="20"/>
+                            </div> 
+                        </div>
+
+                        <div class="row" style="padding-bottom: 15px; padding-left: 20px">
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.Cost}" for="purchasePrice"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <p:spinner id="purchasePrice" 
+                                           class="required"  
+                                           value="#{productController.product.purchasePrice}" 
+                                           min="0" 
+                                           size="10" 
+                                           stepFactor="#{messages.stepFactor}"  
+                                           required="true" 
+                                           converterMessage="#{messages.InvalidPurchasePrice}" 
+                                           requiredMessage="#{messages.PurchasePriceRequired}"/>
+
+                            </div>
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.Active}"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <p:selectBooleanCheckbox id="active" value="#{productController.product.active}"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane" id="form-tab-2" style="padding-top: 15px; padding-bottom: 20px;">
+                        <div class="row" style="padding-bottom: 20px; padding-left: 20px;">
+                            <div class="col-md-6 " style="font-weight: bold; font-size: 20px; color: #7C7BAD;">
+                                #{messages.StockAndExpectedVariations}
+                            </div>
+                            <div class="col-md-6 " style="font-weight: bold; font-size: 20px; color: #7C7BAD;">
+                                #{messages.Weights}
+                            </div>
+
+                        </div>
+                        <div class="row" style="padding-bottom: 15px; padding-left: 20px;">               
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.QuantityOnHand}"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <h:outputText value="#{productController.product.inventory.quantityOnHand}"/>
+                            </div>
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.Volume}" for="volume"/> 
+                            </div>
+                            <div class="col-md-3point5">
+                                <p:spinner  value="#{productController.product.volume}" 
+                                            id="volume"
+                                            stepFactor="#{messages.stepFactor}"
+                                            size="10"
+                                            min="0" 
+                                            converterMessage="#{messages.InvalidProdcutVolume}"/>                               
+                                <span style="margin-left:5px;">m&#179;</span> 
+                            </div>  
+                        </div>
+                        <div class="row" style="padding-bottom: 15px; padding-left: 20px;">               
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.IncomingQuantity}"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <h:outputText value="#{productController.product.inventory.incomingQuantity}"/>
+                            </div>
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.Weight}" for="weight"/> 
+                            </div>
+                            <div class="col-md-3point5">
+                                <p:spinner  value="#{productController.product.weight}"
+                                            id="weight"
+                                            stepFactor="#{messages.stepFactor}"
+                                            size="10"
+                                            min="0" 
+                                            converterMessage="#{messages.InvalidProdcutWeight}"/>                               
+                                <span style="margin-left:5px;">kg</span>
+                            </div>               
+                        </div>
+                        <div class="row" style="padding-bottom: 15px; padding-left: 20px;">               
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.ReservedQuantity}"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <h:outputText value="#{productController.product.inventory.reservedQuantity}"/>
+                            </div>
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.Length}" for="length"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <p:spinner value="#{productController.product.length}" 
+                                           id="length"
+                                           stepFactor="#{messages.stepFactor}"
+                                           size="10"
+                                           min="0" 
+                                           converterMessage="#{messages.InvalidProdcutLenght}"/>                               
+                                <span style="margin-left:5px;">m</span>
+                            </div>               
+                        </div>
+                        <div class="row" style="padding-bottom: 15px; padding-left: 20px;">               
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.ForecastedQuantity}"/>
+                            </div>
+                            <div class="col-md-9point5">
+                                <h:outputText id="quantityAvailable" value="#{productController.product.inventory.quantityAvailable}"/><span style="color:grey; margin-left: 15px;">#{messages.QuantityAvailableFormula}</span>  
+                            </div>               
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> 
+
+    <script>
+
+        $(function () {
+            $("#upload_link").on('click', function (e) {
+                e.preventDefault();
+                $("#ProductForm\\:pictureUpload:hidden").trigger('click');
+            });
+        });
+
+        $(function () {
+            $("#remove_link").on('click', function (e) {
+                e.preventDefault();
+                var source = $("[id='#{altImage.clientId}']").attr('src');
+                $(".form_image img").attr('src', source);
+                $("[id='#{upload.clientId}']").val('');
+                $("#ProductForm\\:imageModified").prop('checked', true);
+            });
+        });
+
+        $("[id='#{upload.clientId}']").change(
+                function ()
+                {
+                    readPicture(this, $(".form_image img"));
+                    $("#ProductForm\\:imageModified").prop('checked', true);
+                }
+        );
+
+        function readPicture(input, output) {
+            if (input.files)
+            {
+                if (input.files[0])
+                {
+                    var reader = new FileReader();
+                    reader.onload = function (e)
+                    {
+                        output.attr('src', e.target.result);
+                    };
+                    reader.readAsDataURL(input.files[0]);
+                }
+            }
+        }
+
+        setActiveTab();
+
+    </script>
+
+</ui:composition>

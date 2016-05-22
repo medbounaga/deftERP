@@ -44,7 +44,7 @@ Currently none
 
 *contributions are welcome!* 
 
-If you have any improvement suggestions or bug fix, just fork to your GitHub and issue pull requests*
+*If you have any improvement suggestions or bug fix, just fork to your GitHub and issue pull requests*
 
 
 ## Test this application on OpenShift 

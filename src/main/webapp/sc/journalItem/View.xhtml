@@ -1,0 +1,168 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+
+
+    <p:growl id="msgs" widgetVar="growl"/>
+    <div class="row form-header-1" style="padding-bottom: 6px !important;">
+        <div class="col-md-8point5" >
+            <p:commandLink update="JournalItemForm:content" process="@this" class="form-nav" actionListener="#{journalItemController.showJournalItemList}">
+                <h:outputText   value="#{messages.JournalItems}"/>
+            </p:commandLink> 
+            <span> / </span>      
+            <h:outputText value="#{journalItemController.journalItem.journalEntry.name}"/> - <h:outputText value="#{journalItemController.journalItem.account.name}"/>
+
+        </div>
+        <div class="col-md-2point5 form-pagination" >
+            <div class="pagination-form-number">
+                <div class="form-number">
+                    #{journalItemController.journalItemIndex} / #{journalItemController.journalItems.size()}
+                </div>
+                <ul class="pagination">
+                    <li>
+                        <p:commandLink actionListener="#{journalItemController.previousJournalItem}" process="@this" styleClass="fa fa-chevron-left" pass:aria-label="Previous" update="JournalItemForm:content" oncomplete="setNextFormURL('id',formId)"/>           
+                    </li>
+                    <li>
+                        <p:commandLink actionListener="#{journalItemController.nextJournalItem}" process="@this" styleClass="fa fa-chevron-right" pass:aria-label="Next" update="JournalItemForm:content" oncomplete="setNextFormURL('id',formId)"/>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-1 form-pagination" >
+            <ul class="pagination">
+                <li class="active-nav-button">
+                    <p:commandLink  styleClass="fa fa-square-o" style="font-size: 17px !important;" update="@none"/>
+                </li>
+                <li >
+                    <p:commandLink process="@this" actionListener="#{journalItemController.showJournalItemList}" styleClass="fa fa-bars" style="font-size: 17px !important;" update="JournalItemForm:content"/>
+                </li>
+            </ul>
+        </div>
+    </div> 
+    <div class="row form-body-full">                   
+        <div class="row">
+            <div class="col-md-6point5">
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Label}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <h:outputText value="#{journalItemController.journalItem.name}"/>      
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Partner}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <p:link  class="form-nav" value="#{journalItemController.journalItem.partner.name}"  outcome="/sc/customer/index">
+                            <f:param name="id" value="#{journalItemController.journalItem.partner.id}"/>
+                        </p:link>                   
+                    </div>
+                </div>   
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Reference}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <h:outputText value="#{journalItemController.journalItem.ref}"/>                    
+                    </div>
+                </div> 
+            </div>
+            <div class="col-md-5point5">
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Journal}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <h:outputText value="#{journalItemController.journalItem.journal.name}"/>
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Date}"/>
+                    </div> 
+                    <div class="col-md-8">
+                         <h:outputText  value="#{journalItemController.journalItem.date}">
+                            <f:convertDateTime pattern="MM-dd-yyyy" />
+                        </h:outputText>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 20px;">
+            <div class="col-md-6point5">
+                <div class="row form-row">
+                    <div class="col-md-12 form-title">
+                        #{messages.Amount}
+                    </div>
+                </div> 
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Account}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <h:outputText value="#{journalItemController.journalItem.account.name}"/>      
+                    </div>
+                </div>
+                <div class="row form-row" jsf:rendered="#{journalItemController.journalItem.tax != null}">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Tax}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <h:outputText value="#{journalItemController.journalItem.tax.name}"/>   
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Debit}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <h:outputText value="#{journalItemController.journalItem.debit}"/>      
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Credit}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <h:outputText value="#{journalItemController.journalItem.credit}"/>      
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Quantity}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <h:outputText value="#{journalItemController.journalItem.quantity}"/>      
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5point5">
+                <div class="row form-row">
+                    <div class="col-md-12 form-title">
+                        #{messages.AccountingDocuments}
+                    </div>
+                </div> 
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.JournalEntry}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <p:link  class="form-nav" value="#{journalItemController.journalItem.journalEntry.name}"  outcome="/sc/journalEntry/index">
+                            <f:param name="id" value="#{journalItemController.journalItem.journalEntry.id}"/>
+                        </p:link>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>  
+    <script type="text/javascript">
+        var formId = "#{journalItemController.journalItem.id}";
+        setFormURL('id', formId);
+    </script>
+</ui:composition>

@@ -1,0 +1,473 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+
+    <p:remoteCommand name="setRowIndex" process="@this" global="false" actionListener="#{deliveryOrderController.setRowIndex}"/> 
+
+    <!-- page start-->
+    <p:growl id="msgs" widgetVar="growl"/>
+    <div class="row form-header-1">      
+        <div class="col-md-12" jsf:rendered="#{empty deliveryOrderController.listType}" >
+            <p:commandLink update=":DeliveryOrderForm:content" process="@this" value="#{messages.DeliveryOrders}" class="form-nav" actionListener="#{deliveryOrderController.showDeliveryList}"/>
+            <span> / </span>
+            <p:outputLabel id="namee" value="#{deliveryOrderController.deliveryOrder.name}"/> 
+            <span> / </span>
+            <span>#{messages.Edit}</span>
+        </div>
+        <div class="col-md-12" jsf:rendered="#{deliveryOrderController.listType == 'partialDelivery'}"> 
+            <p:commandLink update=":DeliveryOrderForm:content" process="@this" value="#{deliveryOrderController.deliveryOrder.backOrder.name}" class="form-nav" actionListener="#{deliveryOrderController.showForm(deliveryOrderController.deliveryOrder.backOrder.id)}" oncomplete="setNextFormURL(formId)"/>
+            <span> / </span> 
+            <p:commandLink update=":DeliveryOrderForm:content" process="@this" value="#{messages.PartialDeliveries}" class="form-nav" actionListener="#{deliveryOrderController.showDeliveryList}"/>
+            <span> / </span> 
+            <p:outputLabel value="#{deliveryOrderController.deliveryOrder.name}"/> 
+            <span> / </span>
+            <span>#{messages.Edit}</span>
+        </div>
+        <div class="col-md-12" jsf:rendered="#{deliveryOrderController.listType == 'saleOrder'}"> 
+            <p:link  class="form-nav" value="#{deliveryOrderController.deliveryOrder.saleOrder.name}"  outcome="/sc/saleOrder/index">
+                <f:param name="id" value="#{deliveryOrderController.deliveryOrder.saleOrder.id}"/>
+            </p:link>
+            <span> / </span> 
+            <p:commandLink update=":DeliveryOrderForm:content" process="@this" value="#{messages.DeliveryOrders}" class="form-nav" actionListener="#{deliveryOrderController.showDeliveryList}"/>
+            <span> / </span> 
+            <p:outputLabel value="#{deliveryOrderController.deliveryOrder.name}"/> 
+            <span> / </span>
+            <span>#{messages.Edit}</span>
+        </div>
+        <div class="col-md-12" jsf:rendered="#{deliveryOrderController.listType == 'partner'}"> 
+            <p:link  class="form-nav" value="#{deliveryOrderController.deliveryOrder.partner.name}"  outcome="/sc/customer/index">
+                <f:param name="id" value="#{deliveryOrderController.deliveryOrder.partner.id}"/>
+            </p:link>
+            <span> / </span> 
+             <p:commandLink update=":DeliveryOrderForm:content" process="@this" value="#{messages.DeliveryOrders}" class="form-nav" actionListener="#{deliveryOrderController.showDeliveryList}"/>
+            <span> / </span> 
+            <p:outputLabel value="#{deliveryOrderController.deliveryOrder.name}"/> 
+            <span> / </span>
+            <span>#{messages.Edit}</span>
+        </div>
+    </div> 
+    <div class="row form-header-3" >
+        <div class="col-md-6 record-status-buttons">
+            <p:commandButton class="btnn btnn-primary" value="#{messages.Save}" process=":DeliveryOrderForm:content" actionListener="#{deliveryOrderController.updateOrder(deliveryOrderController.deliveryOrder.id)}"  update=":DeliveryOrderForm:content" /> 
+            <p:commandButton class="btnn btnn-default" value="#{messages.Discard}" process="@this" actionListener="#{deliveryOrderController.cancelEdit(deliveryOrderController.deliveryOrder.id)}"  update=":DeliveryOrderForm:content" /> 
+        </div> 
+        <div class="col-md-6 bread-crumb" >    
+            <div class="breadcrumbs flat">              
+                <a class="active">#{messages.Draft}</a>
+                <a>#{messages.WaitingAvailability}</a>
+                <a>#{messages.PartiallyAvailable}</a>
+                <a>#{messages.Available}</a>
+                <a>#{messages.Done}</a>  
+            </div>
+        </div>
+    </div>
+    <div class="row form-body">                   
+        <div class="row form-line-1">
+            <div class="col-md-12" >
+                <h:outputText id="name" value="#{deliveryOrderController.deliveryOrder.name}"/> 
+            </div>
+        </div>
+        <div class="row" style="padding-left: 20px; margin-bottom:20px;">
+            <div class="col-md-2point5 form-label">
+                <p:outputLabel value="#{messages.Customer}" for="partnerMenu" />
+            </div> 
+            <div class="col-md-4">
+                <p:selectOneMenu class="fullWidth required" onchange="showPartnerList();" id="partnerMenu" widgetVar="partnerMenu" value="#{deliveryOrderController.deliveryOrder.partner}" required="true" requiredMessage="#{messages.CustomerRequired}" converter="partnerConverter">   
+                    <f:selectItem  itemLabel="&#160;" />
+                    <f:selectItems value="#{deliveryOrderController.topNCustomers}"
+                                   var="partner"
+                                   itemValue="#{partner}"
+                                   itemLabel="#{partner.name.toString()}"/>
+                    <f:selectItem itemLabel="#{messages.SearchMore}" itemValue=""/>
+                </p:selectOneMenu>
+            </div>
+            <div class="col-md-2 form-label">
+                <p:outputLabel value="#{messages.Date}" for="orderDate" />
+            </div>
+            <div class="col-md-3point5 ">
+                <p:calendar id="orderDate" class="required" widgetVar="orderDate" pattern="MM-dd-yyyy" value="#{deliveryOrderController.deliveryOrder.date}"  required="true" requiredMessage="#{messages.DateRequired}" converterMessage="#{messages.InvalidDate}" locale="#{messages.CalendarLanguage}"/>
+            </div>
+        </div>
+        <div class="row"  style="padding-left: 15px;padding-right: 15px; margin-bottom:10px">
+            <div class="col-md-12" >
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="active"><a href="#form-tab-1" class="form-tab" role="tab" data-toggle="tab">#{messages.Products}</a></li>
+                    <li><a href="#form-tab-2" class="form-tab" role="tab" data-toggle="tab">#{messages.OtherInfo}</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane active" id="form-tab-1" style="padding: 10px;">
+                        <div jsf:id="orderLines">
+                            <p:dataTable class="datalist"
+                                         rowIndexVar="rowIndex" 
+                                         rowStyleClass="no-color"
+                                         id="datalist" 
+                                         var="item" 
+                                         value="#{deliveryOrderController.deliveryOrderLines}" 
+                                         editable="true">
+
+                                <p:ajax event="rowEditInit" global="false"  listener="#{deliveryOrderController.onRowEditInit(item)}" onstart="hideTableButtons(); hideAdd();" />  
+                                <p:ajax event="rowEdit" listener="#{deliveryOrderController.onRowEdit(rowIndex)}"  update=":DeliveryOrderForm:msgs" oncomplete="if(args.validationFailed){hideTableButtons(); hideAdd();}else{showTableButtons(); showAdd();}"/>
+                                <p:ajax event="rowEditCancel" listener="#{deliveryOrderController.onRowCancel(rowIndex)}" oncomplete="showTableButtons(); showAdd();" />
+
+                                <p:column style="width:55px;"> 
+                                    <div style="display: inline-block;">
+                                        <p:commandLink styleClass="ui-icon ui-icon-trash" process="@this"  update=":DeliveryOrderForm:orderLines" actionListener="#{deliveryOrderController.onRowDelete(rowIndex)}"/> 
+                                    </div>
+                                    <p:rowEditor/>
+                                </p:column>
+
+                                <p:column  headerText="#{messages.Product}">
+                                    <p:cellEditor>
+                                        <f:facet name="output"><h:outputText value="#{item.product.description}"/></f:facet>
+                                        <f:facet name="input"><p:selectOneMenu onchange="showProductList('#{rowIndex}');" class="required" id="productMenu"  widgetVar="productMenu_#{rowIndex}" value="#{item.product}"  required="true" requiredMessage="#{messages.ProductRequired}"  converter="productConverter" style="width:100%">
+                                                <p:ajax resetValues="true" global="false" process="@this" listener="#{deliveryOrderController.onProductChange(rowIndex)}" update=":DeliveryOrderForm:datalist:uomm" />
+                                                <f:selectItem itemLabel="&#160;"/>
+                                                <f:selectItems value="#{deliveryOrderController.topSoldNProducts}"
+                                                               var="product"
+                                                               itemValue="#{product}"
+                                                               itemLabel="#{product.description.toString()}"/>
+                                                <f:selectItem itemLabel="#{messages.SearchMore}" itemValue=""/>
+                                            </p:selectOneMenu>
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column>
+
+                                <p:column  headerText="#{messages.Quantity}">
+                                    <p:cellEditor>
+                                        <f:facet name="output"><h:outputText value="#{item.quantity}" /></f:facet>
+                                        <f:facet name="input"><p:spinner value="#{item.quantity}" 
+                                                                       styleClass="required" 
+                                                                       id="firstQuantity"  
+                                                                       min="0" 
+                                                                       size="10"
+                                                                       stepFactor="#{messages.stepFactor}"  
+                                                                       required="true" 
+                                                                       requiredMessage="#{messages.QuantityRequired}" 
+                                                                       converterMessage="#{messages.InvalidQuantity}"/>
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column>
+
+                                <p:column headerText="#{messages.UnitOfMeasure}">
+                                    <p:cellEditor>
+                                        <f:facet name="output"><h:outputText value="#{item.uom}" /></f:facet>
+                                        <f:facet name="input"><h:outputText id="uomm" value="#{item.uom}" /></f:facet>
+                                    </p:cellEditor>
+                                </p:column>
+
+                                <p:column headerText="#{messages.Status}">
+                                    <p:cellEditor>
+                                        <f:facet name="output"><h:outputText value="#{deliveryOrderController.getStatus(item.state)}" styleClass="badge" style="background-color: #{deliveryOrderController.getStatusColor(item.state)}"/></f:facet>
+                                        <f:facet name="input"><h:outputText value="#{deliveryOrderController.getStatus(item.state)}" styleClass="badge" style="background-color: #{deliveryOrderController.getStatusColor(item.state)}"/></f:facet>
+                                    </p:cellEditor>
+                                </p:column>
+
+                            </p:dataTable>
+
+
+                            <div id="addrow" class="ui-datatable ui-widget datalist">
+                                <div class="ui-datatable-tablewrapper">
+                                    <table jsf:id="row" role="grid">
+                                        <tbody  class="ui-datatable-data ui-widget-content">
+                                            <tr data-ri="0" class="ui-widget-content ui-datatable-even ui-state-highlight ui-row-editing" role="row">
+                                                <td role="gridcell" style="width:55px">
+                                                    <div  class="ui-row-editor ui-helper-clearfix">
+                                                        <div style="display: inline-block; ">
+                                                            <p:commandLink styleClass="ui-icon ui-icon-check" process=":DeliveryOrderForm:row" update=":DeliveryOrderForm:orderLines :DeliveryOrderForm:msgs" actionListener="#{deliveryOrderController.onRowAdd}" oncomplete="hiderow('addrow','add',args);"/>
+                                                        </div>
+                                                        <div style="display: inline-block; margin-left: -5px">  
+                                                            <p:commandLink styleClass="ui-icon ui-icon-close" global="false"  resetValues="true"  process="@this" update=":DeliveryOrderForm:row" onclick="hiderow('addrow', 'add');
+                                                                    showTableButtons();" actionListener="#{deliveryOrderController.onRowCancel}"/>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td role="gridcell" class="ui-editable-column">
+                                                    <div  class="ui-cell-editor">
+                                                        <div class="ui-cell-editor-input">
+                                                            <p:selectOneMenu onchange="showProductListTwo();" id="productMenuTwo" class="required" widgetVar="productMenuTwo" value="#{deliveryOrderController.deliveryOrderLine.product}" required="true" requiredMessage="#{messages.ProductRequired}"  converter="productConverter" style="width:100%">
+                                                                <p:ajax resetValues="true" global="false" listener="#{deliveryOrderController.onProductChange}" process="@this" update=":DeliveryOrderForm:uom" />
+                                                                <f:selectItem itemLabel="&#160;"/>
+                                                                <f:selectItems value="#{deliveryOrderController.topSoldNProducts}"
+                                                                               var="product"
+                                                                               itemValue="#{product}"
+                                                                               itemLabel="#{product.description.toString()}"/>
+                                                                <f:selectItem itemLabel="#{messages.SearchMore}" itemValue=""/>
+                                                            </p:selectOneMenu> 
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td role="gridcell" class="ui-editable-column">
+                                                    <div  class="ui-cell-editor">
+                                                        <div class="ui-cell-editor-input">
+                                                           <p:spinner value="#{deliveryOrderController.deliveryOrderLine.quantity}" 
+                                                                       styleClass="required" 
+                                                                       id="secondQuantity"  
+                                                                       min="0" 
+                                                                       size="10"
+                                                                       stepFactor="#{messages.stepFactor}"  
+                                                                       required="true" 
+                                                                       requiredMessage="#{messages.QuantityRequired}" 
+                                                                       converterMessage="#{messages.InvalidQuantity}"/>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td role="gridcell" class="ui-editable-column">
+                                                    <div  class="ui-cell-editor">
+                                                        <div class="ui-cell-editor-input">
+                                                            <h:outputText id="uom" value="#{deliveryOrderController.deliveryOrderLine.uom}" style="width:100%"/>      
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td role="gridcell" class="ui-editable-column">
+                                                    <div  class="ui-cell-editor">
+                                                        <div class="ui-cell-editor-input">                                                         
+                                                            <h:outputText value="#{deliveryOrderController.getStatus(deliveryOrderController.deliveryOrderLine.state)}" styleClass="badge" style="background-color: #{deliveryOrderController.getStatusColor(deliveryOrderController.deliveryOrderLine.state)} ; width:100%;"/>
+                                                        </div>
+                                                    </div>
+                                                </td>
+
+
+                                            </tr></tbody></table></div></div>
+
+                            <div id="extraLines">
+                                <div class="ui-datatable ui-widget datalist">
+                                    <div class="ui-datatable-tablewrapper">
+                                        <table role="grid">
+                                            <tbody  class="ui-datatable-data ui-widget-content">
+                                                <tr>
+                                                    <td style="text-align: left !important;">
+                                                        <a style="display: inline;"  id="add" onclick="showRow();
+                                                                hideTableButtons();">#{messages.AddAnItem}</a>
+                                                        &#160;
+                                                    </td>
+                                                </tr>
+                                                <tr jsf:rendered="#{deliveryOrderController.deliveryOrderLines.size() lt 3}">
+                                                    <td>&#160;</td>
+                                                </tr>
+                                            </tbody>
+                                            <tfoot class="tableFoot"><td><tr></tr></td></tfoot>
+                                        </table></div></div>
+                            </div>  
+                        </div>                     
+                    </div>
+                    <div class="tab-pane" id="form-tab-2" style="padding-top: 41px; padding-bottom: 62px;">
+                        <div class="row form-row">
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.DeliveryMethod}"/>
+                            </div> 
+                            <div class="col-md-4">
+                                <h:outputText value="#{deliveryOrderController.deliveryOrder.deliveryMethod}"/>
+                            </div>
+                        </div>
+                        <div class="row form-row">
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.SaleOrder}"/>
+                            </div> 
+                            <div class="col-md-4">
+                                <h:outputText value="#{deliveryOrderController.deliveryOrder.saleOrder.name}"/>
+                            </div>
+                        </div>          
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div> 
+
+    <p:dialog id="PartnerListDialog" modal="true" styleClass="disable-scroll item-select-dialog" widgetVar="PartnerList"  resizable="false" closable="true"  appendTo="@(body)"  header="#{messages.SearchCustomer}" width="#{messages.ItemSelectDialogWidth}" closeOnEscape="true">
+        <h:form>
+            
+            <p:dataTable id="PartnerTable"
+                         class="fit-content-table"
+                         binding="#{partners}"
+                         value="#{customerController.customerList}"  
+                         filteredValue="#{customerController.filteredPartners}"
+                         var="item"
+                         rowKey="#{item.id}"
+                         paginator="true"
+                         paginatorAlwaysVisible="true"
+                         paginatorPosition="top"
+                         selection="#{deliveryOrderController.customer}"
+                         selectionMode="single"
+                         widgetVar="PartnerTable"
+                         rows="#{messages.DialogMaxRows}">
+
+                <f:facet name="header">
+                    <p:outputPanel>
+                        <div class="searchLoader">
+                            <p:graphicImage  name="/img/search-loader.gif"/>
+                        </div>
+                        <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('PartnerTable').filter()" class="search" placeholder="#{messages.Search}"/>               
+                    </p:outputPanel>
+                </f:facet>
+                
+                <p:ajax event="page" oncomplete="updateTable(partnersTableId);"/>
+                <p:ajax event="sort" oncomplete="updateTable(partnersTableId);"/>
+                <p:ajax event="filter" global="false" onstart="showSearchLoader();" oncomplete="updateTable(partnersTableId); hideSearchLoader();"/>      
+                <p:ajax event="rowSelect" resetValues="true"  listener="#{deliveryOrderController.onSelectCustomer}" onstart="PF('PartnerList').hide(); PF('PartnerTable').clearFilters();" update=":DeliveryOrderForm:partnerMenu"/>
+
+                
+                 <p:column>
+                    <f:facet name="header">
+                        <h:outputText value=""/>
+                    </f:facet>
+                    <h:outputText value=""/>
+                </p:column>
+
+                <p:column sortBy="#{item.name}" filterBy="#{item.name}">
+                    <f:facet name="header">
+                        <h:outputText value="#{messages.Name}"/>
+                    </f:facet>
+                    <h:outputText value="#{item.name}"/>
+                </p:column>
+                <p:column sortBy="#{item.phone}" filterBy="#{item.phone}">
+                    <f:facet name="header">
+                        <h:outputText value="#{messages.Phone}"/>
+                    </f:facet>
+                    <h:outputText value="#{item.phone}"/>
+                </p:column>
+                <p:column sortBy="#{item.email}" filterBy="#{item.email}">
+                    <f:facet name="header">
+                        <h:outputText value="#{messages.Email}"/>
+                    </f:facet>
+                    <h:outputText value="#{item.email}"/>
+                </p:column>
+
+            </p:dataTable>
+        </h:form>
+    </p:dialog>
+
+
+    <p:dialog id="ProductListDialog" modal="true" styleClass="disable-scroll item-select-dialog" widgetVar="ProductList"  resizable="false" closable="true"  appendTo="@(body)" header="#{messages.SearchProduct}" width="#{messages.ItemSelectDialogWidth}" closeOnEscape="true">
+        <h:form>
+            
+            <p:dataTable id="ProductTable"
+                         value="#{productController.soldProducts}"
+                         class="fit-content-table"
+                         binding="#{products}"
+                         filteredValue="#{productController.filteredProducts}"
+                         var="item"
+                         rowKey="#{item.id}"
+                         paginator="true"
+                         paginatorAlwaysVisible="true"
+                         paginatorPosition="top"
+                         selection="#{deliveryOrderController.product}"
+                         selectionMode="single"
+                         widgetVar="ProductTable"
+                         rows="#{messages.DialogMaxRows}">
+
+                <f:facet name="header">
+                    <p:outputPanel>
+                        <div class="searchLoader">
+                            <p:graphicImage  name="/img/search-loader.gif"/>
+                        </div>
+                        <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('ProductTable').filter()" class="search" placeholder="#{messages.Search}"/>               
+                    </p:outputPanel>
+                </f:facet>
+                
+                <p:ajax event="page" oncomplete="updateTable(productsTableId);"/>
+                <p:ajax event="sort" oncomplete="updateTable(productsTableId);"/>
+                <p:ajax event="filter" global="false" onstart="showSearchLoader();" oncomplete="updateTable(productsTableId); hideSearchLoader();"/>           
+                <p:ajax event="rowSelect" process="@this" resetValues="true" listener="#{deliveryOrderController.onSelectProduct}" onstart="PF('ProductList').hide(); PF('ProductTable').clearFilters();"/>
+                
+                 <p:column>
+                    <f:facet name="header">
+                        <h:outputText value=""/>
+                    </f:facet>
+                    <h:outputText value=""/>
+                </p:column>
+
+                <p:column sortBy="#{item.name}" filterBy="#{item.name}">
+                    <f:facet name="header">
+                        <h:outputText value="#{messages.Name}"/>
+                    </f:facet>
+                    <h:outputText value="#{item.name}"/>
+                </p:column>
+                <p:column sortBy="#{item.defaultCode}" filterBy="#{item.defaultCode}">
+                    <f:facet name="header">
+                        <h:outputText value="#{messages.InternalReference}"/>
+                    </f:facet>
+                    <h:outputText value="#{item.defaultCode}"/>
+                </p:column>
+                <p:column sortBy="#{item.inventory.quantityOnHand}" filterBy="#{item.inventory.quantityOnHand}">
+                    <f:facet name="header">
+                        <h:outputText value="#{messages.QuantityOnHand}"/>
+                    </f:facet>
+                    <h:outputText value="#{item.inventory.quantityOnHand}"/>
+                </p:column>
+                <p:column sortBy="#{item.inventory.quantityAvailable}" filterBy="#{item.inventory.quantityAvailable}">
+                    <f:facet name="header">
+                        <h:outputText value="#{messages.ForecastedQuantity}"/>
+                    </f:facet>
+                    <h:outputText value="#{item.inventory.quantityAvailable}"/>
+                </p:column>
+                <p:column sortBy="#{item.uom.name}" filterBy="#{item.uom.name}">
+                    <f:facet name="header">
+                        <h:outputText value="#{messages.UnitOfMeasure}"/>
+                    </f:facet>
+                    <h:outputText value="#{item.uom.name}"/>
+                </p:column>
+            </p:dataTable>
+        </h:form>
+    </p:dialog>
+
+
+    <script>
+
+        $("#DeliveryOrderForm\\:partnerMenu_input option:first-of-type").attr("value", "");
+        $("#DeliveryOrderForm\\:productMenuTwo_input option:first-of-type").attr("value", "");
+
+        function showPartnerList() {
+            $("#DeliveryOrderForm\\:partnerMenu_input option:first-of-type").attr("value", "");
+            if (PF('partnerMenu').getSelectedLabel() === '#{messages.SearchMore}') {
+                PF('partnerMenu').selectValue('');
+                PF('PartnerList').show();
+            }
+        }
+
+        function showProductList(index) {
+            $("#DeliveryOrderForm\\:datalist\\:" + index + "\\:productMenu_input option:first-of-type").attr("value", "");
+            if (PF('productMenu_' + index).getSelectedLabel() === '#{messages.SearchMore}') {
+                PF('productMenu_' + index).selectValue('');
+                setRowIndex([{name: 'rowIndex', value: index}]);
+                PF('ProductList').show();
+            }
+        }
+
+        function showProductListTwo() {
+            $("#DeliveryOrderForm\\:productMenuTwo_input option:first-of-type").attr("value", "");
+            if (PF('productMenuTwo').getSelectedLabel() === '#{messages.SearchMore}') {
+                PF('productMenuTwo').selectValue('');
+                setRowIndex([{name: 'rowIndex', value: '-1'}]);
+                PF('ProductList').show();
+            }
+        }
+
+
+        if ($("#DeliveryOrderForm\\:orderDate_input").val() === '') {
+            if (!($("#DeliveryOrderForm\\:orderDate_input").hasClass('ui-state-error'))) {
+                PF('orderDate').setDate(new Date());
+            }
+        }
+
+        function updateTable(tableId) {
+            addEmptyRows(tableId);
+        }
+
+        var productsTableId = '#{products.clientId}';
+        var partnersTableId = '#{partners.clientId}';
+        
+        addEmptyRows(productsTableId);
+        addEmptyRows(partnersTableId);
+        
+        disableStatusLinks();
+        
+        setActiveTab();
+
+    </script>
+
+</ui:composition>

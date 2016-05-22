@@ -1,0 +1,70 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+
+
+    <p:growl id="msgs" widgetVar="growl"/>
+    <div class="row form-header-1" style="padding-bottom: 6px !important;">
+        <div class="col-md-8point5" >
+            <p:commandLink update="ProductUomCategoryForm:content" process="@this" class="form-nav" actionListener="#{productUomCategoryController.showProductUomCategoryList}">
+                <h:outputText   value="#{messages.ProductUomCategories}"/>
+            </p:commandLink> 
+            <span> / </span>            
+            <p:outputLabel id="namee" value="#{productUomCategoryController.productUomCategory.name}" /> 
+        </div>
+        <div class="col-md-2point5 form-pagination" >
+            <div class="pagination-form-number">
+                <div class="form-number">
+                    #{productUomCategoryController.productUomCategoryIndex} / #{productUomCategoryController.productUomCategories.size()}
+                </div>
+                <ul class="pagination">
+                    <li>
+                        <p:commandLink actionListener="#{productUomCategoryController.previousProductUomCategory}" process="@this" styleClass="fa fa-chevron-left" pass:aria-label="Previous" update="ProductUomCategoryForm:content" oncomplete="setNextFormURL('id',formId)"/>           
+                    </li>
+                    <li>
+                        <p:commandLink actionListener="#{productUomCategoryController.nextProductUomCategory}" process="@this" styleClass="fa fa-chevron-right" pass:aria-label="Next" update="ProductUomCategoryForm:content" oncomplete="setNextFormURL('id',formId)"/>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-1 form-pagination" >
+            <ul class="pagination">
+                <li class="active-nav-button">
+                    <p:commandLink  styleClass="fa fa-square-o" style="font-size: 17px !important;" update="@none"/>
+                </li>
+                <li >
+                    <p:commandLink process="@this" actionListener="#{productUomCategoryController.showProductUomCategoryList}" styleClass="fa fa-bars" style="font-size: 17px !important;" update="ProductUomCategoryForm:content"/>
+                </li>
+            </ul>
+        </div>
+    </div> 
+    <div class="row form-header-2">
+        <div class="col-md-12 record-status-buttons">  
+            <p:commandButton class="btnn btnn-primary" value="#{messages.Edit}" actionListener="#{productUomCategoryController.prepareEditProductUomCategory(productUomCategoryController.productUomCategory.id)}"  update="ProductUomCategoryForm:content" />               
+            <p:commandButton class="btnn btnn-default" value="#{messages.Create}" actionListener="#{productUomCategoryController.prepareCreateProductUomCategory}" update="ProductUomCategoryForm:content" /> 
+            <p:commandButton class="btnn btnn-default" value="#{messages.Delete}" actionListener="#{productUomCategoryController.deleteProductUomCategory(productUomCategoryController.productUomCategory.id)}" update="ProductUomCategoryForm:content"/>
+        </div>
+    </div>
+    <div class="row form-body-full">                   
+        <div class="row">
+            <div class="col-md-6point5">
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Name}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <h:outputText value="#{productUomCategoryController.productUomCategory.name}"/>    
+                    </div>
+                </div>                                     
+            </div>
+        </div>
+    </div>  
+    <script type="text/javascript">
+        var formId = "#{productUomCategoryController.productUomCategory.id}";
+        setFormURL('id', formId);
+    </script>
+</ui:composition>

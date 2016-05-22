@@ -1,0 +1,309 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+
+
+    <p:growl id="msgs" widgetVar="growl"/>
+    <ui:include src="/sc/confirmation.xhtml"/>
+    <div class="row form-header-1">
+        <div class="col-md-12" jsf:rendered="#{empty supDeliveryOrderController.listType}" >
+            <p:commandLink update=":DeliveryOrderForm:content" process="@this" value="#{messages.IncomingShipments}" class="form-nav" actionListener="#{supDeliveryOrderController.showDeliveryList}"/>
+            <span> / </span>
+            <p:outputLabel id="namee" value="#{supDeliveryOrderController.deliveryOrder.name}"/> 
+        </div>
+        <div class="col-md-12" jsf:rendered="#{supDeliveryOrderController.listType == 'partner'}"> 
+            <p:link  class="form-nav" value="#{supDeliveryOrderController.deliveryOrder.partner.name}"  outcome="/sc/supplier/index">
+                <f:param name="id" value="#{supDeliveryOrderController.deliveryOrder.partner.id}"/>
+            </p:link>
+            <span> / </span> 
+            <p:commandLink update=":DeliveryOrderForm:content" process="@this" class="form-nav" actionListener="#{supDeliveryOrderController.showDeliveryList}">
+                <h:outputText   value="#{messages.IncomingShipments}"/>
+            </p:commandLink>
+            <span> / </span> 
+            <p:outputLabel value="#{supDeliveryOrderController.deliveryOrder.name}"/> 
+        </div>
+        <div class="col-md-12" jsf:rendered="#{supDeliveryOrderController.listType == 'partialDelivery'}"> 
+            <p:commandLink update=":DeliveryOrderForm:content" process="@this" value="#{supDeliveryOrderController.deliveryOrder.backOrder.name}" class="form-nav" actionListener="#{supDeliveryOrderController.showForm(supDeliveryOrderController.deliveryOrder.backOrder.id)}" oncomplete="setNextFormURL('id',formId)"/>
+            <span> / </span> 
+            <p:commandLink update=":DeliveryOrderForm:content" process="@this" value="#{messages.PartialIncomingShipments}" class="form-nav" actionListener="#{supDeliveryOrderController.showDeliveryList}"/>
+            <span> / </span> 
+            <p:outputLabel value="#{supDeliveryOrderController.deliveryOrder.name}"/> 
+        </div>
+        <div class="col-md-12" jsf:rendered="#{supDeliveryOrderController.listType == 'purchaseOrder'}"> 
+            <p:link  class="form-nav" value="#{supDeliveryOrderController.deliveryOrder.purchaseOrder.name}"  outcome="/sc/purchaseOrder/index">
+                <f:param name="id" value="#{supDeliveryOrderController.deliveryOrder.purchaseOrder.id}"/>
+            </p:link>
+            <span> / </span> 
+            <p:commandLink update=":DeliveryOrderForm:content" process="@this" value="#{messages.IncomingShipments}" class="form-nav" actionListener="#{supDeliveryOrderController.showDeliveryList}"/>
+            <span> / </span> 
+            <p:outputLabel value="#{supDeliveryOrderController.deliveryOrder.name}"/> 
+        </div>
+    </div> 
+
+    <div class="row form-header-2" >
+        <div class="col-md-8point5">
+            <p:commandButton 
+                class="btnn btnn-primary"
+                value="#{messages.Edit}" 
+                actionListener="#{supDeliveryOrderController.prepareEdit(supDeliveryOrderController.deliveryOrder.id)}" 
+                update=":DeliveryOrderForm:content" />          
+            <p:commandButton 
+                class="btnn btnn-default"
+                value="#{messages.Create}" 
+                actionListener="#{supDeliveryOrderController.prepareCreate}" 
+                update=":DeliveryOrderForm:content" />
+            <p:commandButton 
+                class="btnn btnn-default"
+                value="#{messages.Delete}" 
+                actionListener="#{supDeliveryOrderController.deleteDelivery(supDeliveryOrderController.deliveryOrder.id)}" 
+                rendered="#{supDeliveryOrderController.deliveryOrder.state != 'Done'}"
+                update=":DeliveryOrderForm:content">
+                <p:confirm header="#{messages.ConfirmationHeader}"  message="#{messages.ConfirmMessage}" icon="ui-icon-alert"/>
+            </p:commandButton>
+            <p:commandButton 
+                class="btnn btnn-default"
+                value="#{messages.Duplicate}" 
+                actionListener="#{supDeliveryOrderController.duplicateDeliveryOrder(supDeliveryOrderController.deliveryOrder.id)}" 
+                update=":DeliveryOrderForm:content"/>  
+        </div>
+        <div class="col-md-2point5 form-pagination" >
+            <div class="pagination-form-number">
+                <div class="form-number">
+                    #{supDeliveryOrderController.deliveryIndex} / #{supDeliveryOrderController.deliveryOrders.size()}
+                </div>
+                <ul class="pagination">
+                    <li>
+                        <p:commandLink actionListener="#{supDeliveryOrderController.previousDelivery}" process="@this" styleClass="fa fa-chevron-left" pass:aria-label="Previous" update=":DeliveryOrderForm:content" oncomplete="setNextFormURL('id',formId)"/>           
+                    </li>
+                    <li>
+                        <p:commandLink actionListener="#{supDeliveryOrderController.nextDelivery}" process="@this" styleClass="fa fa-chevron-right" pass:aria-label="Next" update=":DeliveryOrderForm:content" oncomplete="setNextFormURL('id',formId)"/>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-1 form-pagination" >
+            <ul class="pagination">
+                <li class="active-nav-button">
+                    <p:commandLink  styleClass="fa fa-square-o" style="font-size: 17px !important;" update="@none"/>
+                </li>
+                <li >
+                    <p:commandLink process="@this" actionListener="#{supDeliveryOrderController.showDeliveryList}" styleClass="fa fa-bars" style="font-size: 17px !important;" update=":DeliveryOrderForm:content"/>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="row form-header-3" >
+        <div class="col-md-5 record-status-buttons">
+            <p:commandButton
+                value="#{messages.Confirm}"
+                process="@this"
+                rendered="#{(supDeliveryOrderController.deliveryOrder.state == 'Draft')}" 
+                class="btnn btnn-primary"
+                actionListener="#{supDeliveryOrderController.confirmDelivery(supDeliveryOrderController.deliveryOrder.id)}" 
+                update=":DeliveryOrderForm:content"/>           
+            <p:commandButton
+                value="#{messages.Receive}"
+                process="@this"                
+                rendered="#{(supDeliveryOrderController.deliveryOrder.state == 'Available')}" 
+                class="btnn btnn-primary"
+                actionListener="#{supDeliveryOrderController.prepareDelivery(supDeliveryOrderController.deliveryOrder.id)}"  
+                oncomplete="PF('DeliveryOrderLineDialog').show()" 
+                update=":DeliveryOrderForm:content, :DeliveryForm"/>
+            <p:commandButton 
+                value="#{messages.CancelTransfer}"
+                process="@this"
+                rendered="#{(supDeliveryOrderController.deliveryOrder.state != 'Done') and (supDeliveryOrderController.deliveryOrder.state != 'Cancelled')}" 
+                class="btnn btnn-default"
+                actionListener="#{supDeliveryOrderController.cancelDelivery(supDeliveryOrderController.deliveryOrder.id)}" 
+                update=":DeliveryOrderForm:content"> 
+                <p:confirm header="#{messages.ConfirmationHeader}"  message="#{messages.ConfirmMessage}" icon="ui-icon-alert"/>
+            </p:commandButton>
+            <p:commandButton 
+                value="#{messages.Print}" 
+                ajax="false"
+                class="btnn btnn-default"
+                process="@this"
+                actionListener="#{supDeliveryOrderController.printDelivery}"/> 
+        </div>
+        <div class="col-md-7 bread-crumb" >    
+            <div class="breadcrumbs flat">
+                <h:link pass:href="#"  class="#{(supDeliveryOrderController.deliveryOrder.state == 'Draft') ? 'active' : ''}" value="#{messages.Draft}"/>
+                <h:link pass:href="#"   class="active" rendered="#{(supDeliveryOrderController.deliveryOrder.state == 'Cancelled')}" value="#{messages.Cancelled}"/>
+                <h:link pass:href="#"  class="#{(supDeliveryOrderController.deliveryOrder.state == 'Waiting Availability') ? 'active' : ''}"  value="#{messages.WaitingAvailability}"/>
+                <h:link pass:href="#"  class="#{(supDeliveryOrderController.deliveryOrder.state == 'Partially Available') ? 'active' : ''}"  value="#{messages.PartiallyAvailable}"/>
+                <h:link pass:href="#"   class="#{(supDeliveryOrderController.deliveryOrder.state == 'Available') ? 'active' : ''}" value="#{messages.Available}"/>  
+                <h:link pass:href="#"  class="#{(supDeliveryOrderController.deliveryOrder.state == 'Done') ? 'active' : ''}"  value="#{messages.Done}"/>
+            </div>
+        </div>
+    </div>
+    <div class="row form-body"> 
+        <div class="row form-body-header">
+            <div class="oe_right oe_button_box col-md-12">
+                <button  class="oe_stat_button btn btn-default" jsf:outcome="/sc/purchaseOrder/index" jsf:rendered="#{supDeliveryOrderController.deliveryOrder.purchaseOrder != null}"> 
+                    <f:param name="id"  value="#{supDeliveryOrderController.deliveryOrder.purchaseOrder.id}"/>
+                    <div class="stat_button_icon fa fa-bars fa-fw">
+                    </div>
+                    <div style="font-size:12.5px;">
+                        #{messages.PurchaseOrder}
+                    </div>
+                </button>
+                <button jsf:rendered="#{supDeliveryOrderController.countPartialDelivries() > 0}" class="oe_stat_button btn btn-default"> 
+                    <p:ajax listener="#{supDeliveryOrderController.viewPartialDelivries(supDeliveryOrderController.deliveryOrder.id)}" process="@this" update=":DeliveryOrderForm:content" event="click"/>
+                    <div class="stat_button_icon fa fa-bars fa-fw">
+                    </div>
+                    <div>
+                        <strong>
+                            <span class="oe_form_field oe_form_field_float oe_form_field_monetary">
+                                <span class="oe_form_char_content">#{supDeliveryOrderController.countPartialDelivries()}</span>
+                            </span>
+                        </strong>
+                        <br></br>
+                        <div style="font-size:12.5px;">
+                            #{messages.PartialDelivery}
+                        </div>
+                    </div>
+                </button>
+                <button jsf:rendered="#{supDeliveryOrderController.deliveryOrder.backOrder != null}" class="oe_stat_button btn btn-default"> 
+                    <p:ajax listener="#{supDeliveryOrderController.showForm(supDeliveryOrderController.deliveryOrder.backOrder.id)}" process="@this" update=":DeliveryOrderForm:content" oncomplete="setNextFormURL('id',formId)" event="click" />
+                    <div class="stat_button_icon fa fa-bars fa-fw">
+                    </div>
+                    <div style="font-size:12.5px;">
+                            #{messages.ParentDelivery}
+                        </div>
+                </button>
+            </div>
+        </div>
+        <div class="row form-line-1">
+            <div class="col-md-12" >
+                <p:outputLabel value="#{supDeliveryOrderController.deliveryOrder.name}"/> 
+            </div>
+        </div>
+        <div class="row form-row">
+            <div class="col-md-2point5 form-label">
+                <p:outputLabel value="#{messages.Vendor}"/>
+            </div> 
+            <div class="col-md-4">
+                <p:link  class="form-nav" value="#{supDeliveryOrderController.deliveryOrder.partner.name}"  outcome="/sc/supplier/index">
+                    <f:param name="id" value="#{supDeliveryOrderController.deliveryOrder.partner.id}"/>
+                </p:link>
+            </div>
+            <div class="col-md-2point5 form-label">
+                <p:outputLabel value="#{messages.CreationDate}"/>
+            </div>
+            <div class="col-md-3">
+                <h:outputText  value="#{supDeliveryOrderController.deliveryOrder.date}">
+                    <f:convertDateTime pattern="MM-dd-yyyy" />
+                </h:outputText>
+            </div>
+        </div>
+
+        <div class="row"  style="padding-left: 15px; padding-right: 15px; margin-bottom:10px; margin-top:20px;">
+            <div class="col-md-12" >
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="active"><a href="#form-tab-1" class="form-tab" role="tab" data-toggle="tab">#{messages.Products}</a></li>
+                    <li><a href="#form-tab-2" class="form-tab" role="tab" data-toggle="tab">#{messages.OtherInfo}</a></li>
+                </ul>
+
+                <div class="tab-content">
+                    <div class="tab-pane active" id="form-tab-1" style="padding-top: 20px; padding-bottom: 40px;">
+
+                        <p:dataTable id="deliverylines"
+                                     value="#{supDeliveryOrderController.deliveryOrder.deliveryOrderLines}"
+                                     binding="#{deliveryLines}"
+                                     class="fit-content-table"
+                                     var="item">
+
+                            <p:column>
+                                <f:facet name="header">
+                                    <h:outputText value=""/>
+                                </f:facet>
+                                <h:outputText value=""/>
+                            </p:column>
+
+                            <p:column>
+                                <f:facet name="header">
+                                    <h:outputText value="#{messages.Product}"/>
+                                </f:facet>
+                                <p:link  class="form-nav" value="#{item.product.description}"  outcome="/sc/product/index">
+                                    <f:param name="id" value="#{item.product.id}"/>
+                                </p:link>
+                            </p:column>
+
+                            <p:column>
+                                <f:facet name="header">
+                                    <h:outputText value="#{messages.Quantity}"/>
+                                </f:facet>
+                                <h:outputText value="#{item.quantity}"/>
+                            </p:column>
+
+                            <p:column>
+                                <f:facet name="header">
+                                    <h:outputText value="#{messages.UnitOfMeasure}"/>
+                                </f:facet>
+                                <h:outputText value="#{item.uom}"/>
+                            </p:column>
+
+                            <p:column>
+                                <f:facet name="header">
+                                    <h:outputText value="#{messages.Availability}"/>
+                                </f:facet>
+                                <h:outputText value="#{item.reserved}"/>
+                            </p:column>
+
+                            <p:column>
+                                <f:facet name="header">
+                                    <h:outputText value="#{messages.Status}"/>
+                                </f:facet>
+                                <h:outputText value="#{supDeliveryOrderController.getStatus(item.state)}" styleClass="badge" style="background-color: #{supDeliveryOrderController.getStatusColor(item.state)}"/>
+                            </p:column>
+                        </p:dataTable>
+
+                    </div>
+                    <div class="tab-pane" id="form-tab-2" style="padding-top: 20px; padding-bottom: 40px;">
+                        <div class="row form-row">
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.DeliveryMethod}"/>
+                            </div> 
+                            <div class="col-md-4">
+                                <h:outputText value="#{supDeliveryOrderController.deliveryOrder.deliveryMethod}"/>
+                            </div>
+                        </div>
+                        <div class="row form-row">
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.PurchaseOrder}"/>
+                            </div> 
+                            <div class="col-md-4">
+                                <h:outputText value="#{supDeliveryOrderController.deliveryOrder.purchaseOrder.name}"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> 
+
+    <script>
+
+        $("#DeliveryOrderForm\\:deliverylines tbody tr").each(function () {
+            $(this).find("td:eq(4)").text(" ");
+        });
+
+        var formId = "#{supDeliveryOrderController.deliveryOrder.id}";
+        setFormURL('id', formId);
+        
+        var tableId = '#{deliveryLines.clientId}';
+        addEmptyRow(tableId);
+        
+        disableStatusLinks();
+        
+        setActiveTab();
+
+    </script>
+
+
+
+</ui:composition>

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:p="http://primefaces.org/ui">
+
+
+
+    <!-- page start-->
+    <p:growl id="msgs" widgetVar="growl" />
+    <div class="row form-header-1">
+        <div class="col-md-12" >            
+            <p:link  class="form-nav" value="#{messages.Suppliers}"  outcome="/sc/customer/index"/>
+            <span> / </span>   
+            <p:link  class="form-nav" value="#{journalEntryController.journalEntries[0].partner.name}"  outcome="/sc/customer/index">
+                <f:param name="id" value="#{journalEntryController.partnerId}"/>
+            </p:link>
+            <span> / </span> 
+            <h:outputText value="#{messages.JournalEntries}"/> 
+        </div>
+    </div> 
+    <div class="row"> 
+        <p:dataTable id="PartnerJournalEntries"
+                     value="#{journalEntryController.journalEntries}"
+                     var="item"
+                     selection="#{journalEntryController.journalEntry}"
+                     rowKey="#{item.id}"
+                     selectionMode="single">
+
+            <p:ajax event="rowSelect" listener="#{journalEntryController.prepareView}" update=":JournalEntryForm:content" />
+            <p:ajax event="rowUnselect"/>
+            
+            <p:column sortBy="#{item.name}" filterBy="#{item.name}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.ListJournalEntryTitle_name}"/>
+                </f:facet>
+                <h:outputText value="#{item.name}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.ref}" filterBy="#{item.ref}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.ListJournalEntryTitle_ref}"/>
+                </f:facet>
+                <h:outputText value="#{item.ref}"/>
+            </p:column>
+
+
+            <p:column sortBy="#{item.date}" filterBy="#{item.date}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.ListJournalEntryTitle_date}"/>
+                </f:facet>
+                <h:outputText value="#{item.date}">
+                    <f:convertDateTime pattern="MM/dd/yyyy" />
+                </h:outputText>
+            </p:column>          
+            
+            <p:column sortBy="#{item.period.name}" filterBy="#{item.period.name}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.ListJournalEntryTitle_periodId}"/>
+                </f:facet>
+                <h:outputText value="#{item.period.name}"/>    
+            </p:column>
+
+            <p:column sortBy="#{item.journal.name}" filterBy="#{item.journal.name}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.ListJournalEntryTitle_journalId}"/>
+                </f:facet>
+                <h:outputText value="#{item.journal.name}"/>
+            </p:column>         
+
+            <p:column sortBy="#{item.partner.name}" filterBy="#{item.partner.name}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.ListJournalEntryTitle_partnerId}"/>
+                </f:facet>
+                <h:outputText value="#{item.partner.name}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.amount}" filterBy="#{item.amount}">
+                <f:facet name="header">
+                    <h:outputText value="Amount"/>
+                </f:facet>
+                <h:outputText value="#{item.amount}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.state}" filterBy="#{item.state}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.ListJournalEntryTitle_state}"/>
+                </f:facet>
+                <h:outputText value="#{item.state}"/>
+            </p:column>
+            
+        </p:dataTable>       
+    </div>  
+    <!-- page end--> 
+</ui:composition>

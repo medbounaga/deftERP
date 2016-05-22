@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:p="http://primefaces.org/ui">
+
+    <p:growl id="msgs" widgetVar="growl" />
+    <div class="row form-header-1">
+        <div class="col-md-12" >
+            <span>#{messages.JournalItems}</span>
+        </div>
+    </div>
+    <div jsf:id="journalItems" class="row"> 
+        <p:dataTable id="journalItemsTable"
+                     selection="#{journalItemController.journalItem}"
+                     selectionMode="single"
+                     binding="#{journalItemsTable}"
+                     class="fit-content-table"
+                     value="#{journalItemController.journalItems}"
+                     filteredValue="#{journalItemController.filteredJournalItems}"
+                     var="item" 
+                     emptyMessage="#{messages.EmptyMessage}"
+                     sortBy="#{item.date}"
+                     sortOrder="descending"
+                     rowKey="#{item.id}" 
+                     paginator="true"
+                     widgetVar="journalItems"
+                     paginatorAlwaysVisible="true"
+                     rows="#{messages.MaxRows}">
+
+
+            <f:facet name="header">
+                <p:outputPanel>
+                    <div style="display:inline-block; float: left !important; text-align: left !important;">
+                        <div style="display:inline-block;" >           
+                            <p:outputLabel value="#{messages.Period}" for="period" style="font-weight: bold; margin-right: 25px;"/>
+                            <p:selectOneMenu style="width: 150px;" id="period" value="#{journalItemController.period}">
+                                <p:ajax listener="#{journalItemController.updateJournalItemsTable}" process="@this"  update="@form"/>
+                                <f:selectItem itemLabel=""/>
+                                <f:selectItem itemLabel="X 01-#{journalItemController.getYear()}" itemValue="1"/>
+                                <f:selectItem itemLabel="X 02-#{journalItemController.getYear()}" itemValue="2"/>
+                                <f:selectItem itemLabel="X 03-#{journalItemController.getYear()}" itemValue="3"/>
+                                <f:selectItem itemLabel="X 04-#{journalItemController.getYear()}" itemValue="4"/>
+                                <f:selectItem itemLabel="X 05-#{journalItemController.getYear()}" itemValue="5"/>
+                                <f:selectItem itemLabel="X 06-#{journalItemController.getYear()}" itemValue="6"/>
+                                <f:selectItem itemLabel="X 07-#{journalItemController.getYear()}" itemValue="7"/>
+                                <f:selectItem itemLabel="X 08-#{journalItemController.getYear()}" itemValue="8"/>
+                                <f:selectItem itemLabel="X 09-#{journalItemController.getYear()}" itemValue="9"/>
+                                <f:selectItem itemLabel="X 10-#{journalItemController.getYear()}" itemValue="10"/>
+                                <f:selectItem itemLabel="X 11-#{journalItemController.getYear()}" itemValue="11"/>
+                                <f:selectItem itemLabel="X 12-#{journalItemController.getYear()}" itemValue="12"/>
+                            </p:selectOneMenu>
+                            
+                        </div>
+                        <div style="display:inline-block; padding-left:50px; ">   
+                            <p:outputLabel value="#{messages.Journal}" for="journal" style="font-weight: bold;  margin-right: 25px;" />
+                            <p:selectOneMenu style="width: 200px;" id="journal" value="#{journalItemController.journal}"  converter="journalConverter">
+                                <p:ajax listener="#{journalItemController.updateJournalItemsTable}" process="@this"  update="@form"/>
+                                <f:selectItem itemLabel=""/>
+                                <f:selectItems value="#{journalItemController.journals}"
+                                               var="journal"
+                                               itemValue="#{journal}"
+                                               itemLabel="#{journal.name.toString()}"/>
+                            </p:selectOneMenu>
+                        </div>
+                    </div>
+                    <div style="display:inline-block;">
+                        <div class="searchLoader">
+                            <p:graphicImage  name="/img/search-loader.gif"/>
+                        </div>
+                        <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('journalItems').filter();" class="search" placeholder="#{messages.Search}"/>               
+                    </div>
+                </p:outputPanel>
+            </f:facet>
+
+            <p:ajax event="page" oncomplete="updateTableTotals();"/>
+            <p:ajax event="sort" oncomplete="updateTableTotals();"/>
+            <p:ajax event="filter" global="false" onstart="showSearchLoader();" oncomplete="updateTableTotals(); hideSearchLoader();"/>
+            <p:ajax event="rowSelect"  listener="#{journalItemController.prepareView}" update=":JournalItemForm:content"/>
+            
+            <p:column>
+                <f:facet name="header">
+                    <h:outputText value=""/>
+                </f:facet>
+                <h:outputText value=""/>
+            </p:column>
+
+            <p:column sortBy="#{item.journal.name}" filterBy="#{item.journal.name}" rendered="#{journalItemController.journal == null}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Journal}"/>
+                </f:facet>
+                <h:outputText value="#{item.journal.name}"/>
+            </p:column>
+
+            <p:column sortBy="#{journalItemController.getPeriodName(item.date)}" filterBy="#{journalItemController.getPeriodName(item.date)}" rendered="#{journalItemController.period == null}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Period}"/>
+                </f:facet>
+                <h:outputText value="#{journalItemController.getPeriodName(item.date)}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.date}" filterBy="#{item.date}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Date}"/>
+                </f:facet>
+                <h:outputText value="#{item.date}">
+                    <f:convertDateTime pattern="MM-dd-yyyy" />
+                </h:outputText>
+            </p:column>
+
+            <p:column sortBy="#{item.name}" filterBy="#{item.name}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Label}"/>
+                </f:facet>
+                <h:outputText value="#{item.name}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.ref}" filterBy="#{item.ref}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Reference}"/>
+                </f:facet>
+                <h:outputText value="#{item.ref}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.partner.name}" filterBy="#{item.partner.name}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Partner}"/>
+                </f:facet>
+                <h:outputText value="#{item.partner.name}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.account.name}" filterBy="#{item.account.name}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Account}"/>
+                </f:facet>
+                <h:outputText value="#{item.account.name}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.journalEntry.name}" filterBy="#{item.journalEntry.name}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.JournalEntry}"/>
+                </f:facet>
+                <h:outputText value="#{item.journalEntry.name}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.debit}" filterBy="#{item.debit}" styleClass="debit">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Debit}"/>
+                </f:facet>
+                #{messages.Currency}
+                <h:outputText value="#{item.debit}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.credit}" filterBy="#{item.credit}" styleClass="credit">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Credit}"/>
+                </f:facet>
+                #{messages.Currency}
+                <h:outputText value="#{item.credit}"/>
+            </p:column>
+            <p:columnGroup type="footer">
+                <p:row styleClass="tableFoot">
+                    <p:column/>
+                    <p:column rendered="#{journalItemController.journal == null}" />
+                    <p:column rendered="#{journalItemController.period == null}"/>
+                    <p:column colspan="6"/>
+                    <p:column styleClass="total-debit"/>
+                    <p:column styleClass="total-credit"/>
+                </p:row>
+            </p:columnGroup>
+        </p:dataTable>  
+    </div>  
+
+    <script type="text/javascript">
+
+        if ($("#JournalItemForm\\:journalItemsTable\\:globalFilter").val() !== '') {
+            PF('journalItems').filter();
+        }
+        var tableId = '#{journalItemsTable.clientId}';        
+        addEmptyRows(tableId);
+        columnSum('credit', 'total-credit');
+        columnSum('debit', 'total-debit');
+        hidePaginator(tableId);
+
+        function updateTableTotals() {
+            addEmptyRows(tableId);
+            columnSum('credit', 'total-credit');
+            columnSum('debit', 'total-debit');
+            hidePaginator(tableId);
+        }
+
+    </script>
+</ui:composition>

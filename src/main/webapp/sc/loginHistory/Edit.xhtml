@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+
+    <ui:composition>
+        <p:dialog id="LoginHistoryEditDlg" widgetVar="LoginHistoryEditDialog" modal="true" resizable="false"  appendTo="@(body)" header="#{messages.EditLoginHistoryTitle}" closeOnEscape="true">
+
+            <h:form id="LoginHistoryEditForm">
+
+                <h:panelGroup id="display">
+                    <p:panelGrid  columns="2" columnClasses="column" rendered="#{loginHistoryController.selected != null}">
+
+
+                        <h:outputLabel value="#{messages.EditLoginHistoryLabel_id}" for="id" />
+                        <h:outputText id="id" value="#{loginHistoryController.selected.id}" />
+
+                        <p:outputLabel value="#{messages.EditLoginHistoryLabel_loginDate}" for="loginDate" />
+                        <p:calendar id="loginDate" pattern="MM/dd/yyyy HH:mm:ss" value="#{loginHistoryController.selected.loginDate}" title="#{messages.EditLoginHistoryTitle_loginDate}"  showOn="button"/>
+
+                        <p:outputLabel value="#{messages.EditLoginHistoryLabel_name}" for="name" />
+                        <p:inputText id="name" value="#{loginHistoryController.selected.name}" title="#{messages.EditLoginHistoryTitle_name}" required="true" requiredMessage="#{messages.EditLoginHistoryRequiredMessage_name}" size="64" maxlength="64"/>
+
+                        <p:outputLabel value="#{messages.EditLoginHistoryLabel_userId}" for="userId" />
+                        <p:selectOneMenu id="userId" value="#{loginHistoryController.selected.userId}" required="true" requiredMessage="#{messages.EditLoginHistoryRequiredMessage_userId}" converter="userConverter">
+                            <f:selectItem itemLabel="#{messages.SelectOneMessage}"/>
+                            <f:selectItems value="#{userController.items}"
+                                           var="userIdItem"
+                                           itemValue="#{userIdItem}"
+                                           itemLabel="#{userIdItem.name.toString()}"
+                                           />
+
+                        </p:selectOneMenu>
+                    </p:panelGrid>
+                    <p:commandButton actionListener="#{loginHistoryController.save}" value="#{messages.Save}" update="display,:LoginHistoryListForm:datalist,:growl" oncomplete="handleSubmit(xhr,status,args,PF('LoginHistoryEditDialog'));"/>
+                    <p:commandButton value="#{messages.Cancel}" onclick="PF('LoginHistoryEditDialog').hide()"/>
+                </h:panelGroup>
+
+            </h:form>
+
+        </p:dialog>
+
+    </ui:composition>
+
+</html>

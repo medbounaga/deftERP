@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:p="http://primefaces.org/ui">
+
+
+    <p:dialog id="DeliveryOrderLine" styleClass="disable-scroll" widgetVar="DeliveryOrderLineDialog" modal="true" resizable="false"  appendTo="@(body)" width="800" header="#{messages.ProductsToDeliver}"  closeOnEscape="true">
+        <h:form id="DeliveryForm">
+            <br></br>
+
+            <p:dataTable 
+                id="linesToDeliver" 
+                class="fit-content-table"
+                var="item" 
+                rowIndexVar="rowIndex"  
+                value="#{deliveryOrderController.tobeDeliveredOrderLines}" 
+                editable="true">
+
+                <p:ajax event="rowEditInit" global="false"  onstart="hideTableButtons();" /> 
+                <p:ajax event="rowEdit" listener="#{deliveryOrderController.onDialogRowEdit(rowIndex)}" update=":DeliveryOrderForm:msgs" oncomplete="if(args.validationFailed){hideTableButtons();}else{showTableButtons();}"/>
+                <p:ajax event="rowEditCancel" listener="#{deliveryOrderController.onDialogRowCancel}" update=":DeliveryOrderForm:msgs" oncomplete="showTableButtons();"/>
+
+                <p:column style="width:60px;">
+                    <div style="display: inline-block;">
+                        <p:commandLink styleClass="ui-icon ui-icon-trash" actionListener="#{deliveryOrderController.removeOrderLine(rowIndex)}" update=":DeliveryForm:linesToDeliver"/>
+                    </div>
+                    <p:rowEditor/>
+                </p:column>
+                <p:column headerText="#{messages.Product}">
+                    <p:cellEditor>
+                        <f:facet name="output"> <h:outputText value="#{item.product.name}"/></f:facet>
+                        <f:facet name="input"><h:outputText value="#{item.product.name}"/></f:facet>
+                    </p:cellEditor>
+                </p:column>
+
+                <p:column headerText="#{messages.Quantity}">
+                    <p:cellEditor>
+                        <f:facet name="output"> <h:outputText value="#{item.quantity}"/></f:facet>                        
+                        <f:facet name="input"><p:spinner value="#{item.quantity}" 
+                                                         styleClass="required" 
+                                                         min="0" 
+                                                         size="10"
+                                                         stepFactor="#{messages.stepFactor}"  
+                                                         required="true" 
+                                                         requiredMessage="#{messages.QuantityRequired}" 
+                                                         converterMessage="#{messages.InvalidQuantity}"/>
+                        </f:facet>
+                    </p:cellEditor>
+                </p:column>
+
+                <p:column headerText="#{messages.UnitOfMeasure}">
+                    <p:cellEditor>
+                        <f:facet name="output"> <h:outputText value="#{item.uom}"/></f:facet>
+                        <f:facet name="input"><h:outputText value="#{item.uom}"/></f:facet>
+                    </p:cellEditor>
+                </p:column>
+
+                <p:column headerText="#{messages.Status}">
+                    <p:cellEditor>                       
+                        <f:facet name="output"><h:outputText value="#{deliveryOrderController.getStatus(item.state)}" styleClass="badge" style="background-color: #{deliveryOrderController.getStatusColor(item.state)}"/></f:facet>
+                        <f:facet name="input"><h:outputText value="#{deliveryOrderController.getStatus(item.state)}" styleClass="badge" style="background-color: #{deliveryOrderController.getStatusColor(item.state)}"/></f:facet>
+                    </p:cellEditor>
+                </p:column>
+
+            </p:dataTable>
+
+            <br></br><br></br>
+            <p:commandButton class="btnn btnn-primary" value="#{messages.Deliver}" process="@this"  actionListener="#{deliveryOrderController.deliver(deliveryOrderController.deliveryOrder.id)}"  update=":DeliveryOrderForm:content,:DeliveryForm,:DeliveryOrderForm:msgs" oncomplete="handleSubmit(xhr,status,args,PF('DeliveryOrderLineDialog'));"/> 
+            <a class="btnn btnn-default jsf-btn"  onclick="PF('DeliveryOrderLineDialog').hide()">#{messages.Cancel}</a>
+
+        </h:form>
+    </p:dialog>
+
+    <!-- page end--> 
+</ui:composition>

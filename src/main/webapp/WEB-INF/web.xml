@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="3.1" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd">
+    <context-param>
+        <param-name>javax.faces.PROJECT_STAGE</param-name>
+        <param-value>Development</param-value>
+    </context-param>
+   
+    <context-param>
+        <param-name>javax.faces.DATETIMECONVERTER_DEFAULT_TIMEZONE_IS_SYSTEM_TIMEZONE</param-name>
+        <param-value>true</param-value>
+    </context-param>
+    
+    <servlet>
+        <servlet-name>Faces Servlet</servlet-name>
+        <servlet-class>javax.faces.webapp.FacesServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>Faces Servlet</servlet-name>
+        <url-pattern>*.xhtml</url-pattern>
+    </servlet-mapping>
+    
+    <session-config>
+        <session-timeout>30</session-timeout>
+        <tracking-mode>COOKIE</tracking-mode>
+    </session-config>
+    
+    <welcome-file-list>
+        <welcome-file>sc/dashboard.xhtml</welcome-file>
+        <welcome-file>sc/loginPage.xhtml</welcome-file>
+    </welcome-file-list>
+
+    <error-page>
+        <exception-type>javax.faces.application.ViewExpiredException</exception-type>
+        <location>/sessionExpired.xhtml</location>
+    </error-page> 
+    
+    <error-page>
+        <error-code>404</error-code>
+        <location>/404error.xhtml</location>
+    </error-page>
+    
+    <error-page>
+        <error-code>500</error-code>
+        <location>/500error.xhtml</location>
+    </error-page>    
+    
+    <filter>
+        <filter-name>LoginFilter</filter-name>
+        <filter-class>com.casa.erp.beans.util.LoginFilter</filter-class>
+    </filter> 
+    
+    <filter-mapping>
+        <filter-name>noCacheFilter</filter-name>
+        <servlet-name>Faces Servlet</servlet-name>
+        <url-pattern/>
+    </filter-mapping>   
+   
+    <filter-mapping>
+        <filter-name>loginFilter</filter-name>    
+        <url-pattern>/sc/*</url-pattern>
+    </filter-mapping> 
+
+    
+    <mime-mapping>
+        <extension>eot</extension>
+        <mime-type>application/vnd.ms-fontobject</mime-type>
+    </mime-mapping>
+    <mime-mapping>  
+        <extension>otf</extension>  
+        <mime-type>font/opentype</mime-type>  
+    </mime-mapping>      
+    <mime-mapping>  
+        <extension>ttf</extension>  
+        <mime-type>application/x-font-ttf</mime-type>  
+    </mime-mapping>      
+    <mime-mapping>  
+        <extension>woff</extension>  
+        <mime-type>application/x-font-woff</mime-type>  
+    </mime-mapping>
+    <mime-mapping>  
+        <extension>svg</extension>  
+        <mime-type>image/svg+xml</mime-type>  
+    </mime-mapping>
+    <mime-mapping>
+        <extension>woff2</extension>
+        <mime-type>application/x-font-woff2</mime-type>
+    </mime-mapping>
+</web-app>
+

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="deliveryOrderLines" pageWidth="555" pageHeight="802" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="7dfa19d5-c31a-46a8-96e5-363e2e4edb14">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String"/>
+	<field name="quantity" class="java.lang.Double"/>
+	<field name="productName" class="java.lang.String"/>
+	<field name="uom" class="java.lang.String"/>
+	<field name="state" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="32" splitType="Stretch">
+			<staticText>
+				<reportElement x="302" y="7" width="130" height="20" uuid="318a5495-4901-4f10-a271-6a521cf5b768"/>
+				<textElement textAlignment="Right">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Unit of Measure]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="4" y="7" width="164" height="20" uuid="1cc70c65-7ffc-487a-b61d-7204a95286b5"/>
+				<textElement>
+					<font size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Product]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="168" y="7" width="134" height="20" uuid="973e479f-09a7-45f6-8060-f1163393862b"/>
+				<textElement textAlignment="Right">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Quantity]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="432" y="7" width="122" height="20" uuid="82dac019-4993-4655-8de8-938b29222703"/>
+				<textElement textAlignment="Right">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Status]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="30" width="555" height="1" uuid="53c2ae3a-4ada-43ff-9217-50c4020bdf5a"/>
+			</line>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="35" splitType="Stretch">
+			<textField>
+				<reportElement x="302" y="4" width="130" height="20" uuid="4820059a-1ee2-42e0-9742-924fe280818c"/>
+				<textElement textAlignment="Right">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{uom}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="4" y="4" width="164" height="20" uuid="be422d05-3857-44b1-afbc-aaf86031bc42"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{productName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="168" y="4" width="134" height="20" uuid="bb6fdff7-bca7-40db-9394-588a2ff768ac"/>
+				<textElement textAlignment="Right">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{quantity}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="432" y="4" width="122" height="20" uuid="bff9fa2e-b569-4f43-b2f3-71e23e0069fa"/>
+				<textElement textAlignment="Right">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{state}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="88"/>
+	</columnFooter>
+</jasperReport>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+
+    <ui:composition>
+
+        <p:dialog id="InventoryCreateDlg" widgetVar="InventoryCreateDialog" modal="true" resizable="false" appendTo="@(body)" header="#{messages.CreateInventoryTitle}" closeOnEscape="true">
+
+            <h:form id="InventoryCreateForm">
+
+                <h:panelGroup id="display" rendered="#{inventoryController.selected != null}">
+                    <p:panelGrid columns="2" columnClasses="column">
+
+                        <p:outputLabel value="#{messages.CreateInventoryLabel_maxQty}" for="maxQty" />
+                        <p:inputText id="maxQty" value="#{inventoryController.selected.maxQty}" title="#{messages.CreateInventoryTitle_maxQty}"/>
+
+                        <p:outputLabel value="#{messages.CreateInventoryLabel_minQty}" for="minQty" />
+                        <p:inputText id="minQty" value="#{inventoryController.selected.minQty}" title="#{messages.CreateInventoryTitle_minQty}"/>
+
+                        <p:outputLabel value="#{messages.CreateInventoryLabel_quantity}" for="quantity" />
+                        <p:inputText id="quantity" value="#{inventoryController.selected.quantity}" title="#{messages.CreateInventoryTitle_quantity}" required="true" requiredMessage="#{messages.CreateInventoryRequiredMessage_quantity}"/>
+
+                        <p:outputLabel value="#{messages.CreateInventoryLabel_name}" for="name" />
+                        <p:inputText id="name" value="#{inventoryController.selected.name}" title="#{messages.CreateInventoryTitle_name}" required="true" requiredMessage="#{messages.CreateInventoryRequiredMessage_name}" size="32" maxlength="32"/>
+
+                        <p:outputLabel value="#{messages.CreateInventoryLabel_uom}" for="uom" />
+                        <p:inputText id="uom" value="#{inventoryController.selected.uom}" title="#{messages.CreateInventoryTitle_uom}" size="32" maxlength="32"/>
+
+                        <p:outputLabel value="#{messages.CreateInventoryLabel_active}" for="active" />
+                        <p:selectBooleanCheckbox id="active" value="#{inventoryController.selected.active}" required="true" requiredMessage="#{messages.CreateInventoryRequiredMessage_active}"/>
+
+                        <p:outputLabel value="#{messages.CreateInventoryLabel_productId}" for="productId" />
+                        <p:selectOneMenu id="productId" value="#{inventoryController.selected.productId}" required="true" requiredMessage="#{messages.CreateInventoryRequiredMessage_productId}" converter="productConverter">
+                            <f:selectItem itemLabel="#{messages.SelectOneMessage}"/>
+                            <f:selectItems value="#{productController.items}"
+                                           var="productIdItem"
+                                           itemValue="#{productIdItem}"
+                                           itemLabel="#{productIdItem.name.toString()}"
+                                           />
+
+                        </p:selectOneMenu>
+                    </p:panelGrid>
+                    <p:commandButton actionListener="#{inventoryController.saveNew}" value="#{messages.Save}" update="display,:InventoryListForm:datalist,:growl" oncomplete="handleSubmit(xhr,status,args,PF('InventoryCreateDialog'));"/>
+                    <p:commandButton value="#{messages.Cancel}" onclick="PF('InventoryCreateDialog').hide()"/>
+                </h:panelGroup>
+
+            </h:form>
+
+        </p:dialog>
+
+    </ui:composition>
+
+</html>
