@@ -119,17 +119,7 @@ CREATE TABLE IF NOT EXISTS `erp`.`product` (
   CONSTRAINT `product_template_uom_id_fkey`
     FOREIGN KEY (`uom_id`)
     REFERENCES `erp`.`product_uom` (`id`));
-    
-    
-CREATE TABLE IF NOT EXISTS `erp`.`login_history` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `login_date` DATETIME NULL,
-  `user_id` INT NOT NULL,
-  
-  PRIMARY KEY (`id`),
-  CONSTRAINT `login_history_partner_id_fkey`
-    FOREIGN KEY (`user_id`)
-    REFERENCES `erp`.`user` (`id`));
+
     
     
 CREATE TABLE IF NOT EXISTS `erp`.`partner` (
