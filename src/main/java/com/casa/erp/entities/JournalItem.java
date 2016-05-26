@@ -18,7 +18,6 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * 
@@ -29,7 +28,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @Entity
 @Table(name = "journal_item")
-@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "JournalItem.CreditSum", query = "SELECT SUM(j.credit) FROM JournalItem j WHERE j.account.id = :accountId"),
     @NamedQuery(name = "JournalItem.DebitSum", query = "SELECT SUM(j.debit) FROM JournalItem j WHERE j.account.id = :accountId"),

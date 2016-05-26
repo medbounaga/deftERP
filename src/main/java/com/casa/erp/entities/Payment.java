@@ -22,7 +22,6 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * 
@@ -33,7 +32,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @Entity
 @Table(name = "payment")
-@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Payment.findByPartner", query = "SELECT p FROM Payment p WHERE p.partner.id = :partnerId AND p.partnerType = :partnerType "),
     @NamedQuery(name = "Payment.countByPartner", query = "SELECT COUNT(p) FROM Payment p WHERE p.partner.id = :partnerId AND p.partnerType = :partnerType"),

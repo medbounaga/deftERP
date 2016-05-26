@@ -18,10 +18,8 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * 
@@ -32,7 +30,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @Entity
 @Table(name = "purchase_order_line")
-@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "PurchaseOrderLine.findByProduct", query = "SELECT p FROM PurchaseOrderLine p WHERE p.product.id = :productId"),  
     @NamedQuery(name = "PurchaseOrderLine.countByProduct", query = "SELECT SUM(p.quantity) FROM PurchaseOrderLine p WHERE p.product.id = :productId "),

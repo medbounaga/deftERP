@@ -23,8 +23,6 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * 
@@ -35,7 +33,6 @@ import javax.xml.bind.annotation.XmlTransient;
 
 @Entity
 @Table(name = "delivery_order")
-@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "DeliveryOrder.findByPartner", query = "SELECT d FROM DeliveryOrder d WHERE d.partner.id = :partnerId AND d.type = :type "),
     @NamedQuery(name = "DeliveryOrder.countByPartner", query = "SELECT COUNT(d) FROM DeliveryOrder d WHERE d.partner.id = :partnerId AND d.type = :type "),
@@ -206,7 +203,6 @@ public class DeliveryOrder implements Serializable {
         this.active = active;
     }
 
-    @XmlTransient
     public List<DeliveryOrderLine> getDeliveryOrderLines() {
         return deliveryOrderLines;
     }

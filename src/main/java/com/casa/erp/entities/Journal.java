@@ -15,8 +15,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * 
@@ -27,7 +25,6 @@ import javax.xml.bind.annotation.XmlTransient;
 
 @Entity
 @Table(name = "journal")
-@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Journal.findAll", query = "SELECT j FROM Journal j"),
     @NamedQuery(name = "Journal.findById", query = "SELECT j FROM Journal j WHERE j.id = :id"),
@@ -113,7 +110,6 @@ public class Journal implements Serializable {
         this.type = type;
     }
 
-    @XmlTransient
     public List<JournalItem> getJournalItems() {
         return journalItems;
     }
@@ -122,7 +118,6 @@ public class Journal implements Serializable {
         this.journalItems= journalItems;
     }
 
-    @XmlTransient
     public List<JournalEntry> getJournalEntries() {
         return journalEntries;
     }
@@ -131,7 +126,6 @@ public class Journal implements Serializable {
         this.journalEntries = journalEntries;
     }
 
-    @XmlTransient
     public List<Payment> getPayments() {
         return payments;
     }
@@ -140,7 +134,6 @@ public class Journal implements Serializable {
         this.payments = payments;
     }
 
-    @XmlTransient
     public List<Invoice> getInvoices() {
         return invoices;
     }

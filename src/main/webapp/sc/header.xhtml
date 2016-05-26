@@ -73,9 +73,7 @@
                                 <li> <p:link value="#{messages.Accounts}" outcome="/sc/account/index"  /></li>
                                 <li> <p:link value="#{messages.Journals}" outcome="/sc/journal/index" /></li>
                                 <li> <p:link value="#{messages.Taxess}" outcome="/sc/tax/index" /></li>
-                                <li jsf:rendered="#{userSessionController.user.userType == 'Admin'}"> 
-                                    <p:link value="#{messages.Users}" outcome="/sc/userInfo/index" />
-                                </li>
+                                <li> <p:link value="#{messages.Users}" outcome="/sc/userInfo/index" /></li>
                                 <li> <p:link value="#{messages.ProductCategories}" outcome="/sc/productCtg/index" /></li>
                                 <li> <p:link value="#{messages.UnitsOfMeasure}" outcome="/sc/productUom/index" /></li>
                                 <li> <p:link value="#{messages.ProductUomCategories}" outcome="/sc/productUomCtg/index" /></li>

@@ -17,8 +17,6 @@ import javax.persistence.Table;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * 
@@ -29,7 +27,6 @@ import javax.xml.bind.annotation.XmlTransient;
 
 @Entity
 @Table(name = "tax")
-@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Tax.findByType", query = "SELECT t FROM Tax t WHERE t.typeTaxUse = :typeTaxUse"),
     @NamedQuery(name = "Tax.findAll", query = "SELECT t FROM Tax t"),
@@ -143,7 +140,6 @@ public class Tax implements Serializable {
         this.active = active;
     }
 
-    @XmlTransient
     public List<InvoiceLine> getInvoiceLines() {
         return invoiceLines;
     }
@@ -152,7 +148,6 @@ public class Tax implements Serializable {
         this.invoiceLines = invoiceLines;
     }
 
-    @XmlTransient
     public List<PurchaseOrderLine> getPurchaseOrderLines() {
         return purchaseOrderLines;
     }
@@ -161,7 +156,6 @@ public class Tax implements Serializable {
         this.purchaseOrderLines = purchaseOrderLines;
     }
 
-    @XmlTransient
     public List<InvoiceTax> getInvoiceTaxes() {
         return invoiceTaxes;
     }
@@ -170,7 +164,6 @@ public class Tax implements Serializable {
         this.invoiceTaxes = invoiceTaxes;
     }
 
-    @XmlTransient
     public List<SaleOrderLine> getSaleOrderLines() {
         return saleOrderLines;
     }

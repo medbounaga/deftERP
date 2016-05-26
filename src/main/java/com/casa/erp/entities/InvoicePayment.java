@@ -17,7 +17,6 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
 
 
 /**
@@ -29,7 +28,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @Entity
 @Table(name = "invoice_payment")
-@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "InvoicePayment.findById", query = "SELECT i FROM InvoicePayment i WHERE i.id = :id")})
 public class InvoicePayment implements Serializable {

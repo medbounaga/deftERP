@@ -22,8 +22,6 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * 
@@ -34,7 +32,6 @@ import javax.xml.bind.annotation.XmlTransient;
 
 @Entity
 @Table(name = "product")
-@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Product.findAll", query = "SELECT p FROM Product p"),
     @NamedQuery(name = "Product.findById", query = "SELECT p FROM Product p WHERE p.id = :id"),
@@ -71,7 +68,6 @@ public class Product implements Serializable {
     @Lob
     @Column(name = "image_medium")
     private byte[] imageMedium;
-    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
     @Column(name = "sale_price")
     @StrictlyPositiveNumber(message = "{PositiveSalePrice}")
     private Double salePrice = 2d;
@@ -256,7 +252,6 @@ public class Product implements Serializable {
         this.uom = uom;
     }
 
-    @XmlTransient
     public Inventory getInventory() {
         if (inventory == null) {
             inventory = new Inventory();
@@ -268,7 +263,6 @@ public class Product implements Serializable {
         this.inventory = inventory;
     }
 
-    @XmlTransient
     public List<JournalItem> getJournalItems() {
         return journalItems;
     }
@@ -277,7 +271,6 @@ public class Product implements Serializable {
         this.journalItems = journalItems;
     }
 
-    @XmlTransient
     public List<DeliveryOrderLine> getDeliveryOrderLines() {
         return deliveryOrderLines;
     }
@@ -286,7 +279,6 @@ public class Product implements Serializable {
         this.deliveryOrderLines = deliveryOrderLines;
     }
 
-    @XmlTransient
     public List<InvoiceLine> getInvoiceLines() {
         return invoiceLines;
     }
@@ -295,7 +287,6 @@ public class Product implements Serializable {
         this.invoiceLines = invoiceLines;
     }
 
-    @XmlTransient
     public List<PurchaseOrderLine> getPurchaseOrderLines() {
         return purchaseOrderLines;
     }
@@ -304,7 +295,6 @@ public class Product implements Serializable {
         this.purchaseOrderLines = purchaseOrderLines;
     }
 
-    @XmlTransient
     public List<SaleOrderLine> getSaleOrderLines() {
         return saleOrderLines;
     }

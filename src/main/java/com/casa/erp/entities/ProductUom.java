@@ -17,8 +17,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * 
@@ -29,7 +27,6 @@ import javax.xml.bind.annotation.XmlTransient;
 
 @Entity
 @Table(name = "product_uom")
-@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "ProductUom.findAll", query = "SELECT p FROM ProductUom p"),
     @NamedQuery(name = "ProductUom.findById", query = "SELECT p FROM ProductUom p WHERE p.id = :id"),
@@ -117,8 +114,6 @@ public class ProductUom implements Serializable {
         this.category = category;
     }
 
-
-    @XmlTransient
     public List<Product> getProducts() {
         return products;
     }
@@ -127,7 +122,6 @@ public class ProductUom implements Serializable {
         this.products = products;
     }
 
-    @XmlTransient
     public List<JournalItem> getJournalItems() {
         return journalItems;
     }

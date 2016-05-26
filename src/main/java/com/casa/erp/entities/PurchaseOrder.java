@@ -22,7 +22,6 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * 
@@ -33,7 +32,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @Entity
 @Table(name = "purchase_order")
-@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "PurchaseOrder.findByPartner", query = "SELECT p FROM PurchaseOrder p WHERE p.partner.id = :partnerId "),
     @NamedQuery(name = "PurchaseOrder.countByPartner", query = "SELECT COUNT(p) FROM PurchaseOrder p WHERE p.partner.id = :partnerId "),
@@ -62,7 +60,6 @@ public class PurchaseOrder implements Serializable {
     @InDateRange
     @Temporal(TemporalType.TIMESTAMP)
     private Date date;
-    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
     @Column(name = "amount_tax")
     private Double amountTax = 0d;
     @Column(name = "amount_total")

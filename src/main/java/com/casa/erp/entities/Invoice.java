@@ -25,8 +25,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
+
 
 /**
  * 
@@ -37,7 +36,6 @@ import javax.xml.bind.annotation.XmlTransient;
 
 @Entity
 @Table(name = "invoice")
-@XmlRootElement
 @NamedQueries({
 
     @NamedQuery(name = "Invoice.InvoicedSum", query = "SELECT SUM(i.amountUntaxed) FROM Invoice i WHERE i.partner.id = :partnerId AND i.type = :type"),
@@ -296,7 +294,6 @@ public class Invoice implements Serializable {
         this.name = name;
     }
 
-    @XmlTransient
     public List<InvoiceLine> getInvoiceLines() {
         return invoiceLines;
     }
@@ -305,7 +302,6 @@ public class Invoice implements Serializable {
         this.invoiceLines = invoiceLines;
     }
 
-    @XmlTransient
     public List<InvoiceTax> getInvoiceTaxes() {
         return invoiceTaxes;
     }
@@ -314,7 +310,6 @@ public class Invoice implements Serializable {
         this.invoiceTaxes = invoiceTaxes;
     }
 
-    @XmlTransient
     public List<Payment> getPayments() {
         if(payments == null){
            

@@ -65,7 +65,6 @@ public class SaleOrder implements Serializable {
     @InDateRange
     @Temporal(TemporalType.TIMESTAMP)
     private Date date;
-    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
     @Column(name = "amount_tax")
     private Double amountTax = 0d;
     @Column(name = "amount_total")
@@ -109,14 +108,6 @@ public class SaleOrder implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "saleOrder", orphanRemoval=true)
     private List<SaleOrderLine> saleOrderLines;
 
-//    public void addPhone(Phone phone) {
-//      if (phone != null)  {  
-//          this.phones.add(phone);
-//          if (phone.getOwner() != this) {
-//              phone.setOwner(this);
-//          }
-//      }
-//   }
 public SaleOrder() {
     }
 

@@ -23,8 +23,6 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * 
@@ -35,7 +33,6 @@ import javax.xml.bind.annotation.XmlTransient;
 
 @Entity
 @Table(name = "journal_entry")
-@XmlRootElement
 @NamedQueries({ 
     @NamedQuery(name = "JournalEntry.countByPartner", query = "SELECT COUNT(j) FROM JournalEntry j WHERE j.partner.id = :partnerId"),
     @NamedQuery(name = "JournalEntry.findByPartner", query = "SELECT j FROM JournalEntry j WHERE j.partner.id = :partnerId"),
@@ -173,7 +170,6 @@ public class JournalEntry implements Serializable {
         this.active = active;
     }
 
-    @XmlTransient
     public List<JournalItem> getJournalItems() {
         return journalItems;
     }
@@ -198,8 +194,6 @@ public class JournalEntry implements Serializable {
         this.partner = partner;
     }
     
-
-    @XmlTransient
     public Payment getPayment() {
         return payment;
     }
@@ -208,7 +202,6 @@ public class JournalEntry implements Serializable {
         this.payment = payment;
     }
 
-    @XmlTransient
     public Invoice getInvoice() {
         return invoice;
     }

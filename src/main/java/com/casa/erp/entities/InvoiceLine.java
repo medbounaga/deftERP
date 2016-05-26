@@ -22,7 +22,6 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * 
@@ -34,7 +33,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @Entity
 @Table(name = "invoice_line")
-@XmlRootElement
 @NamedQueries({    
     @NamedQuery(name = "InvoiceLine.findByInvoice", query = "SELECT i FROM InvoiceLine i WHERE i.invoice.id = :id"),
     @NamedQuery(name = "InvoiceLine.findAll", query = "SELECT i FROM InvoiceLine i"),

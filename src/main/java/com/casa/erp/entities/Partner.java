@@ -1,15 +1,11 @@
 
 package com.casa.erp.entities;
 
-import com.casa.erp.validation.CurrentYear;
 import com.casa.erp.validation.InDateRange;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.Basic;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -25,13 +21,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.servlet.http.Part;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import org.apache.commons.io.IOUtils;
 
 /**
  * 
@@ -42,7 +33,6 @@ import org.apache.commons.io.IOUtils;
 
 @Entity
 @Table(name = "partner")
-@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Partner.findAll", query = "SELECT p FROM Partner p"),
     @NamedQuery(name = "Partner.findById", query = "SELECT p FROM Partner p WHERE p.id = :id"),
@@ -88,7 +78,6 @@ public class Partner implements Serializable {
     private Boolean supplier;
     @Column(name = "customer")
     private Boolean customer;
-//  @Pattern(regexp="[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", message="{InvalidEmail}")
     @Size(max = 240, message = "{LongString}")
     @Column(name = "email")
     private String email;
@@ -365,7 +354,6 @@ public class Partner implements Serializable {
         this.accountPayable = accountPayable;
     }
 
-    @XmlTransient
     public List<JournalItem> getJournalItems() {
         return journalItems;
     }
@@ -374,7 +362,6 @@ public class Partner implements Serializable {
         this.journalItems = journalItems;
     }
 
-    @XmlTransient
     public List<DeliveryOrderLine> getDeliveryOrderLines() {
         return deliveryOrderLines;
     }
@@ -383,7 +370,6 @@ public class Partner implements Serializable {
         this.deliveryOrderLines = deliveryOrderLines;
     }
 
-    @XmlTransient
     public List<DeliveryOrder> getDeliveryOrders() {
         return deliveryOrders;
     }
@@ -392,7 +378,6 @@ public class Partner implements Serializable {
         this.deliveryOrders = deliveryOrders;
     }
 
-    @XmlTransient
     public List<JournalEntry> getJournalEntries() {
         return journalEntries;
     }
@@ -401,7 +386,6 @@ public class Partner implements Serializable {
         this.journalEntries = journalEntries;
     }
 
-    @XmlTransient
     public List<InvoiceLine> getInvoiceLines() {
         return invoiceLines;
     }
@@ -410,7 +394,6 @@ public class Partner implements Serializable {
         this.invoiceLines = invoiceLines;
     }
 
-    @XmlTransient
     public List<PurchaseOrder> getPurchaseOrderList() {
         return purchaseOrderList;
     }
@@ -419,7 +402,6 @@ public class Partner implements Serializable {
         this.purchaseOrderList = purchaseOrderList;
     }
 
-    @XmlTransient
     public List<SaleOrder> getSaleOrders() {
         return saleOrders;
     }
@@ -428,7 +410,6 @@ public class Partner implements Serializable {
         this.saleOrders = saleOrders;
     }
 
-    @XmlTransient
     public List<Payment> getPayments() {
         return payments;
     }
@@ -437,7 +418,6 @@ public class Partner implements Serializable {
         this.payments = payments;
     }
 
-    @XmlTransient
     public List<Invoice> getInvoices() {
         return invoices;
     }

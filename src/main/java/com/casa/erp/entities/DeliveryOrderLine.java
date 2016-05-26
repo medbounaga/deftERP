@@ -18,7 +18,6 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * 
@@ -29,7 +28,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @Entity
 @Table(name = "delivery_order_line")
-@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "DeliveryOrderLine.findAll", query = "SELECT d FROM DeliveryOrderLine d"),
     @NamedQuery(name = "DeliveryOrderLine.findById", query = "SELECT d FROM DeliveryOrderLine d WHERE d.id = :id"),

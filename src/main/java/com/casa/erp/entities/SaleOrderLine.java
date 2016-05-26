@@ -23,7 +23,6 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * 
@@ -34,7 +33,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @Entity
 @Table(name = "sale_order_line")
-@XmlRootElement
 @NamedQueries({            
     @NamedQuery(name = "SaleOrderLine.findByProduct", query = "SELECT s FROM SaleOrderLine s WHERE s.product.id = :productId"),  
     @NamedQuery(name = "SaleOrderLine.countByProduct", query = "SELECT SUM(s.quantity) FROM SaleOrderLine s WHERE s.product.id = :productId "),

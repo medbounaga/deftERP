@@ -15,8 +15,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * 
@@ -27,7 +25,6 @@ import javax.xml.bind.annotation.XmlTransient;
 
 @Entity
 @Table(name = "account")
-@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Account.findByType", query = "SELECT a FROM Account a WHERE a.type = :type"),         
     @NamedQuery(name = "Account.findAll", query = "SELECT a FROM Account a"),
@@ -137,8 +134,6 @@ public class Account implements Serializable {
         this.title = title;
     }
 
-
-    @XmlTransient
     public List<JournalItem> getJournalItems() {
         return journalItems;
     }
@@ -147,7 +142,6 @@ public class Account implements Serializable {
         this.journalItems = journalItems;
     }
 
-    @XmlTransient
     public List<InvoiceLine> getInvoiceLines() {
         return invoiceLines;
     }
@@ -156,7 +150,6 @@ public class Account implements Serializable {
         this.invoiceLines = invoiceLines;
     }
 
-    @XmlTransient
     public List<InvoiceTax> getInvoiceTaxes() {
         return invoiceTaxes;
     }
@@ -164,8 +157,7 @@ public class Account implements Serializable {
     public void setInvoiceTaxes(List<InvoiceTax> invoiceTaxes) {
         this.invoiceTaxes = invoiceTaxes;
     }
-
-    @XmlTransient
+    
     public List<Payment> getPayments() {
         return payments;
     }
@@ -174,7 +166,6 @@ public class Account implements Serializable {
         this.payments = payments;
     }
 
-    @XmlTransient
     public List<Invoice> getInvoices() {
         return invoices;
     }
