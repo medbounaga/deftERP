@@ -57,6 +57,7 @@
                         <ui:include src="/sc/saleOrder/invoiceLines.xhtml"/>  
                         <h:form id="SaleOrderForm"> 
                             <p:commandButton rendered="true" update=":MenuForm :invoicingForm :SaleOrderForm"  resetValues="true" global="false" action="#{localeController.changeLanguage('fr')}" value="Francais"/>
+                            <p:commandButton rendered="true" update=":MenuForm :invoicingForm :SaleOrderForm"  resetValues="true" global="false" action="#{localeController.changeLanguage('es')}" value="Español"/>
                             <p:commandButton rendered="true" update=":MenuForm :invoicingForm :SaleOrderForm" global="false" action="#{localeController.changeLanguage('en')}" value="English" />                       
                             <h:panelGroup id="content" layout="block">           
                                 <ui:include src="#{saleOrderController.page}"/>

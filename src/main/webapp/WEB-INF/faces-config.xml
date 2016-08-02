@@ -7,6 +7,7 @@
         <locale-config>
             <default-locale>en</default-locale>
             <supported-locale>fr</supported-locale>
+            <supported-locale>es</supported-locale>
         </locale-config>
         <resource-bundle>
             <base-name>Messages</base-name>
