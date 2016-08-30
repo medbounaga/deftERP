@@ -1,16 +1,12 @@
 package com.casa.erp.entities;
 
 import com.casa.erp.validation.InDateRange;
-import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
@@ -47,13 +43,11 @@ import javax.validation.constraints.Size;
     @NamedQuery(name = "PurchaseOrder.findByDiscount", query = "SELECT p FROM PurchaseOrder p WHERE p.discount = :discount"),
     @NamedQuery(name = "PurchaseOrder.findByActive", query = "SELECT p FROM PurchaseOrder p WHERE p.active = :active"),
     @NamedQuery(name = "PurchaseOrder.findByName", query = "SELECT p FROM PurchaseOrder p WHERE p.name = :name")})
-public class PurchaseOrder implements Serializable {
+
+public class PurchaseOrder extends BaseEntity {
+    
     private static final long serialVersionUID = 1L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Basic(optional = false)
-    @Column(name = "id")
-    private Integer id;
+    
     @Basic(optional = false)
     @NotNull
     @Column(name = "date")
@@ -110,22 +104,10 @@ public class PurchaseOrder implements Serializable {
     public PurchaseOrder() {
     }
 
-    public PurchaseOrder(Integer id) {
-        this.id = id;
-    }
 
-    public PurchaseOrder(Integer id, Date date, Boolean active) {
-        this.id = id;
+    public PurchaseOrder(Date date, Boolean active) {
         this.date = date;
         this.active = active;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public Date getDate() {
@@ -283,29 +265,10 @@ public class PurchaseOrder implements Serializable {
         this.invoices = invoices;
     }
 
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof PurchaseOrder)) {
-            return false;
-        }
-        PurchaseOrder other = (PurchaseOrder) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
 
     @Override
     public String toString() {
-        return "com.casa.erp.entities.PurchaseOrder[ id=" + id + " ]";
+        return "---- PurchaseOrder[ id=" + super.getId() + " ] ----";
     }
     
 }

@@ -2,14 +2,10 @@
 package com.casa.erp.entities;
 
 import com.casa.erp.validation.StrictlyPositiveNumber;
-import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
@@ -41,13 +37,11 @@ import javax.validation.constraints.Size;
     @NamedQuery(name = "PurchaseOrderLine.findBySubTotal", query = "SELECT p FROM PurchaseOrderLine p WHERE p.subTotal = :subTotal"),
     @NamedQuery(name = "PurchaseOrderLine.findByActive", query = "SELECT p FROM PurchaseOrderLine p WHERE p.active = :active"),
      @NamedQuery(name = "PurchaseOrderLine.findByUom", query = "SELECT p FROM PurchaseOrderLine p WHERE p.uom = :uom")})
-public class PurchaseOrderLine implements Serializable{
+
+public class PurchaseOrderLine extends BaseEntity{
+    
     private static final long serialVersionUID = 1L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Basic(optional = false)
-    @Column(name = "id")
-    private Integer id;
+    
     @Column(name = "date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date date;
@@ -97,25 +91,14 @@ public class PurchaseOrderLine implements Serializable{
     public PurchaseOrderLine() {
     }
 
-    public PurchaseOrderLine(Integer id) {
-        this.id = id;
-    }
 
-    public PurchaseOrderLine(Integer id, double price, Double quantity, double subTotal, Boolean active) {
-        this.id = id;
+    public PurchaseOrderLine(double price, Double quantity, double subTotal, Boolean active) {
         this.price = price;
         this.quantity = quantity;
         this.subTotal = subTotal;
         this.active = active;
     }
 
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
 
     public Date getDate() {
         return date;
@@ -229,29 +212,10 @@ public class PurchaseOrderLine implements Serializable{
         this.tax = tax;
     }
 
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : super.hashCode());
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof PurchaseOrderLine)) {
-            return false;
-        }
-        PurchaseOrderLine other = (PurchaseOrderLine) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
 
     @Override
     public String toString() {
-        return "com.casa.erp.entities.PurchaseOrderLine[ id=" + id + " ]";
+        return "--- PurchaseOrderLine[ id=" + super.getId() + " ] ---";
     }
     
 }

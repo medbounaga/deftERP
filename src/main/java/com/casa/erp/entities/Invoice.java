@@ -2,7 +2,6 @@
 package com.casa.erp.entities;
 
 import com.casa.erp.validation.InDateRange;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -10,9 +9,6 @@ import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
@@ -59,20 +55,17 @@ import javax.validation.constraints.Size;
     @NamedQuery(name = "Invoice.findBySupplierInvoiceNumber", query = "SELECT i FROM Invoice i WHERE i.supplierInvoiceNumber = :supplierInvoiceNumber"),
     @NamedQuery(name = "Invoice.findByActive", query = "SELECT i FROM Invoice i WHERE i.active = :active"),
     @NamedQuery(name = "Invoice.findByName", query = "SELECT i FROM Invoice i WHERE i.name = :name")})
-public class Invoice implements Serializable {
+
+public class Invoice extends BaseEntity {
+    
     private static final long serialVersionUID = 1L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Basic(optional = false)
-    @Column(name = "id")
-    private Integer id;
+    
     @Basic(optional = false)
     @NotNull
     @Column(name = "date")
     @InDateRange
     @Temporal(TemporalType.TIMESTAMP)
     private Date date = new Date();
-    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
     @Column(name = "amount_untaxed")
     private Double amountUntaxed = 0d;
     @Column(name = "amount_total")
@@ -143,9 +136,6 @@ public class Invoice implements Serializable {
     public Invoice() {
     }
 
-    public Invoice(Integer id) {
-        this.id = id;
-    }
 
     public Invoice(Date date, String type, String origin, String state, Boolean active, Partner partner, SaleOrder saleOrder, Account account, Journal journal) {
         this.date = date;
@@ -172,15 +162,6 @@ public class Invoice implements Serializable {
         this.reference = reference;
     }
 
-    
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
 
     public Date getDate() {
         return date;
@@ -381,29 +362,10 @@ public class Invoice implements Serializable {
         this.invoicePayments = invoicePayments;
     }
 
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Invoice)) {
-            return false;
-        }
-        Invoice other = (Invoice) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
 
     @Override
     public String toString() {
-        return "com.casa.erp.entities.Invoice[ id=" + id + " ]";
+        return "--- Invoice[ id=" + super.getId() + " ] ---";
     }
     
 }

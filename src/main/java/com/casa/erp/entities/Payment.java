@@ -3,15 +3,11 @@ package com.casa.erp.entities;
 
 import com.casa.erp.validation.InDateRange;
 import com.casa.erp.validation.StrictlyPositiveNumber;
-import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
@@ -42,14 +38,11 @@ import javax.validation.constraints.Size;
     @NamedQuery(name = "Payment.findByDate", query = "SELECT p FROM Payment p WHERE p.date = :date"),
     @NamedQuery(name = "Payment.findByAmount", query = "SELECT p FROM Payment p WHERE p.amount = :amount"),
     @NamedQuery(name = "Payment.findByActive", query = "SELECT p FROM Payment p WHERE p.active = :active")})
-public class Payment implements Serializable {
+
+public class Payment extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Basic(optional = false)
-    @Column(name = "id")
-    private Integer id;
+    
     @Column(name = "date")
     @Basic(optional = false)
     @NotNull
@@ -137,14 +130,6 @@ public class Payment implements Serializable {
         this.reference = reference;
         this.overpayment = overpayment;
         this.partnerType = partnerType;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public Date getDate() {
@@ -261,28 +246,8 @@ public class Payment implements Serializable {
 
 
     @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Payment)) {
-            return false;
-        }
-        Payment other = (Payment) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
     public String toString() {
-        return "com.casa.erp.entities.Payment[ id=" + id + " ]";
+        return "--- Payment[ id=" + super.getId() + " ] ---";
     }
 
 }

@@ -2,7 +2,6 @@
 package com.casa.erp.entities;
 
 import com.casa.erp.validation.InDateRange;
-import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.Basic;
@@ -10,9 +9,6 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
@@ -48,14 +44,12 @@ import javax.validation.constraints.Size;
     @NamedQuery(name = "DeliveryOrder.findByOrigin", query = "SELECT d FROM DeliveryOrder d WHERE d.origin = :origin"),
     @NamedQuery(name = "DeliveryOrder.findByName", query = "SELECT d FROM DeliveryOrder d WHERE d.name = :name"),
     @NamedQuery(name = "DeliveryOrder.findByActive", query = "SELECT d FROM DeliveryOrder d WHERE d.active = :active")})
-public class DeliveryOrder implements Serializable {
+
+public class DeliveryOrder extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Basic(optional = false)
-    @Column(name = "id")
-    private Integer id;
+
+    
     @Basic(optional = false)
     @NotNull
     @Column(name = "date")
@@ -107,10 +101,6 @@ public class DeliveryOrder implements Serializable {
     public DeliveryOrder() {
     }
 
-    public DeliveryOrder(Integer id) {
-        this.id = id;
-    }
-
     public DeliveryOrder(Date date, String origin, String state, String type, Boolean active, String deliveryMethod, DeliveryOrder backOrder,Partner partner, SaleOrder saleOrder) {
 
         this.date = date;
@@ -137,14 +127,6 @@ public class DeliveryOrder implements Serializable {
         this.deliveryMethod = deliveryMethod;
         this.backOrder = backOrder;
 
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public Date getDate() {
@@ -251,29 +233,11 @@ public class DeliveryOrder implements Serializable {
         this.children = children;
     }
 
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
 
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof DeliveryOrder)) {
-            return false;
-        }
-        DeliveryOrder other = (DeliveryOrder) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
 
     @Override
     public String toString() {
-        return "com.casa.erp.entities.DeliveryOrder[ id=" + id + " ]";
+        return "--- DeliveryOrder[ id=" + super.getId() + " ] ---";
     }
 
 }

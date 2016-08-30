@@ -1,7 +1,6 @@
 
 package com.casa.erp.entities;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Date;
@@ -9,9 +8,6 @@ import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
@@ -42,13 +38,11 @@ import javax.validation.constraints.Size;
     @NamedQuery(name = "JournalEntry.findByRef", query = "SELECT j FROM JournalEntry j WHERE j.ref = :ref"),
     @NamedQuery(name = "JournalEntry.findByDate", query = "SELECT j FROM JournalEntry j WHERE j.date = :date"),
     @NamedQuery(name = "JournalEntry.findByActive", query = "SELECT j FROM JournalEntry j WHERE j.active = :active")})
-public class JournalEntry implements Serializable {
+
+public class JournalEntry extends BaseEntity {
+    
     private static final long serialVersionUID = 1L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Basic(optional = false)
-    @Column(name = "id")
-    private Integer id;
+    
     @Size(max = 64, message = "{LongString}")
     @Column(name = "name")
     private String name;
@@ -112,15 +106,6 @@ public class JournalEntry implements Serializable {
         this.amount = amount;
     }
 
-   
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
 
     public String getName() {
         return name;
@@ -222,28 +207,8 @@ public class JournalEntry implements Serializable {
     }
 
     @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof JournalEntry)) {
-            return false;
-        }
-        JournalEntry other = (JournalEntry) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
     public String toString() {
-        return "com.casa.erp.entities.JournalEntry[ id=" + id + " ]";
+        return "--- JournalEntry[ id=" + super.getId() + " ] ---";
     }
     
 }
