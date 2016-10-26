@@ -46,7 +46,8 @@
                 <div class="searchLoader" style="padding-right: 5px;">
                     <p:graphicImage  name="/img/search-loader.gif" style="margin-top: 3px; vertical-align: middle;"/>
                 </div>              
-                <h:inputText value="#{vendorController.searchKey}" id="gridFilter" style="display: inline-block; margin-right: 10px;" class="search" pass:placeholder="#{messages.Search}">
+                <h:inputText value="#{vendorController.searchKey}" id="gridFilter"
+                             style="display: inline-block; margin-right: 10px;" onkeypress="if (event.keyCode == 13) {return false}" class="search" pass:placeholder="#{messages.Search}">
                     <p:ajax  global="false" delay="500"  event="keyup" listener="#{vendorController.searchByName}" process="@this" update=":PartnerForm:gridView" onstart="showSearchLoader();" oncomplete="updateGrid(); hideSearchLoader();"/>
                 </h:inputText>
             </div>           

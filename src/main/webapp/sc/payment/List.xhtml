@@ -55,7 +55,8 @@
                     <div class="searchLoader">
                         <p:graphicImage  name="/img/search-loader.gif"/>
                     </div>
-                    <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('customerPaymentTable').filter()" class="search" placeholder="#{messages.Search}"/>               
+                    <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('customerPaymentTable').filter()"
+                           onkeypress="if (event.keyCode == 13) {return false}" class="search" placeholder="#{messages.Search}"/>
                 </p:outputPanel>
             </f:facet>
             <p:ajax event="page" oncomplete="updateTableTotals();"/>
