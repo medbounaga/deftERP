@@ -1,4 +1,4 @@
-# CasaERP - Java EE 7
+# deftERP - Java EE 7
 
 * *Author* : Mohammed Bounaga
 * *Technologies* : Java EE 7 (JSF 2.2, JPA 2.1,EJB Lite 3.2, CDI 1.1, Bean Validation 1.1), PrimeFaces 5.x, OmniFaces 2.x, Bootstrap 3.x, FontAwesome 4.x, JQuery 2.x , Morris Charts 0.5.x, JasperReports 6.x
@@ -37,15 +37,6 @@ Dashboard, configuration, accounting module, user interface improvements, genera
 v1.0
 
 Sales, Purchases,  Inventory modules
-
-
-## Developers who contributed to this work
-
-Currently none
-
-*contributions are welcome!* 
-
-*If you have any improvement suggestions or bug fix, just fork to your GitHub and issue pull requests*
 
 
 ## Test this application on OpenShift 
