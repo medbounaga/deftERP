@@ -2,42 +2,23 @@ package com.casa.erp.beans;
 
 import com.casa.erp.beans.util.JsfUtil;
 import com.casa.erp.beans.util.Status;
-import com.casa.erp.entities.Account;
-import com.casa.erp.entities.InvoiceLine;
-import com.casa.erp.entities.Invoice;
-import com.casa.erp.entities.InvoicePayment;
-import com.casa.erp.entities.InvoiceTax;
-import com.casa.erp.entities.JournalEntry;
-import com.casa.erp.entities.JournalItem;
-import com.casa.erp.entities.Partner;
-import com.casa.erp.entities.Payment;
-import com.casa.erp.entities.Product;
-import com.casa.erp.entities.PurchaseOrder;
-import com.casa.erp.entities.PurchaseOrderLine;
 import com.casa.erp.dao.InvoiceFacade;
+import com.casa.erp.entities.*;
+import net.sf.jasperreports.engine.*;
+import org.apache.commons.lang.SerializationUtils;
+import org.primefaces.context.RequestContext;
+
+import javax.faces.context.FacesContext;
+import javax.faces.event.ActionEvent;
+import javax.faces.view.ViewScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.ResourceBundle;
-import javax.faces.context.FacesContext;
-import javax.faces.event.ActionEvent;
-import javax.inject.Named;
-import javax.faces.view.ViewScoped;
-import javax.inject.Inject;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-import net.sf.jasperreports.engine.JREmptyDataSource;
-import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JasperExportManager;
-import net.sf.jasperreports.engine.JasperFillManager;
-import net.sf.jasperreports.engine.JasperPrint;
-import org.apache.commons.lang.SerializationUtils;
-import org.primefaces.context.RequestContext;
+import java.util.*;
 
 @Named(value = "supInvoiceController")
 @ViewScoped
@@ -458,7 +439,7 @@ public class SupInvoiceController implements Serializable {
             }
 
             if (purchaseOrderInvoiced == true) {
-                for (Invoice invoice : invoice.getPurchaseOrder().getInvoices()) {
+                for (Invoice invoice : this.invoice.getPurchaseOrder().getInvoices()) {
                     if (!invoice.getState().equals("Paid")) {
                         billsPaid = false;
                     }
