@@ -2,16 +2,12 @@
 package com.casa.erp.entities;
 
 import com.casa.erp.validation.InDateRange;
-import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
@@ -54,13 +50,11 @@ import javax.validation.constraints.Size;
     @NamedQuery(name = "Partner.findByPurchaseDeals", query = "SELECT p FROM Partner p WHERE p.purchaseDeals = :purchaseDeals"),
     @NamedQuery(name = "Partner.findBySaleDeals", query = "SELECT p FROM Partner p WHERE p.saleDeals = :saleDeals"),
     @NamedQuery(name = "Partner.findByActive", query = "SELECT p FROM Partner p WHERE p.active = :active")})
-public class Partner implements Serializable {
+
+public class Partner extends BaseEntity {
+    
     private static final long serialVersionUID = 1L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Basic(optional = false)
-    @Column(name = "id")
-    private Integer id;
+    
     @Column(name = "name" , nullable = false)
     @NotNull
     @Size(min = 1, max = 128, message = "{LongString}")
@@ -93,15 +87,12 @@ public class Partner implements Serializable {
     @InDateRange
     @Temporal(TemporalType.TIMESTAMP)
     private Date createDate;
-    // @Pattern(regexp="^\\(?(\\d{3})\\)?[- ]?(\\d{3})[- ]?(\\d{4})$", message="Invalid phone/fax format, should be as xxx-xxx-xxxx")//if the field contains phone or fax number consider using this annotation to enforce field validation
     @Size(max = 64, message = "{LongString}")
     @Column(name = "fax")
     private String fax;
-    // @Pattern(regexp="^\\(?(\\d{3})\\)?[- ]?(\\d{3})[- ]?(\\d{4})$", message="Invalid phone/fax format, should be as xxx-xxx-xxxx")//if the field contains phone or fax number consider using this annotation to enforce field validation
-    @Size(max = 64, message = "{LongString}")
+     @Size(max = 64, message = "{LongString}")
     @Column(name = "phone")
     private String phone;
-    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
     @NotNull
     @Column(name = "credit")
     private Double credit;
@@ -148,28 +139,15 @@ public class Partner implements Serializable {
     private List<Payment> payments;
     @OneToMany(mappedBy = "partner")
     private List<Invoice> invoices;
+   
     
-    
-
     public Partner() {
     }
 
-    public Partner(Integer id) {
-        this.id = id;
-    }
 
-    public Partner(Integer id, String name, Boolean active) {
-        this.id = id;
+    public Partner(String name, Boolean active) {
         this.name = name;
         this.active = active;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public String getName() {
@@ -426,29 +404,10 @@ public class Partner implements Serializable {
         this.invoices = invoices;
     }
 
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Partner)) {
-            return false;
-        }
-        Partner other = (Partner) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
 
     @Override
     public String toString() {
-        return "com.casa.erp.entities.Partner[ id=" + id + " ]";
+        return "--- Partner[ id=" + super.getId() + " ] ---";
     }
     
 }

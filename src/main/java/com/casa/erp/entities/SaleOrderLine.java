@@ -3,14 +3,10 @@ package com.casa.erp.entities;
 
 
 import com.casa.erp.validation.StrictlyPositiveNumber;
-import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
@@ -46,13 +42,11 @@ import javax.validation.constraints.Size;
     @NamedQuery(name = "SaleOrderLine.findByName", query = "SELECT s FROM SaleOrderLine s WHERE s.name = :name"),
     @NamedQuery(name = "SaleOrderLine.findByActive", query = "SELECT s FROM SaleOrderLine s WHERE s.active = :active"),
     @NamedQuery(name = "SaleOrderLine.findByUom", query = "SELECT s FROM SaleOrderLine s WHERE s.uom = :uom")})
-public class SaleOrderLine implements Serializable {
+
+public class SaleOrderLine extends BaseEntity {
+    
     private static final long serialVersionUID = 1L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Basic(optional = false)
-    @Column(name = "id")
-    private Integer id;
+   
     @Column(name = "date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date date;
@@ -106,24 +100,12 @@ public class SaleOrderLine implements Serializable {
     public SaleOrderLine() {
     }
 
-    public SaleOrderLine(Integer id) {
-        this.id = id;
-    }
 
-    public SaleOrderLine(Integer id, Double quantity, double price, double subTotal, Boolean active) {
-        this.id = id;
+    public SaleOrderLine(Double quantity, double price, double subTotal, Boolean active) {
         this.quantity = quantity;
         this.price = price;
         this.subTotal = subTotal;
         this.active = active;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public Date getDate() {
@@ -238,29 +220,10 @@ public class SaleOrderLine implements Serializable {
         this.uom = uom;
     }
 
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof SaleOrderLine)) {
-            return false;
-        }
-        SaleOrderLine other = (SaleOrderLine) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
 
     @Override
     public String toString() {
-        return "com.casa.erp.entities.SaleOrderLine[ id=" + id + " ]";
+        return "--- SaleOrderLine[ id=" + super.getId() + " ] ---";
     }
     
 }

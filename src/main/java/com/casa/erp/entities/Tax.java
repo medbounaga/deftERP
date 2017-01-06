@@ -2,14 +2,10 @@
 package com.casa.erp.entities;
 
 import com.casa.erp.validation.StrictlyPositiveNumber;
-import java.io.Serializable;
 import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
@@ -34,13 +30,11 @@ import javax.validation.constraints.Size;
     @NamedQuery(name = "Tax.findByName", query = "SELECT t FROM Tax t WHERE t.name = :name"),
     @NamedQuery(name = "Tax.findByAmount", query = "SELECT t FROM Tax t WHERE t.amount = :amount"),
     @NamedQuery(name = "Tax.findByActive", query = "SELECT t FROM Tax t WHERE t.active = :active")})
-public class Tax implements Serializable {
+
+public class Tax extends BaseEntity {
+    
     private static final long serialVersionUID = 1L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Basic(optional = false)
-    @Column(name = "id")
-    private Integer id;
+
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 64, message = "{LongString}")
@@ -80,24 +74,11 @@ public class Tax implements Serializable {
     public Tax() {
     }
 
-    public Tax(Integer id) {
-        this.id = id;
-    }
-
-    public Tax(Integer id, String name, double amount, String typeTaxUse, Boolean active) {
-        this.id = id;
+    public Tax(String name, double amount, String typeTaxUse, Boolean active) {
         this.name = name;
         this.amount = amount;
         this.typeTaxUse = typeTaxUse;
         this.active = active;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public String getName() {
@@ -179,31 +160,11 @@ public class Tax implements Serializable {
     public void setJournalItems(List<JournalItem> journalItems) {
         this.journalItems = journalItems;
     }
-    
-
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Tax)) {
-            return false;
-        }
-        Tax other = (Tax) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
+   
 
     @Override
     public String toString() {
-        return "com.casa.erp.entities.Tax[ id=" + id + " ]";
+        return "--- Tax[ id=" + super.getId() + " ] ---";
     }
     
 }

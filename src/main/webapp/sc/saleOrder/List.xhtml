@@ -17,7 +17,7 @@
                     <f:param name="id" value="#{saleOrderController.partnerId}"/>
                 </p:link>
                 <span> / </span> 
-                <h:outputText value="#{messages.SalesOrders}"/> 
+                <h:outputText value="#{messages.SalesOrders}"/>
             </div>
         </div>        
         <div class="col-md-1 form-pagination" style="display: inline-table;" >
@@ -36,7 +36,7 @@
                      class="fit-content-table"
                      binding="#{saleOrders}"
                      value="#{saleOrderController.saleOrders}"
-                     filteredValue="#{saleOrderController.filteredSaleOrders}" 
+                     filteredValue="#{saleOrderController.filteredSaleOrders}"
                      var="item"
                      selection="#{saleOrderController.saleOrder}"
                      rowKey="#{item.id}"
@@ -54,7 +54,8 @@
                     <div class="searchLoader">
                         <p:graphicImage  name="/img/search-loader.gif"/>
                     </div>
-                    <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('saleOrders').filter()" class="search" placeholder="#{messages.Search}"/>               
+                    <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('saleOrders').filter()" class="search"
+                           onkeypress="if (event.keyCode == 13) {return false}" placeholder="#{messages.Search}"/>
                 </p:outputPanel>
             </f:facet>
             

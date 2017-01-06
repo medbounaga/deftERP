@@ -2,14 +2,10 @@
 package com.casa.erp.entities;
 
 import com.casa.erp.validation.StrictlyPositiveNumber;
-import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
@@ -45,13 +41,10 @@ import javax.validation.constraints.Size;
     @NamedQuery(name = "InvoiceLine.findByActive", query = "SELECT i FROM InvoiceLine i WHERE i.active = :active"),
     @NamedQuery(name = "InvoiceLine.findByUom", query = "SELECT i FROM InvoiceLine i WHERE i.uom = :uom")
 })
-public class InvoiceLine implements Serializable {
+public class InvoiceLine extends BaseEntity {
+    
     private static final long serialVersionUID = 1L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Basic(optional = false)
-    @Column(name = "id")
-    private Integer id;
+    
     @Column(name = "date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date date;
@@ -107,9 +100,6 @@ public class InvoiceLine implements Serializable {
     public InvoiceLine() {
     }
 
-    public InvoiceLine(Integer id) {
-        this.id = id;
-    }
 
     public InvoiceLine(Date date, String uom, double price, double priceSubtotal, Double discount, Double quantity, Boolean active, Invoice invoice, Partner partner, Product product, Tax tax, Account account) {
         this.date = date;
@@ -124,16 +114,6 @@ public class InvoiceLine implements Serializable {
         this.product = product;
         this.tax = tax;
         this.account = account;
-    }
-
-    
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public Date getDate() {
@@ -256,29 +236,10 @@ public class InvoiceLine implements Serializable {
         this.taxName = taxName;
     }
 
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof InvoiceLine)) {
-            return false;
-        }
-        InvoiceLine other = (InvoiceLine) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
 
     @Override
     public String toString() {
-        return "com.casa.erp.entities.InvoiceLine[ id=" + id + " ]";
+        return "--- InvoiceLine[ id=" + super.getId() + " ] ---";
     }
     
 }

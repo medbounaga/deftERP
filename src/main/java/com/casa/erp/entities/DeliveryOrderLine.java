@@ -2,14 +2,10 @@
 package com.casa.erp.entities;
 
 import com.casa.erp.validation.StrictlyPositiveNumber;
-import java.io.Serializable;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
@@ -35,13 +31,11 @@ import javax.validation.constraints.Size;
     @NamedQuery(name = "DeliveryOrderLine.findByQuantity", query = "SELECT d FROM DeliveryOrderLine d WHERE d.quantity = :quantity"),
     @NamedQuery(name = "DeliveryOrderLine.findByActive", query = "SELECT d FROM DeliveryOrderLine d WHERE d.active = :active"),
     @NamedQuery(name = "DeliveryOrderLine.findByUom", query = "SELECT d FROM DeliveryOrderLine d WHERE d.uom = :uom")})
-public class DeliveryOrderLine implements Serializable {
+
+public class DeliveryOrderLine extends BaseEntity{
+    
     private static final long serialVersionUID = 1L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Basic(optional = false)
-    @Column(name = "id")
-    private Integer id;
+    
     @Basic(optional = false)
     @NotNull
     @Column(name = "price")
@@ -81,14 +75,9 @@ public class DeliveryOrderLine implements Serializable {
     @JoinColumn(name = "product_id", referencedColumnName = "id")
     @ManyToOne(optional = false,  fetch = FetchType.EAGER )
     private Product product;
-    
-    
+        
     
     public DeliveryOrderLine() {
-    }
-
-    public DeliveryOrderLine(Integer id) {
-        this.id = id;
     }
 
     public DeliveryOrderLine(Product product, Double quantity, Double reserved, String uom, String state, String type, Boolean active, Partner partner, double price, DeliveryOrder deliveryOrder) {
@@ -104,13 +93,6 @@ public class DeliveryOrderLine implements Serializable {
         this.reserved = reserved;
     }
 
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
 
     public double getPrice() {
         return price;
@@ -202,28 +184,8 @@ public class DeliveryOrderLine implements Serializable {
     
 
     @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof DeliveryOrderLine)) {
-            return false;
-        }
-        DeliveryOrderLine other = (DeliveryOrderLine) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
     public String toString() {
-        return "com.casa.erp.entities.DeliveryOrderLine[ id=" + id + " ]";
+        return "--- DeliveryOrderLine[ id=" + super.getId() + " ] ---";
     }
     
 }

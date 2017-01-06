@@ -1,14 +1,10 @@
 
 package com.casa.erp.entities;
 
-import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
@@ -36,17 +32,14 @@ import javax.validation.constraints.Size;
     @NamedQuery(name = "InvoiceTax.findByName", query = "SELECT i FROM InvoiceTax i WHERE i.name = :name"),
     @NamedQuery(name = "InvoiceTax.findByBaseAmount", query = "SELECT i FROM InvoiceTax i WHERE i.baseAmount = :baseAmount"),
     @NamedQuery(name = "InvoiceTax.findByActive", query = "SELECT i FROM InvoiceTax i WHERE i.active = :active")})
-public class InvoiceTax implements Serializable {
+
+public class InvoiceTax extends BaseEntity {
+    
     private static final long serialVersionUID = 1L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Basic(optional = false)
-    @Column(name = "id")
-    private Integer id;
+
     @Column(name = "date")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date date;
-    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
+    private Date date;   
     @Column(name = "tax_amount")
     private Double taxAmount;
     @Size(max = 64, message = "{LongString}")
@@ -79,16 +72,6 @@ public class InvoiceTax implements Serializable {
         this.account = account;
         this.invoice = invoice;
         this.tax = tax;
-    }
-
-   
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public Date getDate() {
@@ -155,29 +138,10 @@ public class InvoiceTax implements Serializable {
         this.tax = tax;
     }
 
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof InvoiceTax)) {
-            return false;
-        }
-        InvoiceTax other = (InvoiceTax) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
-
+    
     @Override
     public String toString() {
-        return "com.casa.erp.entities.InvoiceTax[ id=" + id + " ]";
+        return "--- InvoiceTax[ id=" + super.getId() + " ] ---";
     }
     
 }

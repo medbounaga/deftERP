@@ -1,13 +1,9 @@
 
 package com.casa.erp.entities;
 
-import java.io.Serializable;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -30,13 +26,11 @@ import javax.validation.constraints.NotNull;
     @NamedQuery(name = "Inventory.findByMaxQty", query = "SELECT i FROM Inventory i WHERE i.maxQty = :maxQty"),
     @NamedQuery(name = "Inventory.findByMinQty", query = "SELECT i FROM Inventory i WHERE i.minQty = :minQty"),
     @NamedQuery(name = "Inventory.findByActive", query = "SELECT i FROM Inventory i WHERE i.active = :active")})
-public class Inventory implements Serializable {
+
+public class Inventory extends BaseEntity{
+    
     private static final long serialVersionUID = 1L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Basic(optional = false)
-    @Column(name = "id")
-    private Integer id;
+    
     @Column(name = "max_qty")
     private Double maxQty;
     @Column(name = "min_qty")
@@ -69,23 +63,11 @@ public class Inventory implements Serializable {
     public Inventory() {
     }
 
-    public Inventory(Integer id) {
-        this.id = id;
-    }
-
-    public Inventory(Integer id, Double quantityOnHand, Boolean active) {
-        this.id = id;
+    public Inventory(Double quantityOnHand, Boolean active) {
         this.quantityOnHand = quantityOnHand;
         this.active = active;
     }
 
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
 
     public Double getMaxQty() {
         return maxQty;
@@ -164,28 +146,8 @@ public class Inventory implements Serializable {
     }
 
     @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Inventory)) {
-            return false;
-        }
-        Inventory other = (Inventory) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
     public String toString() {
-        return "com.casa.erp.entities.Inventory[ id=" + id + " ]";
+        return "--- Inventory[ id=" + super.getId() + " ] ---";
     }
     
 }

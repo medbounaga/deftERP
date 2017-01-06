@@ -3,16 +3,12 @@ package com.casa.erp.entities;
 
 
 import com.casa.erp.validation.InDateRange;
-import java.io.Serializable;
 import java.util.List;
 import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
@@ -51,14 +47,9 @@ import javax.validation.constraints.Size;
     @NamedQuery(name = "SaleOrder.findByDiscount", query = "SELECT s FROM SaleOrder s WHERE s.discount = :discount"),
     @NamedQuery(name = "SaleOrder.findByActive", query = "SELECT s FROM SaleOrder s WHERE s.active = :active"),
     @NamedQuery(name = "SaleOrder.findByName", query = "SELECT s FROM SaleOrder s WHERE s.name = :name")})
-public class SaleOrder implements Serializable {
 
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Basic(optional = false)
-    @Column(name = "id")
-    private Integer id;
+public class SaleOrder extends BaseEntity {
+
     @Basic(optional = false)
     @NotNull
     @Column(name = "date")
@@ -108,25 +99,13 @@ public class SaleOrder implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "saleOrder", orphanRemoval=true)
     private List<SaleOrderLine> saleOrderLines;
 
-public SaleOrder() {
+    public SaleOrder() {
     }
 
-    public SaleOrder(Integer id) {
-        this.id = id;
-    }
 
-    public SaleOrder(Integer id, Date date, Boolean active) {
-        this.id = id;
+    public SaleOrder(Date date, Boolean active) {
         this.date = date;
         this.active = active;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public Date getDate() {
@@ -276,29 +255,10 @@ public SaleOrder() {
         this.invoices = invoices;
     }
 
-    @Override
-        public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
-        public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof SaleOrder)) {
-            return false;
-        }
-        SaleOrder other = (SaleOrder) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
 
     @Override
         public String toString() {
-        return "com.casa.erp.entities.SaleOrder[ id=" + id + " ]";
+        return "--- SaleOrder[ id=" + super.getId() + " ] ---";
     }
     
 }
