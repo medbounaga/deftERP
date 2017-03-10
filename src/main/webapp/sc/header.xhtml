@@ -43,6 +43,13 @@
             <li> <p:link value="#{messages.ProductUomCategories}" outcome="/sc/productUomCtg/index" /></li>
 
         </ul>
+
+        <ul id="languages-dropdown" class="dropdown-content">
+            <li> <p:commandLink value="English" action="#{localeController.changeLanguage('en')}" /></li>
+            <li> <p:commandLink value="Italian" action="#{localeController.changeLanguage('it')}" /></li>
+            <li> <p:commandLink value="Spanish" action="#{localeController.changeLanguage('es')}" /></li>
+        </ul>
+
         <ul id="user-info-dropdown" class="dropdown-content">
             <li><a jsf:action="#{userSessionController.doLogout}"><i class="fa fa-key"></i>Log Out</a></li>                             
         </ul>
@@ -77,6 +84,7 @@
                                 <li><a class="dropdown-button" href="#!" beloworigin="true" constrainwidth="false" data-activates="purchases-dropdown"><span class="dropdown-title">#{messages.Purchases}</span><i class="fa fa-caret-down" aria-hidden="true"/></a></li>
                                 <li><a class="dropdown-button" href="#!" beloworigin="true" constrainwidth="false" data-activates="inventory-dropdown"><span class="dropdown-title">#{messages.Inventory}</span><i class="fa fa-caret-down" aria-hidden="true"/></a></li>
                                 <li><a class="dropdown-button" href="#!" beloworigin="true" constrainwidth="false" data-activates="accounting-dropdown"><span class="dropdown-title">#{messages.Accounting}</span><i class="fa fa-caret-down" aria-hidden="true"/></a></li>
+                                <li><a class="dropdown-button" href="#!" beloworigin="true" constrainwidth="false" data-activates="languages-dropdown"><span class="dropdown-title">#{messages.Language}</span><i class="fa fa-caret-down" aria-hiuages-dropdowndden="true"/></a></li>
                                 <li>
                                     <a class="dropdown-button" href="#!" beloworigin="true" constrainwidth="false" data-activates="config-dropdown">
                                         <span class="dropdown-title">#{messages.Configuration}</span>
@@ -89,7 +97,7 @@
                                 <li><a class="dropdown-button" href="#!" beloworigin="true" constrainwidth="false" data-activates="user-info-dropdown">
                                         <p:graphicImage style="width:30px;height:30px; border-radius: 50%;" rendered="#{userSessionController.user.image == null}"  value="#" name="img/me.jpg" alt="icon" />
                                         <o:graphicImage style="width:30px;height:30px; border-radius: 50%;" rendered="#{userSessionController.user.image != null}"  value="#{userSessionController.user.image}" dataURI="true" alt="icon" />
-                                        <span class="username dropdown-title">Mohammed Bounaga #{userSessionController.user.name}</span>
+                                        <span class="username dropdown-title">#{userSessionController.user.name}</span>
                                         <i class="fa fa-caret-down" aria-hidden="true"/>
                                     </a>
                                 </li>
