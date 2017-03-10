@@ -7174,10 +7174,8 @@ td.top-num{
     color:#DEDEDE;
 }
 
-#DashboardForm .panel{   
-    margin: 0px;
-    margin-bottom: 24px;
-    height: auto;
+.panel.dashboard-widget{   
+   margin-bottom: 20px !important;   
 }
 
 #DashboardForm table{   
