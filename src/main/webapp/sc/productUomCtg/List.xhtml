@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
                 xmlns:h="http://java.sun.com/jsf/html"
@@ -8,25 +6,15 @@
                 xmlns:p="http://primefaces.org/ui">
 
 
+    <div class="row">
+        <div class="col-md-12 card z-depth-1 tool-bar">          
+            <div class="form-nav">
+                <span class="form-nav-item"> #{messages.ProductUomCategories}</span>  
+            </div>
+        </div>
+    </div>
 
-    <p:growl id="msgs" widgetVar="growl" />
-    <div class="row form-header-1">
-        <div class="col-md-10point5" >
-            <h:outputText value="#{messages.ProductUomCategories}"/>
-        </div>
-        <div class="col-md-1point5 form-pagination" style="display: inline-table;" >
-            <ul class="pagination">
-                <li>
-                    <p:commandLink process="@this" actionListener="#{productUomCategoryController.showProductUomCategoryForm}" styleClass="fa fa-square-o" style="font-size: 17px !important;" update=":ProductUomCategoryForm:content"/>           
-                </li>
-                <li class="active-nav-button">
-                    <p:commandLink  styleClass="fa fa-bars" style="font-size: 17px !important;" update="@none"/>
-                </li>
-            </ul>
-        </div>
-    </div> 
     <div class="row"> 
-
         <p:dataTable id="productUomCategories"
                      binding="#{productUomCategories}"
                      value="#{productUomCategoryController.productUomCategories}"
@@ -42,40 +30,43 @@
                      paginator="true"
                      rows="#{messages.MaxRows}">
 
-            <f:facet name="header">
+
+            <f:facet name="header" class="card z-depth-1">
                 <p:outputPanel>
-                    <p:commandButton process="@this" class="btnn btnn-primary" value="#{messages.Create}" actionListener="#{productUomCategoryController.prepareCreateProductUomCategory}" update=":ProductUomCategoryForm:content" />           
+                    <p:commandButton process="@this" class="waves-effect waves-light btn btn-primary" value="#{messages.Create}" actionListener="#{productUomCategoryController.prepareCreateProductUomCategory}" update=":mainForm:itemForm, :mainForm:itemList" onstart="hideItemsList();" />           
+
                     <div class="searchLoader">
                         <p:graphicImage  name="/img/search-loader.gif"/>
                     </div>
-                    <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('productUomCategoriesTable').filter()"
-                           onkeypress="if (event.keyCode == 13) {return false}" class="search" placeholder="#{messages.Search}"/>
+                    <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('productUomCategoriesTable').filter()" class="search" placeholder="#{messages.Search}" 
+                           onkeypress="if (event.keyCode == 13) {
+                                       return false;
+                                   }"/>               
                 </p:outputPanel>
             </f:facet>
-            
+
             <p:ajax event="page" oncomplete="updateTableTotals();"/>
             <p:ajax event="sort" oncomplete="updateTableTotals();"/>
-            <p:ajax event="filter" global="false" onstart="showSearchLoader();" oncomplete="updateTableTotals(); hideSearchLoader();"/>
-            <p:ajax event="rowSelect" listener="#{productUomCategoryController.prepareView}" update=":ProductUomCategoryForm:content"/>
-            <p:ajax event="rowUnselect"/>
+            <p:ajax event="filter" global="false" onstart="showSearchLoader();" oncomplete="updateTableTotals(); hideSearchLoader();"/>           
+            <p:ajax event="rowSelect" listener="#{productUomCategoryController.prepareViewUomCategory}" update=":mainForm:itemForm, :mainForm:itemList" onstart="hideItemsList();" oncomplete="PF('productUomCategoriesTable').clearFilters();"/>
 
             <p:column style="width:30px;">
                 <f:facet name="header">
                     <h:outputText value=""/>
                 </f:facet>
                 <h:outputText value=""/>
-            </p:column>           
-            
+            </p:column>
+
             <p:column sortBy="#{item.name}" filterBy="#{item.name}">
                 <f:facet name="header">
                     <h:outputText value="#{messages.Name}"/>
                 </f:facet>
                 <h:outputText value="#{item.name}"/>
             </p:column>
-
-        </p:dataTable>
+        </p:dataTable>     
     </div>  
     <script>
+
         var tableId = '#{productUomCategories.clientId}';
         addEmptyRows(tableId);
         hidePaginator(tableId);
@@ -84,6 +75,6 @@
             addEmptyRows(tableId);
             hidePaginator(tableId);
         }
-        setListURL();
+
     </script>
 </ui:composition>

@@ -1,0 +1,362 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough"
+                xmlns:o="http://omnifaces.org/ui">
+
+    <p:growl id="msgs" widgetVar="growl"/>
+    <h:selectBooleanCheckbox  id="imageModified" value="#{customerController.imageModified}" style="display: none;" />
+    <div class="row form-header-1">
+        <div class="col-md-12" >
+            <p:commandLink styleClass="form-nav"  process="@this" actionListener="#{customerController.showCustomers}" update=":PartnerForm:content">
+                <span jsf:rendered="#{customerController.partnerType == 'Vendor'}">#{messages.Vendors}</span> 
+                <span jsf:rendered="#{customerController.partnerType == 'Customer'}">#{messages.Customers}</span> 
+                <span jsf:rendered="#{customerController.partnerType == 'Partner'}">#{messages.Partners}</span> 
+            </p:commandLink>
+            <span> / </span>
+            <span>#{customerController.partner.name}</span>
+            <span> / </span>
+            <span>#{messages.Edit}</span>
+        </div>
+    </div> 
+    <div class="row form-header-2">
+        <div class="col-md-12">
+            <h:commandButton id="saveBtn" action="#{customerController.editCustomer(customerController.partner.id)}"  value="#{messages.Save}" styleClass="btnn btnn-primary jsf-btn">
+                <f:ajax execute="@form"  render=":PartnerForm:content"/> 
+            </h:commandButton>
+            <p:commandButton  process="@this" styleClass="btnn btnn-default" value="#{messages.Discard}" actionListener="#{customerController.cancelCustomerEdit(customerController.partner.id)}" update=":PartnerForm:content"/>
+        </div>  
+    </div>
+    <div class="row form-body">    
+            <div class="row form-body-header">
+            <div class="oe_right oe_button_box col-md-12">
+                <button disabled="true" type="button" class="oe_stat_button btn btn-default oe_right vendorButton">
+                    <div class="stat_button_icon fa fa-shopping-cart fa-fw">
+                    </div>
+                    <div>
+                        <strong>
+                            <span class="oe_form_field oe_form_field_float oe_form_field_monetary">
+                                <span class="oe_form_char_content">#{customerController.countPurchaseOrders()}</span>
+                            </span>
+                        </strong>
+                        <br></br>
+                        #{messages.Purchases}
+                    </div>
+                </button>
+                 <button disabled="true" type="button" class="oe_stat_button btn btn-default oe_right customerButton">
+                    <div class="stat_button_icon fa fa-strikethrough fa-fw">
+                    </div>
+                    <div>
+                        <strong>
+                            <span class="oe_form_field oe_form_field_float oe_form_field_monetary">
+                                <span class="oe_form_char_content">#{customerController.countSaleOrders()}</span>
+                            </span>
+                        </strong>
+                        <br></br>
+                        #{messages.Sales}
+                    </div>
+                </button>
+                <button disabled="true" type="button" class="oe_stat_button btn btn-default oe_right vendorButton">
+                    <div class="stat_button_icon fa fa-pencil-square-o fa-fw">
+                    </div>
+                    <div>
+                        <strong>
+                            <span class="oe_form_field oe_form_field_float oe_form_field_monetary">
+                                <span class="oe_form_char_content">#{customerController.countSupplierInvoices()}</span>
+                            </span>
+                        </strong>
+                        <br></br>
+                        #{messages.VendorBills}
+                    </div>
+                </button>
+                <button disabled="true" type="button" class="oe_stat_button btn btn-default oe_right customerButton">
+                    <div class="stat_button_icon fa fa-pencil-square-o fa-fw">
+                    </div>
+                    <div>
+                        <strong>
+                            <span class="oe_form_field oe_form_field_float oe_form_field_monetary">
+                                <span class="oe_form_char_content">#{customerController.countCustomerInvoices()}</span>
+                            </span>
+                        </strong>
+                        <br></br>
+                        #{messages.CustomerInv}
+                    </div>
+                </button>
+                <button disabled="true" type="button" class="oe_stat_button btn btn-default oe_right vendorButton">
+                    <div class="stat_button_icon fa fa-money fa-fw">
+                    </div>
+                    <div>
+                        <strong>
+                            <span class="oe_form_field oe_form_field_float oe_form_field_monetary">
+                                <span class="oe_form_char_content">#{customerController.countSupplierPayments()}</span>
+                            </span>
+                        </strong>
+                        <br></br>
+                         #{messages.VendorPayments}
+                    </div>
+                </button>
+                <button disabled="true" type="button" class="oe_stat_button btn btn-default oe_right customerButton">
+                    <div class="stat_button_icon fa fa-money fa-fw">
+                    </div>
+                    <div>
+                        <strong>
+                            <span class="oe_form_field oe_form_field_float oe_form_field_monetary">
+                                <span class="oe_form_char_content">#{customerController.countCustomerPayments()}</span>
+                            </span>
+                        </strong>
+                        <br></br>
+                         #{messages.CustomerPay}
+                    </div>
+                </button>
+                <button disabled="true" type="button" class="oe_stat_button btn btn-default oe_right vendorButton">
+                    <div class="stat_button_icon fa fa-truck fa-fw">
+                    </div>
+                    <div>
+                        <strong>
+                            <span class="oe_form_field oe_form_field_float oe_form_field_monetary">
+                                <span class="oe_form_char_content">#{customerController.countInShipments()}</span>
+                            </span>
+                        </strong>
+                        <br></br>
+                         #{messages.InShipments}
+                    </div>
+                </button> 
+                <button disabled="true" type="button" class="oe_stat_button btn btn-default oe_right customerButton">
+                    <div class="stat_button_icon fa fa-truck fa-fw">
+                    </div>
+                    <div>
+                        <strong>
+                            <span class="oe_form_field oe_form_field_float oe_form_field_monetary">
+                                <span class="oe_form_char_content">#{customerController.countOutShipments()}</span>
+                            </span>
+                        </strong>
+                        <br></br>
+                         #{messages.OutShipments}
+                    </div>
+                </button>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 12px; padding-left: 20px; padding-bottom: 10px;">
+            <div class="col-md-1point5">
+                <p:graphicImage  value="#" name="#{customerController.getFormDefaultImage()}"  binding="#{altImage}" style="display: none;" />
+                <h:inputFile style="display:none;"   id="pictureUpload"  value="#{customerController.image}" binding="#{upload}" validator="#{customerController.validateImage}" />
+                <div class="form_image">
+                    <o:graphicImage rendered="#{customerController.partner.image != null}"  value="#{customerController.partner.image}" dataURI="true" />   
+                    <p:graphicImage rendered="#{customerController.partner.image == null}"  value="#" name="#{customerController.getFormDefaultImage()}"  />
+                    <div class="form_image_buttons" style="position: absolute; width: 100%;">
+                        <a class="fa fa-pencil form_image_edit" id="upload_link"/>
+                        <a class="fa fa-trash-o form_image_remove" id="remove_link"/> 
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5" style="margin-top: 55px;"> 
+                <p:inputText id="name" value="#{customerController.partner.name}" class="required form-name-input fullWidth" placeholder="#{messages.Name}" required="true" requiredMessage="#{messages.PartnerNameRequired}" maxlength="50"/>
+            </div> 
+        </div>
+        <div class="row" style="padding-left: 20px; margin-bottom:20px;">
+            <div class="col-md-2point5 form-label">
+                <p:outputLabel value="#{messages.Address}"/>
+            </div> 
+            <div class="col-md-4">
+                <p:inputText id="street" class="fullWidth" value="#{customerController.partner.street}" placeholder="#{messages.Street}"  maxlength="55"/>
+            </div>
+            <div class="col-md-2 form-label">
+                <p:outputLabel value="#{messages.Phone}"/>
+            </div>
+            <div class="col-md-3point5 ">
+                <p:inputText id="phone" class="fullWidth" value="#{customerController.partner.phone}"  maxlength="25"/>
+            </div>
+        </div>
+        <div class="row" style="padding-left: 20px; margin-bottom:20px;">
+            <div class="col-md-2point5 form-label">
+
+            </div> 
+            <div class="col-md-4">
+                <p:inputText id="city" class="fullWidth" value="#{customerController.partner.city}" placeholder="#{messages.City}"  maxlength="35"/>
+            </div>
+            <div class="col-md-2 form-label">
+                <p:outputLabel value="#{messages.Mobile}"/>
+            </div>
+            <div class="col-md-3point5 ">
+                <p:inputText id="mobile" class="fullWidth" value="#{customerController.partner.mobile}"  maxlength="25"/>
+            </div>
+        </div>
+        <div class="row" style="padding-left: 20px; margin-bottom:20px;">
+            <div class="col-md-2point5 form-label">
+
+            </div> 
+            <div class="col-md-4">
+                <p:selectOneMenu class="fullWidth" filter="true" value="#{customerController.partner.country}" >
+                    <f:selectItem  itemLabel="&#160;" />
+                    <f:selectItems value="#{customerController.countries.entrySet()}" 
+                                   var="entry" 
+                                   itemValue="#{entry.key}" 
+                                   itemLabel="#{entry.value}"/>
+                </p:selectOneMenu>
+            </div>
+            <div class="col-md-2 form-label">
+                <p:outputLabel value="#{messages.Fax}"/>
+            </div>
+            <div class="col-md-3point5 ">
+                <p:inputText id="fax" class="fullWidth" value="#{customerController.partner.fax}"  maxlength="25"/>
+            </div>
+        </div>
+        <div class="row" style="padding-left: 20px; margin-bottom:20px;">
+            <div class="col-md-2point5 form-label">
+                <p:outputLabel value="#{messages.Website}"/>
+            </div> 
+            <div class="col-md-4">
+                <p:inputText id="website" class="fullWidth" value="#{customerController.partner.website}" maxlength="50"/>
+            </div>
+            <div class="col-md-2 form-label">
+                <p:outputLabel value="#{messages.Email}"/>
+            </div>
+            <div class="col-md-3point5 ">
+                <p:inputText id="email" class="fullWidth" value="#{customerController.partner.email}" maxlength="35"/>
+            </div>
+        </div>
+        <div class="row"  style="padding-left: 15px;padding-right: 15px; margin-bottom:10px">
+            <div class="col-md-12" >
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="active"><a href="#form-tab-1" class="form-tab" role="tab" data-toggle="tab">#{messages.OtherInfo}</a></li>
+                    <li><a href="#form-tab-2" class="form-tab" role="tab" data-toggle="tab">#{messages.Accounting}</a></li>
+                </ul>
+                <div class="tab-content">
+
+                    <div class="tab-pane active" id="form-tab-1" style="padding: 20px;">
+                        <div class="row" style="padding-bottom: 15px; padding-left: 20px">
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.IsACustomer}"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <p:selectBooleanCheckbox widgetVar="isCustomer" id="isCustomer" value="#{customerController.partner.customer}" onchange="updateCustomerButtonsDisplay()" />
+                            </div>
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.Date}" for="Date"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <p:calendar id="Date" class="required"  pattern="MM-dd-yyyy" value="#{customerController.partner.createDate}" required="true" requiredMessage="#{messages.DateRequired}" converterMessage="#{messages.InvalidDate}" locale="#{messages.CalendarLanguage}"/>
+                            </div>
+                        </div>
+
+                        <div class="row" style="padding-bottom: 15px; padding-left: 20px">
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.IsAVendor}"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <p:selectBooleanCheckbox widgetVar="isSupplier" id="isSupplier" value="#{customerController.partner.supplier}"  onchange="updateSupplierButtonsDisplay()"/>
+                            </div>
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.Active}"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <p:selectBooleanCheckbox id="active" value="#{customerController.partner.active}" />
+                            </div>
+                        </div>                
+                    </div>
+
+                    <div class="tab-pane" id="form-tab-2" style="padding: 20px;">               
+
+                        <div class="row" style="padding-bottom: 15px; padding-left: 20px">
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.AccountReceivable}" for="accountReceivable"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                 <p:selectOneMenu id="accountReceivable" class="fullWidth required" value="#{customerController.partner.accountReceivable}" required="true" requiredMessage="#{messages.accountReceivableRequired}" converter="accountConverter" >   
+                                    <f:selectItem  itemLabel="&#160;" />
+                                    <f:selectItems value="#{accountController.receivableAccounts}"
+                                                   var="account"
+                                                   itemValue="#{account}"
+                                                   itemLabel="#{account.name.toString()}"/>
+                                </p:selectOneMenu>     
+                            </div>
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.AccountPayable}" for="accountPayable"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <p:selectOneMenu id="accountPayable" class="fullWidth required" value="#{customerController.partner.accountPayable}" required="true" requiredMessage="#{messages.accountPayableRequired}" converter="accountConverter" >   
+                                    <f:selectItem  itemLabel="&#160;" />
+                                    <f:selectItems value="#{accountController.payableAccounts}"
+                                                   var="account"
+                                                   itemValue="#{account}"
+                                                   itemLabel="#{account.name.toString()}"/>
+                                </p:selectOneMenu>
+                            </div>               
+                        </div>
+                        <div class="row" style="padding-bottom: 15px; padding-left: 20px">
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.Receivables}"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                #{messages.Currency}
+                                <h:outputText value="#{customerController.getTotalReceivales()}"/>
+                          
+                            </div>
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.Payables}"/>
+                            </div>
+                            <div class="col-md-3point5">   
+                                 #{messages.Currency}
+                                <h:outputText value="#{customerController.getTotalPayables()}" />
+                            </div>               
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> 
+    <script>
+        
+                
+        updateCustomerButtonsDisplay();
+        updateSupplierButtonsDisplay();
+        
+        $(function () {
+            $("#upload_link").on('click', function (e) {
+                e.preventDefault();
+                $("#PartnerForm\\:pictureUpload:hidden").trigger('click');
+            });
+        });
+
+        $(function () {
+            $("#remove_link").on('click', function (e) {
+                e.preventDefault();
+                var source = $("[id='#{altImage.clientId}']").attr('src');
+                $(".form_image img").attr('src', source);
+                $("[id='#{upload.clientId}']").val('');
+                $("#PartnerForm\\:imageModified").prop('checked', true);
+                       
+            });
+        });
+
+        $("[id='#{upload.clientId}']").change(
+                function ()
+                {
+                    readPicture(this, $(".form_image img"));
+                    $("#PartnerForm\\:imageModified").prop('checked', true);
+                }          
+        );
+
+        function readPicture(input, output) {
+            if (input.files)
+            {
+                if (input.files[0])
+                {
+                    var reader = new FileReader();
+                    reader.onload = function (e)
+                    {
+                        output.attr('src', e.target.result);
+                    };
+                    reader.readAsDataURL(input.files[0]);
+                }
+            }
+        }
+        
+        setActiveTab();
+
+    </script>
+
+</ui:composition>

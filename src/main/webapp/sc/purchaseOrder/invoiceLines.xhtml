@@ -77,7 +77,7 @@
             <div class="row dialog-footer">
                 <div class="col-md-12">
                     <p:commandButton  id="receiveViewInvoice" class="btnn btnn-primary"  value="#{messages.ReceiveAndViewBill}"  actionListener="#{purchaseOrderController.createInvoice(purchaseOrderController.purchaseOrder.id, true)}" disabled="#{empty purchaseOrderController.purchaseOrderLines}"/> 
-                    <p:commandButton  id="receiveInvoice" class="btnn btnn-primary" value="#{messages.ReceiveBill}"  actionListener="#{purchaseOrderController.createInvoice(purchaseOrderController.purchaseOrder.id, false)}" disabled="#{empty purchaseOrderController.purchaseOrderLines}"  update=":PurchaseOrderForm:content" oncomplete="PF('InvoiceLinesDialog').hide();"/> 
+                    <p:commandButton  id="receiveInvoice" class="btnn btnn-primary" value="#{messages.ReceiveBill}"  actionListener="#{purchaseOrderController.createInvoice(purchaseOrderController.purchaseOrder.id, false)}" disabled="#{empty purchaseOrderController.purchaseOrderLines}"  update=":mainForm:itemForm, :mainForm:itemList" oncomplete="PF('InvoiceLinesDialog').hide();"/> 
                     <a class="btnn btnn-default jsf-btn"  onclick="PF('InvoiceLinesDialog').hide()">#{messages.Cancel}</a>
                 </div> 
             </div>   

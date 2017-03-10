@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:p="http://primefaces.org/ui">
+
+
+    <p:growl id="msgs" widgetVar="growl" />
+    <div class="row form-header-1">
+        <div class="col-md-10" >
+            <h:outputText value="#{messages.Products}"/>
+        </div>
+        <div class="col-md-2 form-pagination" >
+            <ul class="pagination">
+                <li>
+                    <p:commandLink process="@this" actionListener="#{productController.showProductGrid}"  styleClass="fa fa-th" style="font-size: 17px !important;" update=":ProductForm:content"/>           
+                </li>
+                <li>
+                    <p:commandLink process="@this" actionListener="#{productController.showProductForm}" styleClass="fa fa-square-o" style="font-size: 17px !important;" update=":ProductForm:content"/>           
+                </li>
+                <li class="active-nav-button">
+                    <p:commandLink process="@this" actionListener="#{productController.showProductList}" styleClass="fa fa-bars" style="font-size: 17px !important;" update=":ProductForm:content"/>
+                </li>
+            </ul>
+        </div>
+    </div> 
+    <div class="row"> 
+        <p:dataTable id="productTable"
+                     binding="#{productTable}"
+                     class="fit-content-table"
+                     value="#{productController.products}"
+                     emptyMessage="#{messages.EmptyMessage}"
+                     var="item"
+                     filteredValue="#{productController.filteredProducts}"
+                     selection="#{productController.product}"
+                     rowKey="#{item.id}"
+                     selectionMode="single"
+                     sortBy="#{item.name}"
+                     sortOrder="ascending"
+                     paginator="true"
+                     paginatorAlwaysVisible="true"
+                     widgetVar="productTable"
+                     rows="#{messages.MaxRows}">
+
+
+            <f:facet name="header">
+                <p:outputPanel>
+                    <h:commandButton rendered="false" action="#{productController.prepareCreateProduct}" value="#{messages.Create}">
+                        <f:ajax execute="@this" render=":ProductForm:content"/> 
+                    </h:commandButton>            
+                    <p:commandButton styleClass="btnn btnn-primary" update=":ProductForm:content" process="@this" actionListener="#{productController.prepareCreateProduct}" value="#{messages.Create}"/>
+                    <div class="searchLoader">
+                        <p:graphicImage  name="/img/search-loader.gif"/>
+                    </div>
+                    <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('productTable').filter()" class="search"
+                           jsf:onkeypress="if (event.keyCode == 13) {return false}"
+                           placeholder="#{messages.Search}"/>
+                </p:outputPanel>
+            </f:facet>
+            
+            <p:ajax event="page" oncomplete="updateTable();"/>
+            <p:ajax event="sort" oncomplete="updateTable();"/>
+            <p:ajax event="filter" global="false" onstart="showSearchLoader();" oncomplete="updateTable(); hideSearchLoader();"/>           
+            <p:ajax event="rowSelect" listener="#{productController.prepareViewProduct}" update=":ProductForm:content" />
+            
+            <p:column>
+                <f:facet name="header">
+                    <h:outputText value=""/>
+                </f:facet>
+                <h:outputText value=""/>
+            </p:column>
+
+            <p:column sortBy="#{item.name}" filterBy="#{item.name}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Name}"/>
+                </f:facet>
+                <h:outputText value="#{item.name}"/>
+            </p:column>
+            <p:column sortBy="#{item.defaultCode}" filterBy="#{item.defaultCode}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.InternalReference}"/>
+                </f:facet>
+                <h:outputText value="#{item.defaultCode}"/>
+            </p:column>
+            <p:column sortBy="#{item.salePrice}" filterBy="#{item.salePrice}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.SalePrice}"/>
+                </f:facet>
+                #{messages.Currency}
+                <h:outputText value="#{item.salePrice}"/>
+            </p:column>
+            <p:column sortBy="#{item.purchasePrice}" filterBy="#{item.purchasePrice}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.PurchasePrice}"/>
+                </f:facet>
+                #{messages.Currency}
+                <h:outputText value="#{item.purchasePrice}"/>
+            </p:column>
+            <p:column sortBy="#{item.inventory.quantityOnHand}" filterBy="#{item.inventory.quantityOnHand}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.QuantityOnHand}"/>
+                </f:facet>
+                <h:outputText value="#{item.inventory.quantityOnHand}"/>
+            </p:column>
+            <p:column sortBy="#{item.inventory.quantityAvailable}" filterBy="#{item.inventory.quantityAvailable}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.ForecastedQuantity}"/>
+                </f:facet>
+                <h:outputText value="#{item.inventory.quantityAvailable}"/>
+            </p:column>
+            <p:column sortBy="#{item.uom.name}" filterBy="#{item.uom.name}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.UnitOfMeasure}"/>
+                </f:facet>
+                <h:outputText value="#{item.uom.name}"/>
+            </p:column>
+
+        </p:dataTable>       
+    </div> 
+    <script>
+         function updateTable() {
+            addEmptyRows(tableId);
+            hidePaginator(tableId);
+        }
+
+        var tableId = '#{productTable.clientId}';
+        addEmptyRows(tableId);
+        hidePaginator(tableId);
+        setListURL();
+    </script>
+
+    <!-- page end--> 
+</ui:composition>

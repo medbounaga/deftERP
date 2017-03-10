@@ -9,57 +9,61 @@
 
 
     <h:head>
+
         <title>#{messages.Vendors}&#160;#{messages.AppName}</title>
 
         <script type="text/javascript">
-
-
             $(window).load(function () {
                 $(".loader").fadeOut("slow");
             });
         </script>
 
-        <h:outputStylesheet library="css" name="bootstrap.min.css"/> 
-        <h:outputStylesheet library="css" name="bootstrap-reset.css"/>
-        <h:outputStylesheet library="webjars" name="font-awesome/4.4.0/css/font-awesome-jsf.css" />
-        <h:outputStylesheet library="css" name="style-responsive.css"/>
-        <h:outputStylesheet library="css" name="pfcrud.css"/>
-        <h:outputStylesheet library="css" name="style.css"/>
-
-
-        <h:outputScript library="scripts" name="jquery.dcjqaccordion.2.7.js"/>
         <h:outputScript library="scripts" name="bootstrap.min.js"/>
-        <h:outputScript library="scripts" name="jquery.scrollTo.min.js"/>
-        <h:outputScript library="scripts" name="jquery.slimscroll.js"/>
-        <h:outputScript library="scripts" name="jquery.nicescroll.js"/>
-        <h:outputScript library="scripts" name="scripts.js"/>
-        <h:outputScript library="scripts" name="hover-dropdown.js"/>
-        <h:outputScript library="scripts" name="pfcrud.js"/>
-        
-        
+        <h:outputScript library="scripts" name="materialize.min.js"/>
+        <h:outputScript library="scripts" name="script.js"/>
 
-        <f:metadata>
+         <f:metadata>
             <f:viewParam name="id" value="#{vendorController.partnerId}"/> 
-            <f:viewAction action="#{vendorController.viewSupplier}"/>
+            <f:viewAction action="#{vendorController.resolveRequestParams}"/>
         </f:metadata>
 
+
     </h:head>
-    <h:body class="full-width">
-        <f:view locale="#{localeController.locale}" >
-        <div class="loader"></div> 
-        <section id="container" class="hr-menu" >            
-            <ui:include src="/sc/header.xhtml"/>             
-            <section id="main-content">
-                <section class="wrapper">
-                    <h:form id="PartnerForm" enctype="multipart/form-data" > 
-                        <h:panelGroup id="content" >           
-                            <ui:include src="#{vendorController.page}"/>
-                        </h:panelGroup>               
-                      </h:form> 
-                    </section>
-                </section>
-            </section>
-        <ui:include src="/sc/ajaxLoader.xhtml"/> 
+    <h:body>
+
+        <f:facet name="last">
+            <h:outputStylesheet library="css" name="bootstrap.min.css"/> 
+            <h:outputStylesheet library="webjars" name="font-awesome/4.4.0/css/font-awesome-jsf.css" />       
+            <h:outputStylesheet library="css" name="materialize.min.css"/>
+            <h:outputStylesheet library="css" name="style.css"/>
+        </f:facet>
+
+        <f:view locale="#{localeController.locale}">
+            <div class="loader"></div> 
+
+            <div id="container" class="row">
+                <div class="col-md-12" >
+                    <ui:include src="/sc/header.xhtml"/> 
+                    <div class="row progress-line">
+                        <div class="col-md-12">
+                            <div class="progress">
+                                <div class="indeterminate"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <h:form id="mainForm" enctype="multipart/form-data">  
+                        <p:growl id="msgs" widgetVar="growl" autoUpdate="true"/>
+                        <div jsf:id="itemList" class="row card z-depth-4"> 
+                            <ui:include src="#{vendorController.currentList}"/>
+                        </div> 
+                        <div id="backdrop" onclick="backdropClicked();"/> 
+                        <div jsf:id="itemForm"> 
+                            <ui:include src="#{vendorController.currentForm}"/>
+                        </div>  
+                    </h:form>       
+                </div>                
+                <ui:include src="/sc/ajaxLoader.xhtml"/>              
+            </div>
         </f:view>
     </h:body>
 </html>

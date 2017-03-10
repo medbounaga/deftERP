@@ -1,0 +1,77 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+
+
+    <p:growl id="msgs" widgetVar="growl"/>
+    <div class="row form-header-1">
+        <div class="col-md-12" >
+            <p:commandLink class="form-nav" value="#{messages.UnitsOfMeasure}" process="@this" actionListener="#{productUomController.showProductUomList}" update=":ProductUomForm:content"/>
+            <span> / </span>
+            <span>#{messages.Edit}</span>
+        </div>
+    </div> 
+    <div class="row form-header-2" style="padding-top: 5px;">
+        <div class="col-md-12 record-status-buttons">   
+            <p:commandButton class="btnn btnn-primary" value="#{messages.Save}" process=":ProductUomForm:content" actionListener="#{productUomController.updateProductUom(productUomController.productUom.id)}"  update=":ProductUomForm:content" /> 
+            <p:commandButton class="btnn btnn-default" value="#{messages.Discard}" process="@this" actionListener="#{productUomController.cancelEditProductUom(productUomController.productUom.id)}"  update=":ProductUomForm:content" /> 
+        </div>
+    </div>
+    <div class="row form-body-full">  
+        <div class="row">
+            <div class="col-md-6">
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.UnitOfMeasure}" for="name" />
+                    </div> 
+                    <div class="col-md-8">
+                        <p:inputText id="name" value="#{productUomController.productUom.name}" class="fullWidth required" required="true" requiredMessage="#{messages.ProductUomNameRequired}" maxlength="55"/>
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.NumberOfDecimals}" for="decimals"/>
+                    </div> 
+                    <div class="col-md-8">
+
+                        <p:selectOneMenu class="fullWidth required" id="decimals" value="#{productUomController.productUom.decimals}" required="true" validatorMessage="kgkjhkh" requiredMessage="#{messages.decimalsRequired}">                          
+                            <f:selectItem itemLabel="0" itemValue="0"/>
+                            <f:selectItem itemLabel="1" itemValue="1"/>
+                            <f:selectItem itemLabel="2" itemValue="2"/>
+                            <f:selectItem itemLabel="3" itemValue="3"/>
+                        </p:selectOneMenu>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Category}" for="category"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <p:selectOneMenu class="fullWidth required" id="category" value="#{productUomController.productUom.category}" required="true" requiredMessage="#{messages.CategoryRequired}" converter="productUomCategoryConverter">   
+                            <f:selectItem  itemLabel="&#160;" />
+                            <f:selectItems value="#{productUomCategoryController.productUomCategories}"
+                                           var="category"
+                                           itemValue="#{category}"
+                                           itemLabel="#{category.name.toString()}"/>
+                        </p:selectOneMenu>
+                    </div>
+                </div>
+                <div class="row form-row" style="padding-top: 5px;">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Active}" for="active"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <p:selectBooleanCheckbox id="active" value="#{productUomController.productUom.active}" />
+                    </div>
+                </div>
+            </div>
+        </div>    
+    </div>  
+
+</ui:composition>

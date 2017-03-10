@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
                 xmlns:h="http://java.sun.com/jsf/html"
@@ -10,53 +9,47 @@
                 xmlns:o="http://omnifaces.org/ui">
 
 
-    <p:growl id="msgs" widgetVar="growl" />
-    <div class="row form-header-1">
-        <div class="col-md-10" >           
-            <p:selectOneMenu style="width: 150px;" id="partnerType" value="#{vendorController.partnerType}">
-                <p:ajax listener="#{vendorController.updatePartnerType}"  process="@this :PartnerForm:gridFilter" update=":PartnerForm:gridView" oncomplete="updateGrid();"/>
-                <f:selectItem itemLabel="#{messages.Vendors}" itemValue="Vendor"/>
-                <f:selectItem itemLabel="#{messages.Customers}" itemValue="Customer"/>
-                <f:selectItem itemLabel="#{messages.PartnersAll}" itemValue="Partner"/>
-            </p:selectOneMenu>
+    <div class="row">
+        <div class="col-md-12 card z-depth-1 tool-bar">          
+            <div class="form-nav">
+                <p:selectOneMenu style="width: 150px; margin-top: 6px;" id="partnerType" value="#{vendorController.partnerType}">
+                    <p:ajax listener="#{vendorController.updatePartnerType()}"  process="@this" global="false" update=":mainForm:gridView, :mainForm:gridFilter, :mainForm:itemForm" oncomplete="updateGrid();"/>
+                    <f:selectItem class="form-nav-item" itemLabel="#{messages.Vendors}" itemValue="Vendor"/>
+                    <f:selectItem class="form-nav-item" itemLabel="#{messages.Customers}" itemValue="Customer"/>
+                    <f:selectItem class="form-nav-item" itemLabel="#{messages.PartnersAll}" itemValue="Partner"/>
+                </p:selectOneMenu> 
+            </div>
+            <p:commandLink actionListener="#{vendorController.showVendorList()}" oncomplete="listSliderClicked();" process="@this" update=":mainForm:itemList" class="waves-effect waves-light btn btn-icon btn-primary float-right" style="margin-top: 4px; margin-bottom: 4px;"> 
+                <i class="fa fa-bars" aria-hidden="true"/> 
+            </p:commandLink>      
         </div>
-        <div class="col-md-2 form-pagination" >
-            <ul class="pagination">
-                <li class="active-nav-button">
-                    <p:commandLink process="@this" actionListener="#{vendorController.showSupplierGrid}"  styleClass="fa fa-th" style="font-size: 17px !important;" update=":PartnerForm:content"/>           
-                </li>
-                <li>
-                    <p:commandLink process="@this" actionListener="#{vendorController.showSupplierForm}" styleClass="fa fa-square-o" style="font-size: 17px !important;" update=":PartnerForm:content"/>           
-                </li>
-                <li>
-                    <p:commandLink process="@this" actionListener="#{vendorController.showSupplierList}" styleClass="fa fa-bars" style="font-size: 17px !important;" update=":PartnerForm:content"/>
-                </li>
-            </ul>
-        </div>
-    </div> 
-    <div class="row form-header-2" style="padding-top: 5px;">
-        <div class="col-md-3">
-            <h:commandButton rendered="false" action="#{vendorController.prepareCreateSupplier}" value="#{messages.Create}" styleClass="btnn btnn-primary">
-                <f:ajax execute="@this" render=":PartnerForm:content"/> 
-            </h:commandButton>  
-            <p:commandButton update=":PartnerForm:content" process="@this" actionListener="#{vendorController.prepareCreateSupplier}" value="#{messages.Create}"  styleClass="btnn btnn-primary"/> 
-        </div>
-        <div class="col-md-9" style="padding-right: 5px !important;">
-            <div style="float:right;">                
-                <div class="searchLoader" style="padding-right: 5px;">
-                    <p:graphicImage  name="/img/search-loader.gif" style="margin-top: 3px; vertical-align: middle;"/>
-                </div>              
-                <h:inputText value="#{vendorController.searchKey}" id="gridFilter"
-                             style="display: inline-block; margin-right: 10px;" onkeypress="if (event.keyCode == 13) {return false}" class="search" pass:placeholder="#{messages.Search}">
-                    <p:ajax  global="false" delay="500"  event="keyup" listener="#{vendorController.searchByName}" process="@this" update=":PartnerForm:gridView" onstart="showSearchLoader();" oncomplete="updateGrid(); hideSearchLoader();"/>
-                </h:inputText>
-            </div>           
+        <div class="col-md-12 card z-depth-1 tool-bar" style="padding: 4px; padding-left: 8px;">          
+            <div class="col-md-3">
+                <h:commandButton rendered="false" action="#{vendorController.prepareCreateSupplier}" value="#{messages.Create}" styleClass="waves-effect waves-light btn btn-primary">
+                    <f:ajax execute="@this" render=":mainForm:itemForm"/> 
+                </h:commandButton>  
+                <p:commandButton update=":mainForm:itemForm, :mainForm:itemList" process="@this" actionListener="#{vendorController.prepareCreateSupplier}" value="#{messages.Create}"  styleClass="waves-effect waves-light btn btn-primary" style="float: left; margin-top: 1px; padding: 3px 12px;"/> 
+            </div>
+            <div class="col-md-9" style="padding-right: 5px !important;">
+                <div style="float:right;">                
+                    <div class="searchLoader" style="padding-right: 5px;">
+                        <p:graphicImage  name="/img/search-loader.gif" style="margin-top: 3px; vertical-align: middle;"/>
+                    </div>              
+                    <h:inputText value="#{vendorController.searchKey}" id="gridFilter" 
+                                 onkeypress="if (event.keyCode === 13) {return false;}"
+                                 class="search" pass:placeholder="#{messages.Search}">
+                        <p:ajax  global="false" delay="500"  event="keyup" listener="#{vendorController.searchByName}" process="@this" update=":mainForm:gridView" onstart="showSearchLoader();" oncomplete="updateGrid(); hideSearchLoader();"/>
+                    </h:inputText>
+                </div>           
+            </div>
         </div> 
     </div>
 
-    <div class="row">     
 
-        <p:dataGrid   var="partner" 
+    <div class="row"> 
+        <p:dataGrid   id="gridView"  
+                      styleClass="z-depth-1"
+                      var="partner" 
                       binding="#{suppliersGrid}"
                       value="#{vendorController.suppliers}"
                       columns="3" 
@@ -64,17 +57,15 @@
                       rowIndexVar="rowIndex"
                       paginatorAlwaysVisible="true"
                       layout="grid"
-                      rows="#{messages.GridMaxRows}"    
+                      rows="#{messages.GridMaxRows}"   
                       paginator="true" 
-                      id="gridView"
                       paginatorTemplate="{FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}">
 
             <p:ajax event="page" oncomplete="updateGrid();"/>
-
-            <p:commandLink class="data-grid-link" actionListener="#{vendorController.prepareViewSupplier(rowIndex, partner.id)}" process="@this" update=":PartnerForm:content">
+            <p:commandLink class="data-grid-link" actionListener="#{vendorController.prepareViewPartner(partner.id)}" process="@this" update=":mainForm:itemForm, :mainForm:itemList">
                 <div class="data-grid">
-                    <p:graphicImage rendered="#{partner.image == null}"  class="data-grid_image"   value="#" name="#{vendorController.getGridDefaultImage(partner.id)}"  />
-                    <o:graphicImage  rendered="#{partner.image != null}" class="data-grid_image"  value="#{partner.image}" dataURI="true" />
+                    <p:graphicImage rendered="#{partner.image == null}"  class="data-grid_image"   value="#" name="#{vendorController.getGridDefaultImage(partner.id)}"/>
+                    <o:graphicImage  rendered="#{partner.image != null}" class="data-grid_image"  value="#{partner.image}" dataURI="true"/>
                     <div class="data-grid_details">
                         <ul>
                             <li class="data-grid_details-heading text_overflow">#{partner.name}</li>
@@ -84,12 +75,12 @@
                             </li>
                             <li class="text_overflow">#{partner.email}</li>
                         </ul>
-                        <div class="data-grid_details-links">
-                            <span class="badge" jsf:rendered="#{vendorController.countPurchaseOrders(partner.id) > 0}">
+                        <div class="data-grid_details-links" jsf:rendered="#{vendorController.countSaleOrders(partner.id) > 0 and vendorController.countPurchaseOrders(partner.id) > 0}">
+                            <span class="badge-small">
                                 <i class="fa fa-fw fa-shopping-cart"/>
                                 <span>#{vendorController.countPurchaseOrders(partner.id)}</span>                               
                             </span>
-                            <span class="badge" jsf:rendered="#{vendorController.countSaleOrders(partner.id) > 0}">                            
+                            <span class="badge-small">
                                 <i class="fa fa-fw fa-usd"/>                                   
                                 <span> #{vendorController.countSaleOrders(partner.id)} </span>                               
                             </span>
@@ -97,20 +88,19 @@
                     </div>
                 </div>
             </p:commandLink>
-        </p:dataGrid>
-    </div> 
+        </p:dataGrid>  
+    </div>  
     <script>
+
         var tableId = '#{suppliersGrid.clientId}';
         hideGridPaginator(tableId);
         $('.ui-datagrid-content').css('min-height', $(window).height());
+        
         function updateGrid() {
             $('.ui-datagrid-content').css('min-height', $(window).height());
             tableId = '#{suppliersGrid.clientId}';
             hideGridPaginator(tableId);
-
         }
-        setListURL();
-    </script>
 
-    <!-- page end--> 
+    </script>
 </ui:composition>

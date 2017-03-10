@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:p="http://primefaces.org/ui">
+
+
+    <p:growl id="msgs" widgetVar="growl" />
+    <div class="row form-header-1">
+        <div class="col-md-10" >
+            <p:selectOneMenu style="width: 150px;" id="partnerType" value="#{vendorController.partnerType}">
+                <p:ajax listener="#{vendorController.updatePartnerType}" process="@this" update="@form" oncomplete="PF('partnerTable').filter();"/>
+                <f:selectItem itemLabel="#{messages.Vendors}" itemValue="Vendor"/>
+                <f:selectItem itemLabel="#{messages.Customers}" itemValue="Customer"/>
+                <f:selectItem itemLabel="#{messages.PartnersAll}" itemValue="Partner"/>
+            </p:selectOneMenu>
+        </div>
+        <div class="col-md-2 form-pagination" >
+            <ul class="pagination">
+                <li>
+                    <p:commandLink process="@this" actionListener="#{vendorController.showSupplierGrid}"  styleClass="fa fa-th" style="font-size: 17px !important;" update=":PartnerForm:content"/>           
+                </li>
+                <li>
+                    <p:commandLink process="@this" actionListener="#{vendorController.showSupplierForm}" styleClass="fa fa-square-o" style="font-size: 17px !important;" update=":PartnerForm:content"/>           
+                </li>
+                <li class="active-nav-button">
+                    <p:commandLink process="@this" actionListener="#{vendorController.showSupplierList}" styleClass="fa fa-bars" style="font-size: 17px !important;" update=":PartnerForm:content"/>
+                </li>
+            </ul>
+        </div>
+    </div> 
+    <div class="row"> 
+        <p:dataTable id="partnerTable"
+                     binding="#{vendorTable}"
+                     class="fit-content-table"
+                     value="#{vendorController.suppliers}"
+                     emptyMessage="#{messages.EmptyMessage}"
+                     var="item"
+                     filteredValue="#{vendorController.filteredPartners}"   
+                     selection="#{vendorController.partner}"
+                     rowKey="#{item.id}"
+                     selectionMode="single"
+                     sortBy="#{item.name}"
+                     sortOrder="ascending"
+                     paginator="true"
+                     paginatorAlwaysVisible="true"
+                     widgetVar="partnerTable"
+                     rows="#{messages.MaxRows}">
+
+            <f:facet name="header">
+                <p:outputPanel>
+                    <h:commandButton rendered="false" action="#{vendorController.prepareCreateSupplier}" value="#{messages.Create}" styleClass="btnn btnn-primary">
+                        <f:ajax execute="@this" render=":PartnerForm:content"/> 
+                    </h:commandButton>  
+                    <p:commandButton update=":PartnerForm:content" process="@this" actionListener="#{vendorController.prepareCreateSupplier}" value="#{messages.Create}"  styleClass="btnn btnn-primary"/> 
+                    <div class="searchLoader">
+                        <p:graphicImage  name="/img/search-loader.gif"/>
+                    </div>
+                    <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('partnerTable').filter()" onkeypress="if
+                     (event.keyCode == 13) {return false}" class="search" placeholder="#{messages.Search}"/>
+                </p:outputPanel>
+            </f:facet>
+
+            <p:ajax event="page" oncomplete="updateTable();"/>
+            <p:ajax event="sort" oncomplete="updateTable();"/>
+            <p:ajax event="filter" global="false" onstart="showSearchLoader();" oncomplete="updateTable(); hideSearchLoader();"/>           
+            <p:ajax event="rowSelect" listener="#{vendorController.prepareViewSupplier}" update=":PartnerForm:content" />
+
+            <p:column>
+                <f:facet name="header">
+                    <h:outputText value=""/>
+                </f:facet>
+                <h:outputText value=""/>
+            </p:column>
+
+            <p:column sortBy="#{item.name}" filterBy="#{item.name}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Name}"/>
+                </f:facet>
+                <h:outputText value="#{item.name}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.phone}" filterBy="#{item.phone}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Phone}"/>
+                </f:facet>
+                <h:outputText value="#{item.phone}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.email}" filterBy="#{item.email}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Email}"/>
+                </f:facet>
+                <h:outputText value="#{item.email}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.credit}" filterBy="#{item.credit}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Receivables}"/>
+                </f:facet>
+                #{messages.Currency}
+                <h:outputText value="#{vendorController.getTotalReceivales(item.id)}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.debit}" filterBy="#{item.debit}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Payables}"/>
+                </f:facet>
+                #{messages.Currency}
+                <h:outputText value="#{vendorController.getTotalPayables(item.id)}"/>
+            </p:column>
+
+        </p:dataTable>       
+    </div> 
+    <script>
+        function updateTable() {
+            addEmptyRows(tableId);
+            hidePaginator(tableId);
+        }
+
+        var tableId = '#{vendorTable.clientId}';
+        addEmptyRows(tableId);
+        hidePaginator(tableId);
+        setListURL();
+    </script>
+
+    <!-- page end--> 
+</ui:composition>

@@ -4,101 +4,103 @@
                 xmlns:p="http://primefaces.org/ui"
                 xmlns:f="http://xmlns.jcp.org/jsf/core"
                 xmlns:jsf="http://xmlns.jcp.org/jsf"
-                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+                xmlns:o="http://omnifaces.org/ui">
 
 
-    <p:growl id="msgs" widgetVar="growl"/>
-    <div class="row form-header-1" style="padding-bottom: 6px !important;">
-        <div class="col-md-8point5" >
-            <p:commandLink update="AccountForm:content" process="@this" class="form-nav" actionListener="#{accountController.showAccountList}">
-                <h:outputText   value="#{messages.Accounts}"/>
-            </p:commandLink> 
-            <span> / </span>            
-            <p:outputLabel id="namee" value="#{accountController.account.name}" /> 
-        </div>
-        <div class="col-md-2point5 form-pagination" >
-            <div class="pagination-form-number">
-                <div class="form-number">
-                    #{accountController.accountIndex} / #{accountController.accounts.size()}
-                </div>
-                <ul class="pagination">
-                    <li>
-                        <p:commandLink actionListener="#{accountController.previousAccount}" process="@this" styleClass="fa fa-chevron-left" pass:aria-label="Previous" update="AccountForm:content" oncomplete="setNextFormURL('id',formId)"/>           
-                    </li>
-                    <li>
-                        <p:commandLink actionListener="#{accountController.nextAccount}" process="@this" styleClass="fa fa-chevron-right" pass:aria-label="Next" update="AccountForm:content" oncomplete="setNextFormURL('id',formId)"/>
-                    </li>
-                </ul>
+    <div class="row">
+        <div class="col-md-12 card z-depth-1 tool-bar">
+            <div class="form-nav">
+                <span class="form-nav-item">#{messages.Accounts}</span>  
+                <i class="fa fa-chevron-circle-right form-nav-icon" aria-hidden="true"></i>
+                <span class="form-nav-item">#{accountController.account.name}</span>   
             </div>
-        </div>
-        <div class="col-md-1 form-pagination" >
-            <ul class="pagination">
-                <li class="active-nav-button">
-                    <p:commandLink  styleClass="fa fa-square-o" style="font-size: 17px !important;" update="@none"/>
-                </li>
-                <li >
-                    <p:commandLink process="@this" actionListener="#{accountController.showAccountList}" styleClass="fa fa-bars" style="font-size: 17px !important;" update="AccountForm:content"/>
-                </li>
-            </ul>
         </div>
     </div> 
-    <div class="row form-header-2">
-        <div class="col-md-12 record-status-buttons">  
-            <p:commandButton class="btnn btnn-primary" value="#{messages.Edit}" actionListener="#{accountController.prepareEditAccount(accountController.account.id)}"  update="AccountForm:content" disabled="#{userSessionController.user.userType != 'Admin'}" />               
-            <p:commandButton class="btnn btnn-default" value="#{messages.Create}" actionListener="#{accountController.prepareCreateAccount}" update="AccountForm:content" disabled="#{userSessionController.user.userType != 'Admin'}" /> 
-            <p:commandButton class="btnn btnn-default" value="#{messages.Delete}" actionListener="#{accountController.deleteAccount(accountController.account.id)}" update="AccountForm:content" disabled="#{userSessionController.user.userType != 'Admin'}"/>
-        </div>          
-    </div>
-    <div class="row form-body-full">                   
-        <div class="row">
-            <div class="col-md-6point5">
-                <div class="row form-row">
-                    <div class="col-md-4 form-label">
-                        <p:outputLabel value="#{messages.Name}"/>
-                    </div> 
-                    <div class="col-md-8">
-                        <h:outputText value="#{accountController.account.title}"/>    
-                    </div>
-                </div>
-                <div class="row form-row">
-                    <div class="col-md-4 form-label">
-                        <p:outputLabel value="#{messages.Code}"/>
-                    </div> 
-                    <div class="col-md-8">
-                        <h:outputText value="#{accountController.account.code}"/>                    
-                    </div>
-                </div>                                      
-            </div>
-            <div class="col-md-5point5">
-                <div class="row form-row">
-                    <div class="col-md-4 form-label">
-                        <p:outputLabel value="#{messages.Type}"/>
-                    </div> 
-                    <div class="col-md-8">
-                        <h:outputText value="#{accountController.account.type}"/>
-                    </div>
-                </div>
-                <div class="row form-row">
-                    <div class="col-md-4 form-label">
-                        <p:outputLabel value="#{messages.Credit}"/>
-                    </div> 
-                    <div class="col-md-8">
-                        <h:outputText value="#{messages.Currency} #{accountController.totalCredit}"/>
-                    </div>
-                </div>
-                <div class="row form-row">
-                    <div class="col-md-4 form-label">
-                        <p:outputLabel value="#{messages.Debit}"/>
-                    </div> 
-                    <div class="col-md-8">
-                        <h:outputText value="#{messages.Currency} #{accountController.totalDebit}"/>
-                    </div>
-                </div>
-            </div>
+
+    <div class="row">
+        <div class="col-md-12 card z-depth-1 tool-bar">
+            <a class="waves-effect waves-light btn btn-icon btn-primary list-slider" onclick="listSliderClicked();">
+                <i class="fa fa-bars"/>
+            </a>
+            <div class="vertical-spacer"/>
+            <p:commandButton class="waves-effect waves-light btn btn-primary" value="#{messages.Edit}" actionListener="#{accountController.prepareUpdateAccount}"  update=":mainForm:itemForm, :mainForm:itemList"/>               
+            <p:commandButton class="waves-effect waves-light btn btn-primary" value="#{messages.Create}" actionListener="#{accountController.prepareCreateAccount}" update=":mainForm:itemForm, :mainForm:itemList"/> 
+            <p:commandButton class="waves-effect waves-light btn btn-primary" value="#{messages.Delete}" actionListener="#{accountController.deleteAccount}" update=":mainForm:itemForm, :mainForm:itemList"/>
         </div>
-    </div>  
+    </div>
+
+    <div class="row">  
+        <div class="col-md-10 col-md-offset-1 form-body card z-depth-2" style="padding-bottom: 100px;">          
+            <div class="row" style="margin-bottom: 26px;">
+                <div class="col-md-12">
+                    <div class="form-pagination">
+                        <p:commandLink class="left-arrow" actionListener="#{accountController.previousAccount}" process="@this" update=":mainForm:itemForm, :mainForm:itemList" oncomplete="setNextFormURL('id',formId)"> 
+                            <span class="fa fa-chevron-left" aria-hidden="true"/> 
+                        </p:commandLink>    
+                        <div class="form-number">
+                            <span>#{accountController.accountIndex} / #{accountController.accounts.size()}</span>
+                        </div>
+                        <p:commandLink class="right-arrow" actionListener="#{accountController.nextAccount}" process="@this" update=":mainForm:itemForm, :mainForm:itemList" oncomplete="setNextFormURL('id',formId)"> 
+                            <span class="fa fa-chevron-right" aria-hidden="true"/> 
+                        </p:commandLink> 
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-5">
+                            <span class="form-data-label font-2">#{messages.Name}</span>
+                        </div> 
+                        <div class="col-md-7">
+                            <span class="form-data-value font-1">#{accountController.account.title}</span>
+                        </div>
+                    </div>
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-5">
+                            <span class="form-data-label font-2">#{messages.Code}</span>
+                        </div>
+                        <div class="col-md-7">
+                            <span class="form-data-value font-1">#{accountController.account.code}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-5">
+                            <span class="form-data-label font-2">#{messages.Type}</span>
+                        </div>
+                        <div class="col-md-7">
+                            <span class="form-data-value font-1">#{accountController.account.type}</span>
+                        </div>
+                    </div>
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-5">
+                            <span class="form-data-label font-2">#{messages.Credit}</span>
+                        </div>
+                        <div class="col-md-7">
+                            <span class="form-data-value font-1">#{messages.Currency} #{accountController.totalCredit}</span>
+                        </div>
+                    </div>
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-5">
+                            <span class="form-data-label font-2">#{messages.Debit}</span>
+                        </div>
+                        <div class="col-md-7">
+                            <span class="form-data-value font-1">#{messages.Currency} #{accountController.totalDebit}</span>
+                        </div>
+                    </div>
+                </div>
+            </div> 
+        </div>     
+    </div>
+
     <script type="text/javascript">
+
         var formId = "#{accountController.account.id}";
         setFormURL('id', formId);
+
     </script>
+
+
 </ui:composition>

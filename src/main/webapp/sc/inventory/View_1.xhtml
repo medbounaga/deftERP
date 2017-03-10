@@ -1,0 +1,139 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+
+
+    <p:growl id="msgs" widgetVar="growl"/>
+    <div class="row form-header-1" style="padding-bottom: 6px !important;">
+        <div class="col-md-8point5" >
+            <p:commandLink update="InventoryForm:content" process="@this" class="form-nav" actionListener="#{inventoryController.showInventoryList}">
+                <h:outputText   value="#{messages.InventoryValuation}"/>
+            </p:commandLink> 
+            <span> / </span>            
+            <p:link  class="form-nav" value="#{inventoryController.productInventory.product.name}"  outcome="/sc/product/index">
+                <f:param name="id" value="#{inventoryController.productInventory.product.id}"/>
+            </p:link>
+        </div>
+        <div class="col-md-2point5 form-pagination" >
+            <div class="pagination-form-number">
+                <div class="form-number">
+                    #{inventoryController.inventoryIndex} / #{inventoryController.inventory.size()}
+                </div>
+                <ul class="pagination">
+                    <li>
+                        <p:commandLink actionListener="#{inventoryController.previousInventory}" process="@this" styleClass="fa fa-chevron-left" pass:aria-label="Previous" update="InventoryForm:content" oncomplete="setNextFormURL('id',formId)"/>           
+                    </li>
+                    <li>
+                        <p:commandLink actionListener="#{inventoryController.nextInventory}" process="@this" styleClass="fa fa-chevron-right" pass:aria-label="Next" update="InventoryForm:content" oncomplete="setNextFormURL('id',formId)"/>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-1 form-pagination" >
+            <ul class="pagination">
+                <li class="active-nav-button">
+                    <p:commandLink  styleClass="fa fa-square-o" style="font-size: 17px !important;" update="@none"/>
+                </li>
+                <li >
+                    <p:commandLink process="@this" actionListener="#{inventoryController.showInventoryList}" styleClass="fa fa-bars" style="font-size: 17px !important;" update="InventoryForm:content"/>
+                </li>
+            </ul>
+        </div>
+    </div> 
+    <div class="row form-header-2" style="padding-bottom: 8px;">
+        <div class="col-md-12 record-status-buttons">  
+            <p:commandButton  
+                process="@this"
+                resetValues="true"
+                value="#{messages.UpdateQtyOnHand}"
+                actionListener="#{inventoryController.prepareProductUpdate}" 
+                update=":InventoryForm:content :QuantityUpdateForm"
+                class="btnn btnn-primary"
+                oncomplete="if (!args.validationFailed) {PF('QuantityUpdateDialog').show()}"/>
+        </div>
+    </div>
+    <div class="row form-body-full">                   
+        <div class="row">
+            <div class="col-md-6point5">
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Product}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <p:link  class="form-nav" value="#{inventoryController.productInventory.product.description}"  outcome="/sc/product/index">
+                            <f:param name="id" value="#{inventoryController.productInventory.product.id}"/>
+                        </p:link>
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.UnitOfMeasure}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <h:outputText value="#{inventoryController.productInventory.product.uom.name}"/>                    
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.ForecastedQuantity}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <h:outputText value="#{inventoryController.productInventory.quantityAvailable}"/>
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.IncomingQuantity}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <h:outputText value="#{inventoryController.productInventory.incomingQuantity}"/>
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.ReservedQuantity}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <h:outputText value="#{inventoryController.productInventory.reservedQuantity}"/>
+                    </div>
+                </div>                               
+            </div>
+            <div class="col-md-5point5">
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.QuantityOnHand}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <h:outputText value="#{inventoryController.productInventory.quantityOnHand}"/>
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.AverageUnitCost}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        #{messages.Currency}
+                        <h:outputText value="#{inventoryController.productInventory.quantityOnHand == 0 ? 0.0 : inventoryController.productInventory.unitCost}"/>
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.InventoryValue}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        #{messages.Currency}
+                        <h:outputText value="#{inventoryController.productInventory.totalCost}"/>                    
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>  
+    <script type="text/javascript">
+        var formId = "#{inventoryController.productInventory.id}";
+        setFormURL('id', formId);
+    </script>
+</ui:composition>

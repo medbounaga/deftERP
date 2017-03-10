@@ -4,75 +4,84 @@
                 xmlns:p="http://primefaces.org/ui"
                 xmlns:f="http://xmlns.jcp.org/jsf/core"
                 xmlns:jsf="http://xmlns.jcp.org/jsf"
-                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough"> 
 
-
-    <p:growl id="msgs" widgetVar="growl"/>
-    <div class="row form-header-1">
-        <div class="col-md-12" >
-            <p:commandLink class="form-nav" value="#{messages.Taxess}" process="@this" actionListener="#{taxController.showTaxList}" update=":TaxForm:content"/>
-            <span> / </span>
-            <span>#{messages.New}</span>
+    <div class="row">
+        <div class="col-md-12 card z-depth-1 tool-bar">
+            <div class="form-nav">
+                <span class="form-nav-item">#{messages.Taxes}</span>  
+                <i class="fa fa-chevron-circle-right form-nav-icon" aria-hidden="true"></i>
+                <span class="form-nav-item">#{messages.New}</span>   
+            </div>
         </div>
     </div> 
-    <div class="row form-header-2" style="padding-top: 5px;">
-        <div class="col-md-12 record-status-buttons">   
-            <p:commandButton class="btnn btnn-primary" value="#{messages.Save}" process=":TaxForm:content" actionListener="#{taxController.createTax}"  update=":TaxForm:content" /> 
-            <p:commandButton class="btnn btnn-default" value="#{messages.Discard}" process="@this" actionListener="#{taxController.showTaxList}"  update=":TaxForm:content" /> 
+
+    <div class="row">
+        <div class="col-md-12 card z-depth-1 tool-bar">
+            <a class="waves-effect waves-light btn btn-icon btn-primary list-slider" onclick="listSliderClicked();">
+                <i class="fa fa-bars"/>
+            </a>
+            <div class="vertical-spacer"/> 
+            <p:commandButton class="waves-effect waves-light btn btn-primary" value="#{messages.Save}" process=":mainForm:itemForm" actionListener="#{taxController.createTax}"  update=":mainForm:itemForm, :mainForm:itemList"/> 
+            <p:commandButton class="waves-effect waves-light btn btn-primary" value="#{messages.Discard}" process="@this" actionListener="#{taxController.cancelCreateTax}"  update=":mainForm:itemForm, :mainForm:itemList"/> 
         </div>
     </div>
-    <div class="row form-body-full">  
-        <div class="row">
-            <div class="col-md-6">
-                <div class="row form-row">
-                    <div class="col-md-4 form-label">
-                        <p:outputLabel value="#{messages.Name}" for="name" />
-                    </div> 
-                    <div class="col-md-8">
-                        <p:inputText id="name" value="#{taxController.tax.name}" class="fullWidth required" required="true" requiredMessage="#{messages.TaxNameRequired}" maxlength="55"/>
+
+    <div class="row">  
+        <div class="col-md-10 col-md-offset-1 form-body card z-depth-2" style="padding-top: 32px; padding-bottom: 100px;">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-4point5">
+                            <p:outputLabel value="#{messages.Name}" class="form-data-label font-2" for="name"/>
+                        </div> 
+                        <div class="col-md-7point5">
+                            <p:inputText id="name" value="#{taxController.tax.name}" class="form-data-value font-1 input-width-90 required" required="true" requiredMessage="#{messages.TaxNameRequired}" maxlength="55"/>
+                        </div>
+                    </div>
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-4point5">
+                            <p:outputLabel value="#{messages.Amount}" class="form-data-label font-2" for="amount"/>
+                        </div> 
+                        <div class="col-md-7point5">
+                            <p:spinner value="#{taxController.tax.percent}" 
+                                       id="amount"
+                                       class="form-data-value font-1 required"
+                                       required="true"
+                                       min="0" 
+                                       max="100" 
+                                       size="12"  
+                                       stepFactor="#{messages.stepFactor}" 
+                                       converterMessage="#{messages.InvalidTaxAmount}"
+                                       requiredMessage="#{messages.TaxAmountRequired}"/>
+
+                            <span style="font-size: 16px;">%</span>
+                        </div>
                     </div>
                 </div>
-                <div class="row form-row">
-                    <div class="col-md-4 form-label">
-                        <p:outputLabel value="#{messages.Amount}" for="amount"/>
-                    </div> 
-                    <div class="col-md-8">
-                         
-                         <p:spinner value="#{taxController.tax.percent}" 
-                                    id="amount"
-                                    class="required"
-                                    required="true"
-                                    min="0" 
-                                    max="100" 
-                                    size="12"  
-                                    stepFactor="#{messages.stepFactor}" 
-                                    converterMessage="#{messages.InvalidTaxAmount}"
-                                    requiredMessage="#{messages.TaxAmountRequired}"/>
-                         
-                         
-                         <span style="font-size: 16px;">%</span>
+
+                <div class="col-md-offset-point5 col-md-5point5">
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-5">
+                            <p:outputLabel value="#{messages.TaxScope}" for="taxType" class="form-data-label font-2"/>
+                        </div> 
+                        <div class="col-md-7">
+                            <p:selectOneMenu class="form-data-value font-1 input-width-90 required" id="taxType" value="#{taxController.tax.typeTaxUse}" required="true" requiredMessage="#{messages.TaxScopeRequired}">   
+                                <f:selectItem  itemLabel="&#160;" />
+                                <f:selectItems value="#{taxController.taxTypes}"
+                                               var="taxType"
+                                               itemValue="#{taxType}"
+                                               itemLabel="#{taxType.toString()}"/>
+                            </p:selectOneMenu>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="row form-row">
-                    <div class="col-md-4 form-label">
-                        <p:outputLabel value="#{messages.TaxScope}" for="taxType"/>
-                    </div> 
-                    <div class="col-md-8">
-                        <p:selectOneMenu class="fullWidth required" id="taxType" value="#{taxController.tax.typeTaxUse}" required="true" requiredMessage="#{messages.TaxScopeRequired}">   
-                            <f:selectItem  itemLabel="&#160;" />
-                            <f:selectItems value="#{taxController.taxTypes}"
-                                           var="taxType"
-                                           itemValue="#{taxType}"
-                                           itemLabel="#{taxType.toString()}"/>
-                        </p:selectOneMenu>
-                    </div>
-                </div>
-            </div>
-        </div>    
-    </div>  
+        </div>     
+    </div>
+
     <script type="text/javascript">
         setListURL();
     </script>
+
 </ui:composition>

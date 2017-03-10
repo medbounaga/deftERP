@@ -1,0 +1,290 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough"
+                xmlns:o="http://omnifaces.org/ui">
+
+    <p:growl id="msgs" widgetVar="growl"/>
+    <ui:include src="/sc/confirmation.xhtml"/>
+    <div class="row form-header-1">
+        <div class="col-md-12" >
+            <p:commandLink styleClass="form-nav" value="#{messages.Products}" process="@this" actionListener="#{productController.showProducts}" update=":ProductForm:content"/>
+            <span> / </span>
+            <h:outputText  value="#{productController.product.name}"/> 
+        </div>
+    </div> 
+    <div class="row form-header-2">
+        <div class="col-md-8">
+            <h:commandButton rendered="false" action="#{productController.prepareEditProduct(productController.product.id)}" value="#{messages.Edit}" styleClass="btnn btnn-primary">
+                <f:ajax execute="@this" render=":ProductForm:content"/> 
+            </h:commandButton>
+            <h:commandButton rendered="false" action="#{productController.prepareCreateProduct}" value="#{messages.Create}" styleClass="btnn btnn-default">
+                <f:ajax execute="@this" render=":ProductForm:content"/> 
+            </h:commandButton>
+            <p:commandButton update=":ProductForm:content" process="@this" actionListener="#{productController.prepareEditProduct(productController.product.id)}" value="#{messages.Edit}"  styleClass="btnn btnn-primary"/> 
+            <p:commandButton update=":ProductForm:content" process="@this" actionListener="#{productController.prepareCreateProduct}" value="#{messages.Create}"  styleClass="btnn btnn-default"/> 
+            <p:commandButton styleClass="btnn btnn-default" value="#{messages.Duplicate}" actionListener="#{productController.duplicateProduct(productController.product.id)}" oncomplete="setNextFormURL('id',formId)" update=":ProductForm:content"/>
+            <p:commandButton styleClass="btnn btnn-default" value="#{messages.Delete}" actionListener="#{productController.deleteProduct(productController.product.id)}" update=":ProductForm:content">
+                <p:confirm header="#{messages.ConfirmationHeader}"  message="#{messages.ConfirmMessage}" icon="ui-icon-alert"/>
+            </p:commandButton>
+
+        </div>
+        <div class="col-md-2point5 form-pagination" >
+            <div class="pagination-form-number">
+                <div class="form-number">
+                    #{productController.productIndex} / #{productController.products.size()}
+                </div>
+                <ul class="pagination">
+                    <li>
+                        <p:commandLink actionListener="#{productController.previousProduct}"  process="@this" styleClass="fa fa-chevron-left" pass:aria-label="Previous" update=":ProductForm:content" oncomplete="setNextFormURL('id',formId)"/>           
+                    </li>
+                    <li>
+                        <p:commandLink actionListener="#{productController.nextProduct}"  process="@this" styleClass="fa fa-chevron-right" pass:aria-label="Next" update=":ProductForm:content" oncomplete="setNextFormURL('id',formId)"/>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-1point5 form-pagination" >
+            <ul class="pagination">
+                <li>
+                    <p:commandLink process="@this" actionListener="#{productController.showProductGrid}"  styleClass="fa fa-th" update=":ProductForm:content"/>           
+                </li>
+                <li class="active-nav-button">
+                    <p:commandLink process="@this" actionListener="#{productController.showProductForm}" styleClass="fa fa-square-o" update=":ProductForm:content"/>           
+                </li>
+                <li>
+                    <p:commandLink process="@this" actionListener="#{productController.showProductList}" styleClass="fa fa-bars" update=":ProductForm:content"/>
+                </li>
+            </ul>
+        </div>
+    </div>    
+    <div class="row form-header-3" style="padding-bottom: 4px;">
+        <div class="col-md-12 record-status-buttons">  
+            <p:commandButton  
+                process="@this"
+                resetValues="true"
+                value="#{messages.UpdateQtyOnHand}"
+                actionListener="#{productController.prepareProductUpdate(productController.product.id)}" 
+                update=":ProductForm:content :QuantityUpdateForm"
+                class="btnn btnn-primary"
+                oncomplete="if (!args.validationFailed) {PF('QuantityUpdateDialog').show()}"/>
+        </div>
+    </div>
+
+
+    <div class="row form-body"> 
+        <div class="row form-body-header">
+            <div class="oe_right oe_button_box col-md-12">
+                <button type="button" class="oe_stat_button btn btn-default" jsf:outcome="/sc/inventory/index" >
+                    <f:param name="id"  value="#{productController.product.inventory.id}"/>
+                    <div class="stat_button_icon fa fa-building-o fa-fw"></div>
+                    <div>
+                        <strong>
+                            <span class="oe_form_field oe_form_field_float oe_form_field_monetary">
+                                <span class="oe_form_char_content">#{productController.product.inventory.quantityAvailable}</span>
+                            </span>
+                        </strong>
+                        <br></br>
+                        #{messages.Forecasted}
+                    </div>
+                </button>
+                <button type="button" class="oe_stat_button btn btn-default" jsf:outcome="/sc/inventory/index" >
+                    <f:param name="id"  value="#{productController.product.inventory.id}"/>
+                    <div class="stat_button_icon fa fa-building-o fa-fw"></div>
+                    <div>
+                        <strong>
+                            <span class="oe_form_field oe_form_field_float oe_form_field_monetary">
+                                <span class="oe_form_char_content">#{productController.product.inventory.quantityOnHand}</span>
+                            </span>
+                        </strong>
+                        <br></br>
+                        #{messages.OnHand}
+                    </div>
+                </button>
+                <button jsf:disabled="#{(productController.countProductPurchases() > 0) ? 'false' : 'true'}" type="button" class="oe_stat_button btn btn-default" jsf:outcome="/sc/purchaseOrder/index" >
+                    <f:param name="pr"  value="#{productController.product.id}"/>
+                    <div class="stat_button_icon fa fa-shopping-cart fa-fw"></div>
+                    <div>
+                        <strong>
+                            <span class="oe_form_field oe_form_field_float oe_form_field_monetary">
+                                <span class="oe_form_char_content">#{productController.countProductPurchases()}</span>
+                            </span>
+                        </strong>
+                        <br></br>
+                        #{messages.Purchases}
+                    </div>
+                </button>
+                <button jsf:disabled="#{(productController.countProductSales() > 0) ? 'false' : 'true'}" type="button" class="oe_stat_button btn btn-default" jsf:outcome="/sc/saleOrder/index">
+                    <f:param name="pr"  value="#{productController.product.id}"/>
+                    <div class="stat_button_icon fa fa-strikethrough fa-fw">
+                    </div>
+                    <div>
+                        <strong>
+                            <span class="oe_form_field oe_form_field_float oe_form_field_monetary">
+                                <span class="oe_form_char_content">#{productController.countProductSales()}</span>
+                            </span>
+                        </strong>
+                        <br></br>
+                        #{messages.Sales}
+                    </div>
+                </button>       
+            </div>
+        </div>
+        <div class="row" style="margin-top: 12px; padding-left: 20px; padding-bottom: 10px;">
+            <div class="col-md-1point5">
+                <span class="form_image">
+                    <p:graphicImage rendered="#{productController.product.image == null}"  value="#" name="img/placeholder.png"  />
+                    <o:graphicImage rendered="#{productController.product.image != null}"  value="#{productController.product.image}" dataURI="true" />
+                </span>
+            </div>
+            <div class="col-md-10point5" style="margin-top: 0px;"> 
+                <h:outputText id="name" value="#{productController.product.name}" style="display: block; margin-bottom: 10px;" class="form-name"/>
+                <div>
+                    <p:selectBooleanCheckbox widgetVar="isSold" id="isSold" value="#{productController.product.saleOk}" disabled="true"/>   
+                    <p:outputLabel value="#{messages.CanBeSold}" style="padding-left: 5px; font-weight: bold;"/>
+                </div>
+                <div>
+                    <p:selectBooleanCheckbox widgetVar="isPurchased" id="isPurchases" value="#{productController.product.purchaseOk}" disabled="true"/>   
+                    <p:outputLabel value="#{messages.CanBePurchased}" style="padding-left: 5px; font-weight: bold;"/>
+                </div>             
+            </div> 
+        </div>
+        <div class="row" style="padding-left: 20px; margin-bottom:20px;">
+
+        </div>
+        <div class="row"  style="padding-left: 15px;padding-right: 15px; margin-bottom:10px">
+            <div class="col-md-12" >
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="active"><a href="#form-tab-1" class="form-tab" role="tab" data-toggle="tab">#{messages.Information}</a></li>
+                    <li><a href="#form-tab-2" class="form-tab" role="tab" data-toggle="tab">#{messages.Inventory}</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane active" id="form-tab-1" style="padding-top: 15px; padding-bottom: 20px;">
+                        <div class="row" style="padding-bottom: 15px; padding-left: 20px">
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.ProductCategory}"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <h:outputText value="#{productController.product.category.name}"/>
+                            </div>
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.UnitOfMeasure}"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <h:outputText value="#{productController.product.uom.name}"/>
+                            </div>                           
+                        </div>
+
+                        <div class="row" style="padding-bottom: 15px; padding-left: 20px">
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.SalePrice}"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                #{messages.Currency}  
+                                <h:outputText class="float-number" value="#{productController.product.salePrice}"/>
+                            </div>
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.InternalReference}"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <h:outputText value="#{productController.product.defaultCode}"/>
+                            </div> 
+                        </div>
+
+                        <div class="row" style="padding-bottom: 15px; padding-left: 20px">
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.Cost}"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                #{messages.Currency} 
+                                <h:outputText class="float-number" value="#{productController.product.purchasePrice}"/>  
+                            </div>
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.Active}"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <p:selectBooleanCheckbox id="active" value="#{productController.product.active}" disabled="true"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane" id="form-tab-2" style="padding-top: 15px; padding-bottom: 20px;">
+                        <div class="row" style="padding-bottom: 20px; padding-left: 20px;">
+                            <div class="col-md-6 form-title">
+                                #{messages.StockAndExpectedVariations}
+                            </div>
+                            <div class="col-md-6 form-title">
+                                #{messages.Weights}
+                            </div>
+
+                        </div>
+                        <div class="row" style="padding-bottom: 15px; padding-left: 20px;">               
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.QuantityOnHand}"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <h:outputText value="#{productController.product.inventory.quantityOnHand}"/>
+                            </div>
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.Volume}"/> 
+                            </div>
+                            <div class="col-md-3point5">
+                                <h:outputText value="#{productController.product.volume}"/>                           
+                                <span style="margin-left:5px;">m&#179;</span> 
+                            </div>  
+                        </div>
+                        <div class="row" style="padding-bottom: 15px; padding-left: 20px;">               
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.IncomingQuantity}"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <h:outputText value="#{productController.product.inventory.incomingQuantity}"/>   
+                            </div>
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.Weight}"/> 
+                            </div>
+                            <div class="col-md-3point5">
+                                <h:outputText value="#{productController.product.weight}"/>                           
+                                <span style="margin-left:5px;">kg</span>
+                            </div>               
+                        </div>
+                        <div class="row" style="padding-bottom: 15px; padding-left: 20px;">               
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.ReservedQuantity}"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <h:outputText value="#{productController.product.inventory.reservedQuantity}"/> 
+                            </div>
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.Length}"/>
+                            </div>
+                            <div class="col-md-3point5">
+                                <h:outputText value="#{productController.product.length}"/>                           
+                                <span style="margin-left:5px;">m</span>
+                            </div>               
+                        </div>
+                        <div class="row" style="padding-bottom: 15px; padding-left: 20px;">               
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.ForecastedQuantity}"/>
+                            </div>
+                            <div class="col-md-9point5">
+                                <h:outputText value="#{productController.product.inventory.quantityAvailable}"/> 
+                                <span style="color:grey; margin-left: 15px;">#{messages.QuantityAvailableFormula}</span>  
+                            </div>               
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> 
+
+    <script>
+        var formId = "#{productController.product.id}";
+        setFormURL('id', formId);
+        setActiveTab();
+    </script>
+
+</ui:composition>

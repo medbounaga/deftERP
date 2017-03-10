@@ -1,37 +1,30 @@
+
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
                 xmlns:h="http://java.sun.com/jsf/html"
-                xmlns:jsf="http://xmlns.jcp.org/jsf"
                 xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
                 xmlns:p="http://primefaces.org/ui">
 
-    <!-- page start-->
-    <p:growl id="msgs" widgetVar="growl" />
-    <div class="row form-header-1">
-        <div class="col-md-11" >          
-            <div jsf:rendered="#{empty purchaseOrderController.partialListType}">  
-                 <h:outputText value="#{messages.PurchaseOrders}"/>
+
+    <div class="row">
+        <div class="col-md-12 card z-depth-1 tool-bar" jsf:rendered="#{empty purchaseOrderController.partialListType}">          
+            <div class="form-nav">
+                <span class="form-nav-item"> #{messages.PurchaseOrders}</span>  
             </div>
-            <div jsf:rendered="#{purchaseOrderController.partialListType == 'partner'}">  
-                <p:link  class="form-nav" value="#{purchaseOrderController.purchaseOrders[0].partner.name}"  outcome="/sc/supplier/index">
+        </div>
+        <div class="col-md-12 card z-depth-1 tool-bar" jsf:rendered="#{purchaseOrderController.partialListType == 'partner'}">          
+            <div class="form-nav">
+                <p:link  class="form-nav-item form-link" value="#{purchaseOrderController.purchaseOrders[0].partner.name}"  outcome="/sc/supplier/index">
                     <f:param name="id" value="#{purchaseOrderController.partnerId}"/>
                 </p:link>
-                <span> / </span> 
-                <h:outputText value="#{messages.PurchaseOrders}"/> 
+                <i class="fa fa-chevron-circle-right form-nav-icon" aria-hidden="true"></i> 
+                <span class="form-nav-item"> #{messages.PurchaseOrders}</span> 
             </div>
         </div>
-        
-        <div class="col-md-1 form-pagination" style="display: inline-table;" >
-            <ul class="pagination">
-                <li>
-                    <p:commandLink process="@this" actionListener="#{purchaseOrderController.showForm}" styleClass="fa fa-square-o" style="font-size: 17px !important;" update=":PurchaseOrderForm:content"/>           
-                </li>
-                <li class="active-nav-button">
-                    <p:commandLink  styleClass="fa fa-bars" style="font-size: 17px !important;" update="@none"/>
-                </li>
-            </ul>
-        </div>
-    </div>    
+    </div>
+
+
     <div class="row"> 
         <p:dataTable id="purchaseOrders"
                      class="fit-content-table"
@@ -49,30 +42,28 @@
                      widgetVar="purchaseOrders"
                      rows="#{messages.MaxRows}">
 
-
-            <f:facet name="header">
+            <f:facet name="header" class="card z-depth-1">
                 <p:outputPanel>
-                     <p:commandButton process="@this" class="btnn btnn-primary" value="#{messages.Create}" actionListener="#{purchaseOrderController.prepareCreate}" update=":PurchaseOrderForm:content" />  
-                    <div class="searchLoader"> 
+                    <p:commandButton process="@this" class="waves-effect waves-light btn btn-primary" value="#{messages.Create}" actionListener="#{purchaseOrderController.prepareCreate}" update=":mainForm:itemForm, :mainForm:itemList" onstart="hideItemsList();" />           
+                    <div class="searchLoader">
                         <p:graphicImage  name="/img/search-loader.gif"/>
                     </div>
-                    <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('purchaseOrders').filter()"
-                           onkeypress="if (event.keyCode == 13) {return false}" class="search" placeholder="#{messages.Search}"/>
-                </p:outputPanel>
+                    <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('purchaseOrders').filter()" class="search"
+                           onkeypress="if (event.keyCode == 13) {return false}" placeholder="#{messages.Search}"/>               
+                </p:outputPanel> 
             </f:facet>
-            
             <p:ajax event="page" oncomplete="updateTableTotals();"/>
             <p:ajax event="sort" oncomplete="updateTableTotals();"/>
             <p:ajax event="filter" global="false" onstart="showSearchLoader();" oncomplete="updateTableTotals(); hideSearchLoader();"/>
-            <p:ajax event="rowSelect"  listener="#{purchaseOrderController.prepareView}" update=":PurchaseOrderForm:content"/>
-            
+            <p:ajax event="rowSelect"  listener="#{purchaseOrderController.prepareView}" update=":mainForm:itemForm, :mainForm:itemList" onstart="hideItemsList();"/>
+
             <p:column>
                 <f:facet name="header">
                     <h:outputText value=""/>
                 </f:facet>
                 <h:outputText value=""/>
             </p:column>
-            
+
             <p:column sortBy="#{item.name}" filterBy="#{item.name}">
                 <f:facet name="header">
                     <h:outputText value="#{messages.Number}"/>
@@ -85,7 +76,7 @@
                     <h:outputText value="#{messages.OrderDate}"/>
                 </f:facet>
                 <h:outputText value="#{item.date}">
-                    <f:convertDateTime pattern="MM/dd/yyyy" />
+                    <f:convertDateTime pattern="MM-dd-yyyy" />
                 </h:outputText>
             </p:column>
 
@@ -113,10 +104,10 @@
             <p:column sortBy="#{item.state}" filterBy="#{item.state}">
                 <f:facet name="header">
                     <h:outputText value="#{messages.Status}"/>
-                </f:facet>
-                 <h:outputText value="#{purchaseOrderController.getStatus(item.state)}" styleClass="badge" style="background-color: #{purchaseOrderController.getStatusColor(item.state)}"/>
+                </f:facet>              
+                <h:outputText value="#{purchaseOrderController.getStatus(item.state)}" styleClass="row-status" style="background-color: #{purchaseOrderController.getStatusColor(item.state)}"/>
             </p:column>
-            
+
             <p:columnGroup type="footer">
                 <p:row styleClass="tableFoot">
                     <p:column colspan="4"/>
@@ -128,13 +119,12 @@
 
         </p:dataTable>       
     </div>  
-    
-    <script type="text/javascript">
+    <script>
         
-         function updateTableTotals() {
+        function updateTableTotals() {
             addEmptyRows(tableId);
-            columnSum('amount', 'total-amount');
             columnSum('amountUntaxed', 'total-untaxed');
+            columnSum('amount', 'total-amount');
             hidePaginator(tableId);
         }
 
@@ -144,8 +134,5 @@
         columnSum('amountUntaxed', 'total-untaxed');
         hidePaginator(tableId);
 
-        setListURL(); 
-        
     </script>
-    
 </ui:composition>

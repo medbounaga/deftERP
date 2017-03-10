@@ -1,8 +1,8 @@
 
 package com.casa.erp.dao;
 
-import com.casa.erp.entities.Journal;
-import com.casa.erp.entities.JournalItem;
+import com.defterp.modules.accounting.entities.Journal;
+import com.defterp.modules.accounting.entities.JournalItem;
 import java.util.Date;
 import java.util.List;
 import javax.ejb.Stateless;

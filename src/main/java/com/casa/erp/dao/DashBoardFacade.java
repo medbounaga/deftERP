@@ -80,7 +80,7 @@ public class DashBoardFacade {
                 break;
         }
 
-        query += "FROM `erp`.`sale_order`;";
+        query += "FROM `defterp`.`sale_order`;";
 
         Query q = em.createNativeQuery(query);
         return q.getResultList();
@@ -129,8 +129,8 @@ public class DashBoardFacade {
                 break;
         }
 
-        query += "FROM `erp`.`journal_item` item \n"
-                + "join `erp`.`journal` journal on item.journal_id = journal.id \n"
+        query += "FROM `defterp`.`journal_item` item \n"
+                + "join `defterp`.`journal` journal on item.journal_id = journal.id \n"
                 + "WHERE journal.name = 'Customer Invoices' ;";
 
         Query q = em.createNativeQuery(query);
@@ -180,8 +180,8 @@ public class DashBoardFacade {
                 break;
         }
 
-        query += "FROM `erp`.`journal_item` item \n"
-                + "join `erp`.`journal` journal on item.journal_id = journal.id \n"
+        query += "FROM `defterp`.`journal_item` item \n"
+                + "join `defterp`.`journal` journal on item.journal_id = journal.id \n"
                 + "WHERE journal.name = 'Customer Invoices' ;";
 
         Query q = em.createNativeQuery(query);
@@ -232,8 +232,8 @@ public class DashBoardFacade {
                 break;
         }
 
-        query += "FROM `erp`.`journal_item` item \n"
-                + "join `erp`.`journal` journal on item.journal_id = journal.id \n"
+        query += "FROM `defterp`.`journal_item` item \n"
+                + "join `defterp`.`journal` journal on item.journal_id = journal.id \n"
                 + "WHERE journal.name = 'Customer Invoices' ;";
 
         Query q = em.createNativeQuery(query);
@@ -284,8 +284,8 @@ public class DashBoardFacade {
                 break;
         }
 
-        query += "FROM `erp`.`journal_item` item \n"
-                + "join `erp`.`journal` journal on item.journal_id = journal.id \n"
+        query += "FROM `defterp`.`journal_item` item \n"
+                + "join `defterp`.`journal` journal on item.journal_id = journal.id \n"
                 + "WHERE journal.name = 'Vendor Bills' ;";
 
         Query q = em.createNativeQuery(query);
@@ -317,7 +317,7 @@ public class DashBoardFacade {
             }
         }
 
-        query += "FROM  `erp`.`invoice` WHERE state <> 'Cancelled' GROUP BY state ORDER BY state ASC;";
+        query += "FROM  `defterp`.`invoice` WHERE state <> 'Cancelled' GROUP BY state ORDER BY state ASC;";
 
         Query q = em.createNativeQuery(query);
         return q.getResultList();
@@ -334,9 +334,9 @@ public class DashBoardFacade {
         }
 
         String query = "SELECT  pr.name , SUM(line.sub_total), SUM(line.quantity) "
-                + "FROM `erp`.`sale_order_line` line "
-                + "join `erp`.`product` pr on line.product_id = pr.id "
-                + "join `erp`.`sale_order` sale on line.order_id = sale.id WHERE ";
+                + "FROM `defterp`.`sale_order_line` line "
+                + "join `defterp`.`product` pr on line.product_id = pr.id "
+                + "join `defterp`.`sale_order` sale on line.order_id = sale.id WHERE ";
 
         switch (period) {
             case "Month":
@@ -371,9 +371,9 @@ public class DashBoardFacade {
         }
 
         String query = "SELECT  pr.name , SUM(line.sub_total), SUM(line.quantity) "
-                + "FROM `erp`.`purchase_order_line` line "
-                + "join `erp`.`product` pr on line.product_id = pr.id "
-                + "join `erp`.`purchase_order` purchase on line.order_id = purchase.id WHERE ";
+                + "FROM `defterp`.`purchase_order_line` line "
+                + "join `defterp`.`product` pr on line.product_id = pr.id "
+                + "join `defterp`.`purchase_order` purchase on line.order_id = purchase.id WHERE ";
 
         switch (period) {
             case "Month":
@@ -408,7 +408,7 @@ public class DashBoardFacade {
         }
 
         String query = "SELECT  par.name , SUM(purchase.amount_total), count(*)\n"
-                + "FROM `erp`.`purchase_order` purchase join `erp`.`partner` par on purchase.partner_id = par.id WHERE ";
+                + "FROM `defterp`.`purchase_order` purchase join `defterp`.`partner` par on purchase.partner_id = par.id WHERE ";
 
         switch (period) {
             case "Month":
@@ -443,7 +443,7 @@ public class DashBoardFacade {
         }
         
         String query = "SELECT  par.name , SUM(sale.amount_total), count(*)\n"
-                + "FROM `erp`.`sale_order` sale join `erp`.`partner` par on sale.partner_id = par.id WHERE ";
+                + "FROM `defterp`.`sale_order` sale join `defterp`.`partner` par on sale.partner_id = par.id WHERE ";
 
         switch (period) {
             case "Month":
@@ -510,7 +510,7 @@ public class DashBoardFacade {
                 break;
         }
 
-        query += "FROM `erp`.`partner` WHERE customer = 1;";
+        query += "FROM `defterp`.`partner` WHERE customer = 1;";
 
         Query q = em.createNativeQuery(query);
         return q.getResultList();
@@ -520,7 +520,7 @@ public class DashBoardFacade {
     public List<Object[]> salesOrdersToConfirm() {
 
         String query = "SELECT count(*), IFNULL(SUM(amount_total),0)\n"
-                + "FROM `erp`.`sale_order` \n"
+                + "FROM `defterp`.`sale_order` \n"
                 + "WHERE state = 'Quotation' ; ";
 
         Query q = em.createNativeQuery(query);
@@ -531,7 +531,7 @@ public class DashBoardFacade {
     public List<Object[]> purchaseOrdersToConfirm() {
 
         String query = "SELECT count(*), IFNULL(SUM(amount_total),0)\n"
-                + "FROM `erp`.`purchase_order` \n"
+                + "FROM `defterp`.`purchase_order` \n"
                 + "WHERE state = 'Quotation' ; ";
 
         Query q = em.createNativeQuery(query);
@@ -542,7 +542,7 @@ public class DashBoardFacade {
     public List<Object[]> invoicesToConfirm() {
 
         String query = "SELECT count(*), IFNULL(SUM(amount_total),0)\n"
-                + "FROM `erp`.`invoice` \n"
+                + "FROM `defterp`.`invoice` \n"
                 + "WHERE state = 'Draft' AND type='Sale' ; ";
 
         Query q = em.createNativeQuery(query);
@@ -553,7 +553,7 @@ public class DashBoardFacade {
     public List<Object[]> billsToConfirm() {
 
         String query = "SELECT count(*), IFNULL(SUM(amount_total),0)\n"
-                + "FROM `erp`.`invoice` \n"
+                + "FROM `defterp`.`invoice` \n"
                 + "WHERE state = 'Draft' AND type='Purchase' ; ";
 
         Query q = em.createNativeQuery(query);
@@ -564,7 +564,7 @@ public class DashBoardFacade {
     public List<Object[]> topReceivablesByCustomer() {
 
         String query = "SELECT  par.name , SUM(inv.residual)\n"
-                + "FROM `erp`.`invoice` inv join `erp`.`partner` par on inv.partner_id = par.id \n"
+                + "FROM `defterp`.`invoice` inv join `defterp`.`partner` par on inv.partner_id = par.id \n"
                 + "WHERE  inv.state = 'Open' AND type='Sale' AND inv.residual > 0 \n"
                 + "GROUP BY par.name\n"
                 + "ORDER BY SUM(inv.residual) DESC limit 5;";
@@ -576,7 +576,7 @@ public class DashBoardFacade {
     public List<Object[]> topPayablesByVendor() {
 
         String query = "SELECT  par.name , SUM(inv.residual)\n"
-                + "FROM `erp`.`invoice` inv join `erp`.`partner` par on inv.partner_id = par.id \n"
+                + "FROM `defterp`.`invoice` inv join `defterp`.`partner` par on inv.partner_id = par.id \n"
                 + "WHERE  inv.state = 'Open' AND type='Purchase' AND inv.residual > 0 \n"
                 + "GROUP BY par.name\n"
                 + "ORDER BY SUM(inv.residual) DESC limit 5;";
@@ -588,7 +588,7 @@ public class DashBoardFacade {
     public List<Object[]> receivables() {
 
         String query = "SELECT  SUM(inv.residual)\n"
-                + "FROM `erp`.`invoice` inv \n"
+                + "FROM `defterp`.`invoice` inv \n"
                 + "WHERE  inv.state = 'Open' AND type = 'Sale';";
 
         Query q = em.createNativeQuery(query);
@@ -599,7 +599,7 @@ public class DashBoardFacade {
     public List<Object[]> payables() {
 
         String query = "SELECT  SUM(inv.residual)\n"
-                + "FROM `erp`.`invoice` inv \n"
+                + "FROM `defterp`.`invoice` inv \n"
                 + "WHERE  inv.state = 'Open' AND type = 'Purchase';";
 
         Query q = em.createNativeQuery(query);
@@ -650,10 +650,10 @@ public class DashBoardFacade {
                 break;
         }
 
-        query += "FROM `erp`.`invoice_payment` invPay \n"
-                + "join `erp`.`journal_entry` entry on invPay.journal_entry_id = entry.id \n"
-                + "join `erp`.`payment` pay on pay.entry_id = entry.id  \n"
-                + "join `erp`.`journal` journal on pay.journal_id = journal.id    \n"
+        query += "FROM `defterp`.`invoice_payment` invPay \n"
+                + "join `defterp`.`journal_entry` entry on invPay.journal_entry_id = entry.id \n"
+                + "join `defterp`.`payment` pay on pay.entry_id = entry.id  \n"
+                + "join `defterp`.`journal` journal on pay.journal_id = journal.id    \n"
                 + "where pay.type = 'in' AND pay.partner_type = 'customer' AND invPay.name <> 'Write-Off' \n"
                 + "GROUP BY journal.name ORDER BY journal.name ASC;";
 
@@ -705,10 +705,10 @@ public class DashBoardFacade {
                 break;
         }
 
-        query += "FROM `erp`.`invoice_payment` invPay \n"
-                + "join `erp`.`journal_entry` entry on invPay.journal_entry_id = entry.id \n"
-                + "join `erp`.`payment` pay on pay.entry_id = entry.id  \n"
-                + "join `erp`.`journal` journal on pay.journal_id = journal.id    \n"
+        query += "FROM `defterp`.`invoice_payment` invPay \n"
+                + "join `defterp`.`journal_entry` entry on invPay.journal_entry_id = entry.id \n"
+                + "join `defterp`.`payment` pay on pay.entry_id = entry.id  \n"
+                + "join `defterp`.`journal` journal on pay.journal_id = journal.id    \n"
                 + "where pay.type = 'out' AND pay.partner_type = 'supplier' AND invPay.name <> 'Write-Off' \n"
                 + "GROUP BY journal.name ORDER BY journal.name ASC;";
 

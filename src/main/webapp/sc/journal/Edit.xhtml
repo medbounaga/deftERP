@@ -4,60 +4,71 @@
                 xmlns:p="http://primefaces.org/ui"
                 xmlns:f="http://xmlns.jcp.org/jsf/core"
                 xmlns:jsf="http://xmlns.jcp.org/jsf"
-                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough"> 
 
-
-    <p:growl id="msgs" widgetVar="growl"/>
-    <div class="row form-header-1">
-        <div class="col-md-12" >
-            <p:commandLink class="form-nav" value="#{messages.Journals}" process="@this" actionListener="#{journalController.showJournalList}" update=":JournalForm:content"/>
-            <span> / </span>
-            <span>#{messages.Edit}</span>
+    <div class="row">
+        <div class="col-md-12 card z-depth-1 tool-bar">
+            <div class="form-nav">
+                <span class="form-nav-item">#{messages.Journals}</span>  
+                <i class="fa fa-chevron-circle-right form-nav-icon" aria-hidden="true"></i>              
+                <span class="form-nav-item">#{journalController.journal.name}</span>  
+                <i class="fa fa-chevron-circle-right form-nav-icon" aria-hidden="true"></i>
+                <span class="form-nav-item">#{messages.Edit}</span>   
+            </div>
         </div>
     </div> 
-    <div class="row form-header-2" style="padding-top: 5px;">
-        <div class="col-md-12 record-status-buttons">   
-            <p:commandButton class="btnn btnn-primary" value="#{messages.Save}" process=":JournalForm:content" actionListener="#{journalController.updateJournal(journalController.journal.id)}"  update=":JournalForm:content" /> 
-            <p:commandButton class="btnn btnn-default" value="#{messages.Discard}" process="@this" actionListener="#{journalController.cancelEditJournal(journalController.journal.id)}"  update=":JournalForm:content" /> 
+
+    <div class="row">
+        <div class="col-md-12 card z-depth-1 tool-bar">
+            <a class="waves-effect waves-light btn btn-icon btn-primary list-slider" onclick="listSliderClicked();">
+                <i class="fa fa-bars"/>
+            </a>
+            <div class="vertical-spacer"/> 
+            <p:commandButton class="waves-effect waves-light btn btn-primary" value="#{messages.Save}" process=":mainForm:itemForm" actionListener="#{journalController.updateJournal}" update=":mainForm:itemForm, :mainForm:itemList"/> 
+            <p:commandButton class="waves-effect waves-light btn btn-primary" value="#{messages.Discard}" process="@this" actionListener="#{journalController.cancelEditJournal}" update=":mainForm:itemForm, :mainForm:itemList"/> 
         </div>
     </div>
-    <div class="row form-body-full">  
-         <div class="row">
-            <div class="col-md-6">
-                <div class="row form-row">
-                    <div class="col-md-4 form-label">
-                        <p:outputLabel value="#{messages.Name}" for="name" />
-                    </div> 
-                    <div class="col-md-8">
-                        <p:inputText id="name" value="#{journalController.journal.name}" class="fullWidth required" required="true" requiredMessage="#{messages.JournalNameRequired}" maxlength="55"/>
+
+    <div class="row">  
+        <div class="col-md-10 col-md-offset-1 form-body card z-depth-2" style="padding-top: 32px; padding-bottom: 100px;">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-4point5">
+                            <p:outputLabel value="#{messages.Name}" class="form-data-label font-2" for="name"/>
+                        </div> 
+                        <div class="col-md-7point5">
+                            <p:inputText id="name" value="#{journalController.journal.name}" class="form-data-value font-1 input-width-90 required" required="true" requiredMessage="#{messages.JournalNameRequired}" maxlength="55"/>
+                        </div>
+                    </div>
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-4point5">
+                            <p:outputLabel value="#{messages.Code}" class="form-data-label font-2" for="code"/>
+                        </div> 
+                        <div class="col-md-7point5">
+                            <p:inputText id="code" value="#{journalController.journal.code}" class="form-data-value font-1 input-width-90 required" required="true" requiredMessage="#{messages.JournalCodeRequired}" maxlength="55"/> 
+                        </div>
                     </div>
                 </div>
-                <div class="row form-row">
-                    <div class="col-md-4 form-label">
-                        <p:outputLabel value="#{messages.Code}" for="code"/>
-                    </div> 
-                    <div class="col-md-8">
-                        <p:inputText id="code" value="#{journalController.journal.code}" class="fullWidth required" required="true" requiredMessage="#{messages.JournalCodeRequired}" maxlength="55"/> 
+
+                <div class="col-md-offset-point5 col-md-5point5">
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-5">
+                            <p:outputLabel value="#{messages.Type}" for="journalType" class="form-data-label font-2"/>
+                        </div> 
+                        <div class="col-md-7">
+                            <p:selectOneMenu class="form-data-value font-1 input-width-90 required" id="journalType" value="#{journalController.journal.type}" required="true" requiredMessage="#{messages.JournalTypeRequired}">   
+                                <f:selectItem  itemLabel="&#160;" />
+                                <f:selectItems value="#{journalController.journalTypes}"
+                                               var="journalType"
+                                               itemValue="#{journalType}"
+                                               itemLabel="#{journalType.toString()}"/>
+                            </p:selectOneMenu>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="row form-row">
-                    <div class="col-md-4 form-label">
-                        <p:outputLabel value="#{messages.Type}" for="journalType"/>
-                    </div> 
-                    <div class="col-md-8">
-                        <p:selectOneMenu class="fullWidth required" id="journalType" value="#{journalController.journal.type}" required="true" requiredMessage="#{messages.JournalTypeRequired}">   
-                            <f:selectItem  itemLabel="&#160;" />
-                            <f:selectItems value="#{journalController.journalTypes}"
-                                           var="journalType"
-                                           itemValue="#{journalType}"
-                                           itemLabel="#{journalType.toString()}"/>
-                        </p:selectOneMenu>
-                    </div>
-                </div>
-            </div>
-        </div>    
-    </div>  
+        </div>     
+    </div>
 
 </ui:composition>

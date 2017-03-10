@@ -4,85 +4,87 @@
                 xmlns:p="http://primefaces.org/ui"
                 xmlns:f="http://xmlns.jcp.org/jsf/core"
                 xmlns:jsf="http://xmlns.jcp.org/jsf"
-                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+                xmlns:o="http://omnifaces.org/ui">
 
 
-    <p:growl id="msgs" widgetVar="growl"/>
-    <div class="row form-header-1" style="padding-bottom: 6px !important;">
-        <div class="col-md-8point5" >
-            <p:commandLink update="JournalForm:content" process="@this" class="form-nav" actionListener="#{journalController.showJournalList}">
-                <h:outputText   value="#{messages.Journals}"/>
-            </p:commandLink> 
-            <span> / </span>            
-            <p:outputLabel id="namee" value="#{journalController.journal.name}" /> 
-        </div>
-        <div class="col-md-2point5 form-pagination" >
-            <div class="pagination-form-number">
-                <div class="form-number">
-                    #{journalController.journalIndex} / #{journalController.journals.size()}
-                </div>
-                <ul class="pagination">
-                    <li>
-                        <p:commandLink actionListener="#{journalController.previousJournal}" process="@this" styleClass="fa fa-chevron-left" pass:aria-label="Previous" update="JournalForm:content" oncomplete="setNextFormURL('id',formId)"/>           
-                    </li>
-                    <li>
-                        <p:commandLink actionListener="#{journalController.nextJournal}" process="@this" styleClass="fa fa-chevron-right" pass:aria-label="Next" update="JournalForm:content" oncomplete="setNextFormURL('id',formId)"/>
-                    </li>
-                </ul>
+    <div class="row">
+        <div class="col-md-12 card z-depth-1 tool-bar">
+            <div class="form-nav">
+                <span class="form-nav-item">#{messages.Journals}</span>  
+                <i class="fa fa-chevron-circle-right form-nav-icon" aria-hidden="true"></i>
+                <span class="form-nav-item">#{journalController.journal.name}</span>   
             </div>
-        </div>
-        <div class="col-md-1 form-pagination" >
-            <ul class="pagination">
-                <li class="active-nav-button">
-                    <p:commandLink  styleClass="fa fa-square-o" style="font-size: 17px !important;" update="@none"/>
-                </li>
-                <li >
-                    <p:commandLink process="@this" actionListener="#{journalController.showJournalList}" styleClass="fa fa-bars" style="font-size: 17px !important;" update="JournalForm:content"/>
-                </li>
-            </ul>
         </div>
     </div> 
-    <div class="row form-header-2">
-        <div class="col-md-12 record-status-buttons">  
-            <p:commandButton class="btnn btnn-primary" value="#{messages.Edit}" actionListener="#{journalController.prepareEditJournal(journalController.journal.id)}"  update="JournalForm:content" disabled="#{userSessionController.user.userType != 'Admin'}" />               
-            <p:commandButton class="btnn btnn-default" value="#{messages.Create}" actionListener="#{journalController.prepareCreateJournal}" update="JournalForm:content" disabled="#{userSessionController.user.userType != 'Admin'}"/> 
-            <p:commandButton class="btnn btnn-default" value="#{messages.Delete}" actionListener="#{journalController.deleteJournal(journalController.journal.id)}" update="JournalForm:content" disabled="#{userSessionController.user.userType != 'Admin'}"/>
+
+    <div class="row">
+        <div class="col-md-12 card z-depth-1 tool-bar">
+            <a class="waves-effect waves-light btn btn-icon btn-primary list-slider" onclick="listSliderClicked();">
+                <i class="fa fa-bars"/>
+            </a>
+            <div class="vertical-spacer"/>
+            <p:commandButton class="waves-effect waves-light btn btn-primary" value="#{messages.Edit}" actionListener="#{journalController.prepareEditJournal}"  update=":mainForm:itemForm, :mainForm:itemList"/>               
+            <p:commandButton class="waves-effect waves-light btn btn-primary" value="#{messages.Create}" actionListener="#{journalController.prepareCreateJournal}" update=":mainForm:itemForm, :mainForm:itemList"/> 
+            <p:commandButton class="waves-effect waves-light btn btn-primary" value="#{messages.Delete}" actionListener="#{journalController.deleteJournal}" update=":mainForm:itemForm, :mainForm:itemList"/>
         </div>
     </div>
-    <div class="row form-body-full">                   
-        <div class="row">
-            <div class="col-md-6point5">
-                <div class="row form-row">
-                    <div class="col-md-4 form-label">
-                        <p:outputLabel value="#{messages.Name}"/>
-                    </div> 
-                    <div class="col-md-8">
-                        <h:outputText value="#{journalController.journal.name}"/>    
-                    </div>
-                </div>
-                <div class="row form-row">
-                    <div class="col-md-4 form-label">
-                        <p:outputLabel value="#{messages.ShortCode}"/>
-                    </div> 
-                    <div class="col-md-8">
-                        <h:outputText value="#{journalController.journal.code}"/>                    
-                    </div>
-                </div>                                      
-            </div>
-            <div class="col-md-5point5">
-                <div class="row form-row">
-                    <div class="col-md-4 form-label">
-                        <p:outputLabel value="#{messages.Type}"/>
-                    </div> 
-                    <div class="col-md-8">
-                        <h:outputText value="#{journalController.journal.type}"/>
+
+    <div class="row">  
+        <div class="col-md-10 col-md-offset-1 form-body card z-depth-2" style="padding-bottom: 100px;">          
+            <div class="row" style="margin-bottom: 26px;">
+                <div class="col-md-12">
+                    <div class="form-pagination">
+                        <p:commandLink class="left-arrow" actionListener="#{journalController.previousJournal}" process="@this" update=":mainForm:itemForm, :mainForm:itemList" oncomplete="setNextFormURL('id',formId)"> 
+                            <span class="fa fa-chevron-left" aria-hidden="true"/> 
+                        </p:commandLink>    
+                        <div class="form-number">
+                            <span>#{journalController.journalIndex} / #{journalController.journals.size()}</span>
+                        </div>
+                        <p:commandLink class="right-arrow" actionListener="#{journalController.nextJournal}" process="@this" update=":mainForm:itemForm, :mainForm:itemList" oncomplete="setNextFormURL('id',formId)"> 
+                            <span class="fa fa-chevron-right" aria-hidden="true"/> 
+                        </p:commandLink> 
                     </div>
                 </div>
             </div>
-        </div>
-    </div>  
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-5">
+                            <span class="form-data-label font-2">#{messages.Name}</span>
+                        </div> 
+                        <div class="col-md-7">
+                            <span class="form-data-value font-1">#{journalController.journal.name}</span>
+                        </div>
+                    </div>
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-5">
+                            <span class="form-data-label font-2">#{messages.ShortCode}</span>
+                        </div>
+                        <div class="col-md-7">
+                            <span class="form-data-value font-1">#{journalController.journal.code}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-5">
+                            <span class="form-data-label font-2">#{messages.Type}</span>
+                        </div>
+                        <div class="col-md-7">
+                            <span class="form-data-value font-1">#{journalController.journal.type}</span>
+                        </div>
+                    </div>
+                </div>
+            </div> 
+        </div>     
+    </div>
+
     <script type="text/javascript">
+
         var formId = "#{journalController.journal.id}";
         setFormURL('id', formId);
+
     </script>
+
+
 </ui:composition>

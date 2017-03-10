@@ -6,38 +6,28 @@
                 xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
                 xmlns:p="http://primefaces.org/ui">
 
-    <p:ajaxStatus onstart="showStatusDialog();" onsuccess="hideStatusDialog();" />
+    <p:ajaxStatus onstart="showProgressBar();" onsuccess="hideProgressBar();" />
 
-        <p:dialog  style="background-color: transparent; box-shadow: none; border: none;" widgetVar="statusDialog" modal="true" draggable="false" closable="false" resizable="false" showHeader="false">
-            <p:graphicImage name="/img/ajax_loading.gif" style="background: none;" /><br></br>
-            <h:outputText value="#{messages.Loading}" style="color:white;"/>     
-        </p:dialog>
+    <script>
+        
+        $(".progress").hide();
+        
+        function showProgressBar()
+        {
+            $(".progress").show();          
+            $("#backdrop").show();  
+        }
 
-        <script>
-            var statusDlgTimer = null;
+        function hideProgressBar()
+        {
+            $(".progress").hide();
+            $("#backdrop").hide(); 
+        }
 
-            function showStatusDialog()
-            {
-                if (statusDlgTimer === null)
-                {
-                    statusDlgTimer = setTimeout("PF('statusDialog').show()", 0);
-                }
-            }
+        window.onpopstate = function () {
+            location.reload();
+        };
 
-            function hideStatusDialog()
-            {
-                if (statusDlgTimer !== null)
-                {
-                    clearTimeout(statusDlgTimer);
-                    PF('statusDialog').hide();
-                    statusDlgTimer = null;
-                }
-            }
-
-            window.onpopstate = function () {
-                location.reload();
-            };
-
-        </script>
+    </script>
 
 </ui:composition>

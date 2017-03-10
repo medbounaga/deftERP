@@ -32,7 +32,7 @@
                                  class="fit-content-table"
                                  rowIndexVar="rowIndex">
                         
-                        <p:column style="width:45px;">
+                        <p:column styleClass="table-row-buttons">
                             <p:commandLink styleClass="ui-icon ui-icon-trash" actionListener="#{saleOrderController.removeLineToInvoice(rowIndex)}" update=":invoicingForm:linesToInvoice :invoicingForm:createInvoice :invoicingForm:createViewInvoice"/>
                         </p:column>
 
@@ -74,11 +74,11 @@
                     </p:dataTable>
                 </div> 
             </div> 
-            <div class="row dialog-footer" >
+            <div class="row" >
                 <div class="col-md-12">
-                    <p:commandButton  id="createViewInvoice" class="btnn btnn-primary"  value="#{messages.CreateAndViewInvoice}"  actionListener="#{saleOrderController.createInvoice(saleOrderController.saleOrder.id, true)}" disabled="#{empty saleOrderController.saleOrderLines}"/> 
-                    <p:commandButton  id="createInvoice" class="btnn btnn-primary" value="#{messages.CreateInvoice}"  actionListener="#{saleOrderController.createInvoice(saleOrderController.saleOrder.id, false)}" disabled="#{empty saleOrderController.saleOrderLines}"  update=":SaleOrderForm:content" oncomplete="PF('InvoiceLinesDialog').hide();"/> 
-                    <a class="btnn btnn-default jsf-btn"  onclick="PF('InvoiceLinesDialog').hide();">#{messages.Cancel}</a>
+                    <p:commandButton  id="createViewInvoice" class="waves-effect waves-light btn btn-primary"  value="#{messages.CreateAndViewInvoice}"  actionListener="#{saleOrderController.createInvoice(saleOrderController.saleOrder.id, true)}" disabled="#{empty saleOrderController.saleOrderLines}"/> 
+                    <p:commandButton  id="createInvoice" class="waves-effect waves-light btn btn-primary" value="#{messages.CreateInvoice}"  actionListener="#{saleOrderController.createInvoice(saleOrderController.saleOrder.id, false)}" disabled="#{empty saleOrderController.saleOrderLines}"  update=":mainForm:itemForm, :mainForm:itemList" oncomplete="PF('InvoiceLinesDialog').hide();"/> 
+                    <a class="waves-effect waves-light btn btn-primary btn-link"  onclick="PF('InvoiceLinesDialog').hide();">#{messages.Cancel}</a>
                 </div> 
             </div>   
         </h:form>

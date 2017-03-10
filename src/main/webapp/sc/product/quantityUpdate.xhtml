@@ -8,7 +8,7 @@
                 xmlns:p="http://primefaces.org/ui">
 
 
-    <p:dialog id="QuantityUpdateDialog" styleClass="disable-scroll" widgetVar="QuantityUpdateDialog" modal="true" resizable="false" appendTo="@(body)" header="#{messages.UpdateProductQuantity}" width="900" closeOnEscape="true">
+    <p:dialog id="QuantityUpdateDialog" styleClass="disable-scroll" widgetVar="QuantityUpdateDialog" modal="true" resizable="false" appendTo="@(body)" header="#{messages.UpdateProductQuantity}" width="500" closeOnEscape="true">
         <h:form id="QuantityUpdateForm">
 
             <div class="row" style="padding-left: 20px; padding-bottom:10px; padding-top:10px">
@@ -38,12 +38,11 @@
 
             <div class="row dialog-footer">
                 <div class="col-md-12">
-                    <p:commandButton class="btnn btnn-primary" value="#{messages.Apply}" process="@form"  actionListener="#{productController.updateQuantity(productController.product.id)}"  update=":ProductForm:content, :QuantityUpdateForm,:ProductForm:msgs" oncomplete="handleSubmit(xhr,status,args,PF('QuantityUpdateDialog'));"/>
-                    <a class="btnn btnn-default jsf-btn"  onclick="PF('QuantityUpdateDialog').hide();">#{messages.Cancel}</a>
+                    <p:commandButton class="waves-effect waves-light btn btn-primary" value="#{messages.Apply}" process="@form"  actionListener="#{productController.updateQuantity(productController.product.id)}"  update=":mainForm:itemForm, :mainForm:itemList, :QuantityUpdateForm" oncomplete="handleSubmit(xhr,status,args,PF('QuantityUpdateDialog'));"/>
+                    <a class="waves-effect waves-light btn btn-primary"  onclick="PF('QuantityUpdateDialog').hide();">#{messages.Cancel}</a>
                 </div> 
             </div>   
         </h:form>
     </p:dialog>
 
-    <!-- page end--> 
 </ui:composition>

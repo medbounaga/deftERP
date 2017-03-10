@@ -7,104 +7,98 @@
                 xmlns:jsf="http://xmlns.jcp.org/jsf"
                 xmlns:p="http://primefaces.org/ui">
     <!--header start-->
-    <header class="header fixed-top">
-        <h:form>
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle hr-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                    <span class="fa fa-bars"></span>
-                </button>
-                <!--logo start-->
-                <!--logo start-->
-                <div class="brand ">
-                    <p:link class="logo" value="#{messages.AppNamee}" outcome="/sc/dashboard" />
-                </div>
-                <!--logo end-->
-                <!--logo end-->
-                <div class="horizontal-menu navbar-collapse collapse ">
+    <h:form>
 
-                    <ul class="nav navbar-nav">
+        <ul id="sales-dropdown" class="dropdown-content">
+            <li><p:link value="#{messages.Customers}" outcome="/sc/customer/index"/></li>
+            <li><p:link value="#{messages.SalesOrders}" outcome="/sc/saleOrder/index"/></li> 
+        </ul>
+        <ul id="purchases-dropdown" class="dropdown-content">
+            <li><p:link value="#{messages.Vendors}" outcome="/sc/supplier/index"/></li>
+            <li><p:link value="#{messages.PurchaseOrders}" outcome="/sc/purchaseOrder/index"/></li> 
+        </ul>
+        <ul id="inventory-dropdown" class="dropdown-content" constrainwidth="false">
+            <li> <p:link value="#{messages.IncomingShipments}" outcome="/sc/supDeliveryOrder/index" /></li>
+            <li> <p:link value="#{messages.DeliveryOrders}" outcome="/sc/deliveryOrder/index" /></li>
+            <li> <p:link value="#{messages.Products}" outcome="/sc/product/index" /></li> 
+            <li> <p:link value="#{messages.InventoryValuation}" outcome="/sc/inventory/index" /></li>  
 
-                        <li> <p:link value="#{messages.Dashboard}" outcome="/sc/dashboard"/></li>
-                        <li class="dropdown">
-                            <a data-toggle="dropdown" data-hover="dropdown" class="dropdown-toggle" href="#">#{messages.Sales}</a>
-                            <ul class="dropdown-menu">
+        </ul>
+        <ul id="accounting-dropdown" class="dropdown-content">
+            <li> <p:link value="#{messages.CustomerInvoices}" outcome="/sc/invoice/index"  /></li>
+            <li> <p:link value="#{messages.CustomerPayments}" outcome="/sc/payment/index" /></li>
+            <li> <p:link value="#{messages.VendorBills}" outcome="/sc/supInvoice/index" /></li>
+            <li> <p:link value="#{messages.VendorPayments}" outcome="/sc/supPayment/index" /></li>
+            <li> <p:link value="#{messages.JournalEntries}" outcome="/sc/journalEntry/index" /></li>
+            <li> <p:link value="#{messages.JournalItems}" outcome="/sc/journalItem/index" /></li> 
+
+        </ul>
+        <ul id="config-dropdown" class="dropdown-content">
+            <li> <p:link value="#{messages.Accounts}" outcome="/sc/account/index"  /></li>
+            <li> <p:link value="#{messages.Journals}" outcome="/sc/journal/index" /></li>
+            <li> <p:link value="#{messages.Taxess}" outcome="/sc/tax/index" /></li>
+            <li> <p:link value="#{messages.Users}" outcome="/sc/userInfo/index" /></li>
+            <li> <p:link value="#{messages.ProductCategories}" outcome="/sc/productCtg/index" /></li>
+            <li> <p:link value="#{messages.UnitsOfMeasure}" outcome="/sc/productUom/index" /></li>
+            <li> <p:link value="#{messages.ProductUomCategories}" outcome="/sc/productUomCtg/index" /></li>
+
+        </ul>
+        <ul id="user-info-dropdown" class="dropdown-content">
+            <li><a jsf:action="#{userSessionController.doLogout}"><i class="fa fa-key"></i>Log Out</a></li>                             
+        </ul>
+
+
+        <div class="navbar-fixed d-navbar">
+            <nav>
+                <div class="nav-wrapper">
+                    <div class="row">
+                        <div class="z-depth-1" style="background: #fff;
+                             height: 42px;
+                             width: 64px;
+                             border-radius: 0px;
+                             float: left;  
+                             margin-right: 1px;">
+                            <p:link class="brand-logo" outcome="/sc/dashboard" >
+                                <p:graphicImage value="#" name="img/brand-logo.png" alt="icon" /> 
+                            </p:link>
+                        </div>
+                        <div class="z-depth-1"  style="    background: rgb(206, 81, 70);
+                             width: auto;
+                             height: 42px;
+                             border-radius: 0px;
+                             padding-left: 25px;
+                             overflow: hidden;">
+                            <ul class="left hide-on-med-and-down">
                                 <li>
-                                    <p:link value="#{messages.Customers}" outcome="/sc/customer/index"/>
+                                    <a jsf:outcome="/sc/dashboard"><span class="dropdown-title">#{messages.Dashboard}</span></a>
                                 </li>
-                                <li> 
-                                    <p:link value="#{messages.SalesOrders}" outcome="/sc/saleOrder/index"/>   
-                                </li>   
-                            </ul>
-                        </li>
-                        <li class="dropdown">
-                            <a data-toggle="dropdown" data-hover="dropdown" class="dropdown-toggle" href="#">#{messages.Purchases}</a>
-                            <ul class="dropdown-menu">
+                                <!-- Dropdown Trigger -->
+                                <li><a class="dropdown-button" href="#!" beloworigin="true" constrainwidth="false" data-activates="sales-dropdown"><span class="dropdown-title">#{messages.Sales}</span><i class="fa fa-caret-down" aria-hidden="true"/></a></li>
+                                <li><a class="dropdown-button" href="#!" beloworigin="true" constrainwidth="false" data-activates="purchases-dropdown"><span class="dropdown-title">#{messages.Purchases}</span><i class="fa fa-caret-down" aria-hidden="true"/></a></li>
+                                <li><a class="dropdown-button" href="#!" beloworigin="true" constrainwidth="false" data-activates="inventory-dropdown"><span class="dropdown-title">#{messages.Inventory}</span><i class="fa fa-caret-down" aria-hidden="true"/></a></li>
+                                <li><a class="dropdown-button" href="#!" beloworigin="true" constrainwidth="false" data-activates="accounting-dropdown"><span class="dropdown-title">#{messages.Accounting}</span><i class="fa fa-caret-down" aria-hidden="true"/></a></li>
                                 <li>
-                                    <p:link value="#{messages.Vendors}" outcome="/sc/supplier/index"/>
+                                    <a class="dropdown-button" href="#!" beloworigin="true" constrainwidth="false" data-activates="config-dropdown">
+                                        <span class="dropdown-title">#{messages.Configuration}</span>
+                                        <i class="fa fa-caret-down" aria-hidden="true"/>
+                                    </a>
                                 </li>
-                                <li> 
-                                    <p:link value="#{messages.PurchaseOrders}" outcome="/sc/purchaseOrder/index"/>   
-                                </li>   
                             </ul>
-                        </li>
-                        <li class="dropdown">
-                            <a data-toggle="dropdown" data-hover="dropdown" class="dropdown-toggle" href="#">#{messages.Inventory}</a>
-                            <ul class="dropdown-menu">
-                                <li> <p:link value="#{messages.IncomingShipments}" outcome="/sc/supDeliveryOrder/index" /></li>
-                                <li> <p:link value="#{messages.DeliveryOrders}" outcome="/sc/deliveryOrder/index" /></li>
-                                <li> <p:link value="#{messages.Products}" outcome="/sc/product/index" /></li> 
-                                <li> <p:link value="#{messages.InventoryValuation}" outcome="/sc/inventory/index" /></li> 
+
+                            <ul class="right hide-on-med-and-down">
+                                <li><a class="dropdown-button" href="#!" beloworigin="true" constrainwidth="false" data-activates="user-info-dropdown">
+                                        <p:graphicImage style="width:30px;height:30px; border-radius: 50%;" rendered="#{userSessionController.user.image == null}"  value="#" name="img/me.jpg" alt="icon" />
+                                        <o:graphicImage style="width:30px;height:30px; border-radius: 50%;" rendered="#{userSessionController.user.image != null}"  value="#{userSessionController.user.image}" dataURI="true" alt="icon" />
+                                        <span class="username dropdown-title">Mohammed Bounaga #{userSessionController.user.name}</span>
+                                        <i class="fa fa-caret-down" aria-hidden="true"/>
+                                    </a>
+                                </li>
                             </ul>
-                        </li>
-                        <li class="dropdown">
-                            <a data-toggle="dropdown" data-hover="dropdown" class="dropdown-toggle" href="#">#{messages.Accounting}</a>
-                            <ul class="dropdown-menu">
-                                <li> <p:link value="#{messages.CustomerInvoices}" outcome="/sc/invoice/index"  /></li>
-                                <li> <p:link value="#{messages.CustomerPayments}" outcome="/sc/payment/index" /></li>
-                                <li> <p:link value="#{messages.VendorBills}" outcome="/sc/supInvoice/index" /></li>
-                                <li> <p:link value="#{messages.VendorPayments}" outcome="/sc/supPayment/index" /></li>
-                                <li> <p:link value="#{messages.JournalEntries}" outcome="/sc/journalEntry/index" /></li>
-                                <li> <p:link value="#{messages.JournalItems}" outcome="/sc/journalItem/index" /></li>
-                            </ul>
-                        </li> 
-                        <li class="dropdown">
-                            <a data-toggle="dropdown" data-hover="dropdown" class="dropdown-toggle" href="#">#{messages.Configuration}</a>
-                            <ul class="dropdown-menu">
-                                <li> <p:link value="#{messages.Accounts}" outcome="/sc/account/index"  /></li>
-                                <li> <p:link value="#{messages.Journals}" outcome="/sc/journal/index" /></li>
-                                <li> <p:link value="#{messages.Taxess}" outcome="/sc/tax/index" /></li>
-                                <li> <p:link value="#{messages.Users}" outcome="/sc/userInfo/index" /></li>
-                                <li> <p:link value="#{messages.ProductCategories}" outcome="/sc/productCtg/index" /></li>
-                                <li> <p:link value="#{messages.UnitsOfMeasure}" outcome="/sc/productUom/index" /></li>
-                                <li> <p:link value="#{messages.ProductUomCategories}" outcome="/sc/productUomCtg/index" /></li>
-                            </ul>
-                        </li> 
-                    </ul>               
+                        </div>
+                    </div>
                 </div>
-                <div class="top-nav hr-top-nav">
-                    <ul class="nav pull-right top-menu">
-
-                        <!-- user login dropdown start-->
-                        <li class="dropdown">
-                            <a data-toggle="dropdown" class="dropdown-toggle" href="#">
-                                <p:graphicImage rendered="#{userSessionController.user.image == null}"  value="#" name="img/me.jpg" />
-                                <o:graphicImage rendered="#{userSessionController.user.image != null}"  value="#{userSessionController.user.image}" dataURI="true" />
-                                <span class="username">#{userSessionController.user.name}</span>
-                                <b class="caret"></b>
-                            </a>
-
-                            <ul class="dropdown-menu extended logout">
-                                <li><a jsf:action="#{userSessionController.doLogout}"><i class="fa fa-key"></i> Log Out</a></li>                             
-                            </ul>
-
-                        </li>
-                        <!-- user login dropdown end -->
-                    </ul>
-                </div>
-
-            </div>
-        </h:form> 
-    </header>
-
+            </nav>
+        </div>
+    </h:form>
 </ui:composition>
 

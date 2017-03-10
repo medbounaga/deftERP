@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
                 xmlns:h="http://java.sun.com/jsf/html"
@@ -8,26 +7,9 @@
                 xmlns:p="http://primefaces.org/ui">
 
 
-    <p:growl id="msgs" widgetVar="growl" />
-    <div class="row form-header-1">
-        <div class="col-md-10point5" > 
-            <p:link  class="form-nav" value="#{purchaseOrderController.purchaseOrderLines[0].product.name}"  outcome="/sc/product/index">
-                <f:param name="id" value="#{purchaseOrderController.productId}"/>
-            </p:link>
-            <span> / </span> 
-            <h:outputText value="#{messages.PurchaseOrderLines}"/> 
-        </div>
-        <div class="col-md-1point5 form-pagination" style="display: inline-table;" >
-            <ul class="pagination">
-                <li>
-                    <p:commandLink process="@this" actionListener="#{purchaseOrderController.showOrderLineForm}" styleClass="fa fa-square-o" style="font-size: 17px !important;" update=":PurchaseOrderForm:content"/>           
-                </li>
-                <li class="active-nav-button">
-                    <p:commandLink  styleClass="fa fa-bars" style="font-size: 17px !important;" update="@none"/>
-                </li>
-            </ul>
-        </div>
-    </div> 
+    
+
+
     <div class="row"> 
         <p:dataTable id="productPurchaseOrders"
                      binding="#{productPurchaseOrders}"
@@ -43,20 +25,32 @@
                      selectionMode="single"
                      rows="#{messages.MaxRows}">
 
-            <f:facet name="header">
+
+            <f:facet name="header" class="card z-depth-1">
                 <p:outputPanel>
+                    <div class="form-nav" style="float:left; margin-top: 4px;">
+                        <p:link  class="form-nav-item form-link" value="#{purchaseOrderController.purchaseOrderLines[0].product.name}"  outcome="/sc/product/index">
+                            <f:param name="id" value="#{purchaseOrderController.productId}"/>
+                        </p:link>
+                        <i class="fa fa-chevron-circle-right form-nav-icon" aria-hidden="true"></i> 
+                        <span class="form-nav-item"> #{messages.PurchaseOrderLines}</span> 
+                    </div>
                     <div class="searchLoader">
                         <p:graphicImage  name="/img/search-loader.gif"/>
                     </div>
-                    <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('productPurchaseOrders').filter()" class="search" placeholder="#{messages.Search}"/>               
-                </p:outputPanel>
+                    <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('productPurchaseOrders').filter()" class="search"
+                           onkeypress="if (event.keyCode == 13) {
+                                       return false
+                                   }
+                                   ;" placeholder="#{messages.Search}"/>               
+                </p:outputPanel> 
             </f:facet>
 
             <p:ajax event="page" oncomplete="updateTableTotals();"/>
             <p:ajax event="sort" oncomplete="updateTableTotals();"/>
             <p:ajax event="filter" global="false" onstart="showSearchLoader();" oncomplete="updateTableTotals(); hideSearchLoader();"/>
-            <p:ajax event="rowSelect"  listener="#{purchaseOrderController.prepareViewOrderByProduct}" update=":PurchaseOrderForm:content"/>
-            
+            <p:ajax event="rowSelect" listener="#{purchaseOrderController.prepareViewOrderByProduct}" update=":mainForm:itemForm, :mainForm:itemList" onstart="hideItemsList();"/>
+
             <p:column>
                 <f:facet name="header">
                     <h:outputText value=""/>
@@ -112,10 +106,9 @@
                     <p:column/>
                 </p:row>
             </p:columnGroup>
-
-        </p:dataTable>       
+        </p:dataTable>  
     </div>  
-    <script type="text/javascript">
+    <script>
 
         function updateTableTotals() {
             addEmptyRows(tableId);
@@ -130,8 +123,6 @@
         columnSumNonCurrency('quantity', 'total-quantity');
         hidePaginator(tableId);
 
-        var listId = "#{purchaseOrderController.productId}";
-        setFormURL('pr', listId);
 
     </script>
 </ui:composition>

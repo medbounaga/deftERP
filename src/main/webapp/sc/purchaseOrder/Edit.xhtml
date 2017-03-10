@@ -8,371 +8,415 @@
 
     <p:remoteCommand name="setRowIndex" process="@this" global="false" actionListener="#{purchaseOrderController.setRowIndex}"/> 
 
-    <!-- page start-->
-    <p:growl id="msgs" widgetVar="growl"/>
-    <div class="row form-header-1">       
-        <div class="col-md-12" jsf:rendered="#{empty purchaseOrderController.partialListType}" >
-            <p:commandLink class="form-nav" value="#{messages.PurchaseOrders}" process="@this" actionListener="#{purchaseOrderController.showOrderList}" update=":PurchaseOrderForm:content"/>
-            <span> / </span>
-            <h:outputText value="#{purchaseOrderController.purchaseOrder.name}"/> 
-            <span> / </span>
-            <span>#{messages.Edit}</span>
-        </div>
-        <div class="col-md-12" jsf:rendered="#{purchaseOrderController.partialListType == 'partner'}"> 
-            <p:link  class="form-nav" value="#{purchaseOrderController.purchaseOrder.partner.name}"  outcome="/sc/supplier/index">
-                <f:param name="id" value="#{purchaseOrderController.purchaseOrder.partner.id}"/>
-            </p:link>
-            <span> / </span> 
-            <p:commandLink class="form-nav" value="#{messages.PurchaseOrders}" process="@this" actionListener="#{purchaseOrderController.showOrderList}" update=":PurchaseOrderForm:content"/>
-            <span> / </span> 
-            <p:outputLabel value="#{purchaseOrderController.purchaseOrder.name}"/> 
-            <span> / </span>
-            <span>#{messages.Edit}</span>
-        </div>
-    </div> 
-    <div class="row form-header-3" >
-        <div class="col-md-6 record-status-buttons">
-            <p:commandButton class="btnn btnn-primary" value="#{messages.Save}" process=":PurchaseOrderForm:content" actionListener="#{purchaseOrderController.updateOrder(purchaseOrderController.purchaseOrder.id)}"  update=":PurchaseOrderForm:content" /> 
-            <p:commandButton class="btnn btnn-default" value="#{messages.Discard}" process="@this" actionListener="#{purchaseOrderController.cancelEdit(purchaseOrderController.purchaseOrder.id)}" update=":PurchaseOrderForm:content"/>
-        </div> 
-        <div class="col-md-6 bread-crumb" >    
-            <div class="breadcrumbs flat">              
-                <a class="active">#{messages.RequestForQuotation}</a>
-                <a>#{messages.PurchaseOrder}</a>
-                <a>#{messages.Done}</a>
+    <div class="row">
+        <div class="col-md-12 card z-depth-1 tool-bar" jsf:rendered="#{empty purchaseOrderController.partialListType}" >
+            <div class="form-nav">
+                <span class="form-nav-item">#{messages.PurchaseOrders}</span>  
+                <i class="fa fa-chevron-circle-right form-nav-icon" aria-hidden="true"></i>
+                <span class="form-nav-item">#{purchaseOrderController.purchaseOrder.name}</span>    
+                <i class="fa fa-chevron-circle-right form-nav-icon" aria-hidden="true"></i>
+                <span class="form-nav-item">#{messages.Edit}</span>   
             </div>
+        </div>
+        <div class="col-md-12 card z-depth-1 tool-bar" jsf:rendered="#{purchaseOrderController.partialListType == 'partner'}" >
+            <div class="form-nav">
+                <p:link  class="form-nav-item form-link" value="#{purchaseOrderController.purchaseOrder.partner.name}"  outcome="/sc/supplier/index">
+                    <f:param name="id" value="#{purchaseOrderController.purchaseOrder.partner.id}"/>
+                </p:link>
+                <i class="fa fa-chevron-circle-right form-nav-icon" aria-hidden="true"></i>
+                <span class="form-nav-item">#{messages.PurchaseOrders}</span>    
+                <i class="fa fa-chevron-circle-right form-nav-icon" aria-hidden="true"></i>
+                <span class="form-nav-item">#{purchaseOrderController.purchaseOrder.name}</span> 
+                <i class="fa fa-chevron-circle-right form-nav-icon" aria-hidden="true"></i>
+                <span class="form-nav-item">#{messages.Edit}</span> 
+            </div>
+        </div> 
+    </div> 
+    <div class="row">
+        <div class="col-md-12 card z-depth-1 tool-bar">
+            <a class="waves-effect waves-light btn btn-icon btn-primary list-slider" onclick="listSliderClicked();">
+                <i class="fa fa-bars"/>
+            </a>
+            <div class="vertical-spacer"/>
+            <p:commandButton 
+                class="waves-effect waves-light btn btn-primary" 
+                value="#{messages.Save}" 
+                process=":mainForm:itemForm" 
+                actionListener="#{purchaseOrderController.updateOrder}"  
+                update=":mainForm:itemForm, :mainForm:itemList"/> 
+            <p:commandButton 
+                class="waves-effect waves-light btn btn-secondary" 
+                value="#{messages.Discard}" 
+                process="@this" 
+                actionListener="#{purchaseOrderController.cancelEdit}"  
+                update=":mainForm:itemForm, :mainForm:itemList"/> 
         </div>
     </div>
-    <div class="row form-body">                   
-        <div class="row form-line-1">
-            <div class="col-md-12" >
-                <h:outputText value="#{purchaseOrderController.purchaseOrder.name}"/>
+    <div class="row">  
+        <div class="col-md-10 col-md-offset-1 form-body card z-depth-2">
+            <div class="row">             
+                <div class="col-md-6">
+                    <div id="form-name">
+                        #{purchaseOrderController.purchaseOrder.name}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div id="form-status" class="z-depth-1">
+                        <span>#{messages.RequestForQuotation}</span>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="row" style="padding-left: 20px; margin-bottom:10px;">
-            <div class="col-md-2point5 form-label">
-                <p:outputLabel value="#{messages.Vendor}" for="partnerMenu" />
-            </div> 
-            <div class="col-md-4">
-                <p:selectOneMenu styleClass="fullWidth required" onchange="showPartnerList();" id="partnerMenu" widgetVar="partnerMenu" value="#{purchaseOrderController.purchaseOrder.partner}" required="true" requiredMessage="#{messages.VendorRequired}" converter="partnerConverter">   
-                    <f:selectItem  itemLabel="&#160;" />
-                    <f:selectItems value="#{purchaseOrderController.topNSuppliers}"
-                                   var="partner"
-                                   itemValue="#{partner}"
-                                   itemLabel="#{partner.name.toString()}"/>
-                    <f:selectItem itemLabel="#{messages.SearchMore}" itemValue=""/>
-                </p:selectOneMenu>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-4point5">
+                            <p:outputLabel value="#{messages.Vendor}" for="partnerMenu" class="form-data-label font-2"/>
+                        </div> 
+                        <div class="col-md-7point5">
+                            <p:selectOneMenu id="partnerMenu" class="input-width-80 required form-data-value font-1" 
+                                             onchange="showPartnerList();" widgetVar="partnerMenu" 
+                                             value="#{purchaseOrderController.purchaseOrder.partner}" required="true" 
+                                             requiredMessage="#{messages.VendorRequired}" converter="partnerConverter">   
+                                <f:selectItem  itemLabel="&#160;" />
+                                <f:selectItems value="#{purchaseOrderController.topNSuppliers}"
+                                               var="partner"
+                                               itemValue="#{partner}"
+                                               itemLabel="#{partner.name.toString()}"/>
+                                <f:selectItem itemLabel="#{messages.SearchMore}" itemValue=""/>
+                            </p:selectOneMenu>
+                        </div>                    
+                    </div>
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-4point5">
+                            <p:outputLabel value="#{messages.VendorReference}" for="supplierRef" class="form-data-label font-2"/>
+                        </div> 
+                        <div class="col-md-7point5">
+                            <p:inputText class="form-data-value font-1 input-width-80" id="supplierRef" value="#{purchaseOrderController.purchaseOrder.reference}"/>   
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-offset-point5 col-md-5point5">
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-5">
+                            <p:outputLabel value="#{messages.OrderDate}" for="orderDate" class="form-data-label font-2"/>
+                        </div>
+                        <div class="col-md-7">
+                            <p:calendar id="orderDate" widgetVar="orderDate" class="required input-width-80 form-data-value font-1"
+                                        pattern="MM-dd-yyyy" value="#{purchaseOrderController.purchaseOrder.date}"  
+                                        required="true" requiredMessage="#{messages.DateRequired}" 
+                                        converterMessage="#{messages.InvalidDate}" locale="#{messages.CalendarLanguage}"/>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-2 form-label">
-                <p:outputLabel value="#{messages.OrderDate}" for="orderDate" />
-            </div>
-            <div class="col-md-3point5 ">
-                <p:calendar id="orderDate" class="required" widgetVar="orderDate" pattern="MM-dd-yyyy" value="#{purchaseOrderController.purchaseOrder.date}"  required="true" requiredMessage="#{messages.DateRequired}" converterMessage="#{messages.InvalidDate}" locale="#{messages.CalendarLanguage}"/>
-            </div>
-        </div>
-        <div class="row" style="padding-bottom: 15px; padding-left: 20px; margin-bottom:20px;">
-            <div class="col-md-2point5 form-label">
-                <p:outputLabel value="#{messages.VendorReference}" for="supplierRef" />
-            </div>
-            <div class="col-md-9point5">
-                <p:inputText styleClass="fullWigth" id="supplierRef" value="#{purchaseOrderController.purchaseOrder.reference}"/>               
-            </div>
-        </div>
-        <div class="row"  style="padding-left: 15px;padding-right: 15px; margin-bottom:10px">
-            <div class="col-md-12" >
-                <ul class="nav nav-tabs" role="tablist">
-                    <li class="active"><a href="#form-tab-1" class="form-tab" role="tab" data-toggle="tab">#{messages.Products}</a></li>
-                    <li><a href="#form-tab-2" role="tab" class="form-tab" data-toggle="tab">#{messages.OtherInfo}</a></li>
-                </ul>
-                <div class="tab-content">
-                    <div class="tab-pane active" id="form-tab-1" style="padding: 10px;">
-                        <div jsf:id="orderLines">
-                            <p:dataTable class="datalist"
-                                         rowIndexVar="rowIndex" 
-                                         rowStyleClass="no-color"
-                                         id="datalist" 
-                                         var="item" 
-                                         value="#{purchaseOrderController.purchaseOrderLines}" 
-                                         editable="true">
+            <div class="row form-lines">
+                <div class="col-md-12" >
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="active"><a href="#form-tab-1" class="form-tab" role="tab" data-toggle="tab">#{messages.OrderLines}</a></li>
+                        <li><a href="#form-tab-2" class="form-tab" role="tab" data-toggle="tab">#{messages.OtherInfo}</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="form-tab-1">
+                            <div jsf:id="orderLines">
+                                <p:dataTable class="datalist"
+                                             rowIndexVar="rowIndex" 
+                                             rowStyleClass="no-color"
+                                             id="datalist" 
+                                             var="item" 
+                                             value="#{purchaseOrderController.purchaseOrderLines}" 
+                                             editable="true">
 
-                                <p:ajax event="rowEditInit" global="false"  listener="#{purchaseOrderController.onRowEditInit(item)}" onstart="hideTableButtons(); hideAdd();" />  
-                                <p:ajax event="rowEdit" listener="#{purchaseOrderController.onRowEdit(rowIndex)}"  update=":PurchaseOrderForm:OrderTotal :PurchaseOrderForm:msgs" oncomplete="if(args.validationFailed){hideTableButtons(); hideAdd();}else{showTableButtons(); showAdd();}"/>
-                                <p:ajax event="rowEditCancel" listener="#{purchaseOrderController.onRowCancel(rowIndex)}" oncomplete="showTableButtons(); showAdd();" />
+                                    <p:ajax event="rowEditInit" global="false"  listener="#{purchaseOrderController.onRowEditInit(item)}" onstart="hideTableButtons(); hideAdd();" />  
+                                    <p:ajax event="rowEdit" listener="#{purchaseOrderController.onRowEdit(rowIndex)}"  update=":mainForm:OrderTotal" oncomplete="if(args.validationFailed){hideTableButtons(); hideAdd();}else{showTableButtons(); showAdd();}"/>
+                                    <p:ajax event="rowEditCancel" listener="#{purchaseOrderController.onRowCancel(rowIndex)}" oncomplete="showTableButtons(); showAdd();" />
 
-                                <p:column style="width:55px;"> 
-                                    <div style="display: inline-block;">
-                                        <p:commandLink styleClass="ui-icon ui-icon-trash" process="@this"  update=":PurchaseOrderForm:orderLines" actionListener="#{purchaseOrderController.onRowDelete(rowIndex)}"/> 
-                                    </div>
-                                    <p:rowEditor/>
-                                </p:column>
+                                    <p:column styleClass="table-row-buttons"> 
+                                        <div>
+                                            <p:commandLink styleClass="ui-icon ui-icon-trash" process="@this"  update=":mainForm:orderLines" actionListener="#{purchaseOrderController.onRowDelete(rowIndex)}"/> 
+                                        </div>
+                                        <p:rowEditor/>
+                                    </p:column>
 
-                                <p:column headerText="#{messages.Product}">
-                                    <p:cellEditor>
-                                        <f:facet name="output"><h:outputText value="#{item.product.description}"/></f:facet>
-                                        <f:facet name="input"><p:selectOneMenu onchange="showProductList('#{rowIndex}');" styleClass="required" id="productMenu"  widgetVar="productMenu_#{rowIndex}" value="#{item.product}"  required="true" requiredMessage="#{messages.ProductRequired}"  converter="productConverter" style="width:100%">
-                                                <p:ajax resetValues="true" global="false" process="@this" listener="#{purchaseOrderController.onProductChange(rowIndex)}" update=":PurchaseOrderForm:datalist:uomm :PurchaseOrderForm:datalist:pricee" />
-                                                <f:selectItem itemLabel="&#160;"/>
-                                                <f:selectItems value="#{purchaseOrderController.topPurchasedNProducts}"
-                                                               var="product"
-                                                               itemValue="#{product}"
-                                                               itemLabel="#{product.description.toString()}"/>
-                                                <f:selectItem itemLabel="#{messages.SearchMore}" itemValue=""/>
-                                            </p:selectOneMenu>
-                                        </f:facet>
-                                    </p:cellEditor>
-                                </p:column>
+                                    <p:column  headerText="#{messages.Product}">
+                                        <p:cellEditor>
+                                            <f:facet name="output"><h:outputText value="#{item.product.description}"/></f:facet>
+                                            <f:facet name="input"><p:selectOneMenu onchange="showProductList('#{rowIndex}');" id="productMenu" class="required input-width-90"  widgetVar="productMenu_#{rowIndex}" value="#{item.product}"  required="true" requiredMessage="#{messages.ProductRequired}"  converter="productConverter">
+                                                    <p:ajax resetValues="true" global="false" process="@this" listener="#{purchaseOrderController.onProductChange(rowIndex)}" update=":mainForm:datalist:pricee" />
+                                                    <f:selectItem itemLabel="&#160;"/>
+                                                    <f:selectItems value="#{purchaseOrderController.topPurchasedNProducts}"
+                                                                   var="product"
+                                                                   itemValue="#{product}"
+                                                                   itemLabel="#{product.description.toString()}"/>
+                                                    <f:selectItem itemLabel="#{messages.SearchMore}" itemValue=""/>
+                                                </p:selectOneMenu>
+                                            </f:facet>
+                                        </p:cellEditor>
+                                    </p:column>
 
-                                <p:column headerText="#{messages.Quantity}">
-                                    <p:cellEditor>
-                                        <f:facet name="output"><h:outputText value="#{item.quantity}" /></f:facet>
-                                        <f:facet name="input"><p:spinner value="#{item.quantity}" 
-                                                                         styleClass="required" 
-                                                                         id="firstQuantity" 
-                                                                         min="0" 
-                                                                         size="10"
-                                                                         stepFactor="#{messages.stepFactor}"  
-                                                                         required="true" 
-                                                                         requiredMessage="#{messages.QuantityRequired}" 
-                                                                         converterMessage="#{messages.InvalidQuantity}"/>
-                                        </f:facet>
-                                    </p:cellEditor>
-                                </p:column>
+                                    <p:column  headerText="#{messages.Quantity}">
+                                        <p:cellEditor>
+                                            <f:facet name="output"><h:outputText value="#{item.quantity}"/></f:facet>
+                                            <f:facet name="input">
+                                                <p:spinner value="#{item.quantity}" 
+                                                           styleClass="required" 
+                                                           id="firstQuantity"  
+                                                           min="0" 
+                                                           size="10"
+                                                           stepFactor="#{messages.stepFactor}"  
+                                                           required="true" 
+                                                           requiredMessage="#{messages.QuantityRequired}" 
+                                                           converterMessage="#{messages.InvalidQuantity}"/>
+                                            </f:facet>
+                                        </p:cellEditor>
+                                    </p:column>
 
-                                <p:column headerText="#{messages.UnitOfMeasure}">
-                                    <p:cellEditor>
-                                        <f:facet name="output"><h:outputText value="#{item.uom}" /></f:facet>
-                                        <f:facet name="input"><h:outputText id="uomm" value="#{item.uom}" /></f:facet>
-                                    </p:cellEditor>
-                                </p:column>
+                                    <p:column headerText="#{messages.UnitOfMeasure}">
+                                        <p:cellEditor>
+                                            <f:facet name="output"><h:outputText value="#{item.uom}" /></f:facet>
+                                            <f:facet name="input"><h:outputText id="uomm" value="#{item.uom}" /></f:facet>
+                                        </p:cellEditor>
+                                    </p:column>
 
-                                <p:column headerText="#{messages.Tax}">
-                                    <p:cellEditor>
-                                        <f:facet name="output"><h:outputText value="#{item.tax.name}" /></f:facet>
-                                        <f:facet name="input"><p:selectOneMenu  value="#{item.tax}"  converter="taxConverter" style="width:100%">
-                                                <f:selectItem  itemLabel="&#160;" />
-                                                <f:selectItems value="#{taxController.purchaseTaxes}"
-                                                               var="tax"
-                                                               itemValue="#{tax}"
-                                                               itemLabel="#{tax.name.toString()}"
-                                                               />
+                                    <p:column headerText="#{messages.UnitPrice}">
+                                        <p:cellEditor>
+                                            <f:facet name="output">                                              
+                                                <h:outputText value="#{messages.Currency} #{item.price}"/>
+                                            </f:facet>
+                                            <f:facet name="input">
+                                                <p:spinner value="#{item.price}" 
+                                                           id="pricee"
+                                                           class="required"
+                                                           required="true" 
+                                                           min="0"                                                                       
+                                                           stepFactor="#{messages.stepFactor}"                                                  
+                                                           size="12"                                                        
+                                                           requiredMessage="#{messages.PriceRequired}" 
+                                                           converterMessage="#{messages.InvalidPrice}"/>
+                                            </f:facet>
+                                        </p:cellEditor>
+                                    </p:column>
 
-                                            </p:selectOneMenu>
-                                        </f:facet>
-                                    </p:cellEditor>
-                                </p:column>
+                                    <p:column headerText="#{messages.Tax}">
+                                        <p:cellEditor>
+                                            <f:facet name="output"><h:outputText value="#{item.tax.name}" /></f:facet>
+                                            <f:facet name="input"><p:selectOneMenu  value="#{item.tax}"  converter="taxConverter" class="input-width-100">
+                                                    <f:selectItem  itemLabel="&#160;" />
+                                                    <f:selectItems value="#{taxController.purchaseTaxes}"
+                                                                   var="tax"
+                                                                   itemValue="#{tax}"
+                                                                   itemLabel="#{tax.name.toString()}"
+                                                                   />
 
-                                <p:column headerText="#{messages.UnitPrice}">
-                                    <p:cellEditor>
-                                        <f:facet name="output">
-                                            #{messages.Currency}
-                                            <h:outputText value="#{item.price}"/>
-                                        </f:facet>
-                                        <f:facet name="input">
-                                             <p:spinner value="#{item.price}" 
-                                                       id="pricee"
-                                                       class="required"
-                                                       required="true" 
-                                                       min="0"                                                                       
-                                                       stepFactor="#{messages.stepFactor}"                                                  
-                                                       size="12"                                                        
-                                                       requiredMessage="#{messages.PriceRequired}" 
-                                                       converterMessage="#{messages.InvalidPrice}"/>
-                                        </f:facet>
-                                    </p:cellEditor>
-                                </p:column>
+                                                </p:selectOneMenu>
+                                            </f:facet>
+                                        </p:cellEditor>
+                                    </p:column>
 
-                                <p:column headerText="#{messages.SubTotal}">
-                                    <p:cellEditor>
-                                        <f:facet name="output">
-                                            #{messages.Currency}
-                                            <h:outputText value="#{item.subTotal}"/>
-                                        </f:facet>
-                                        <f:facet name="input">
-                                            #{messages.Currency}
-                                            <h:outputText value="#{item.subTotal}"/>
-                                        </f:facet>
-                                    </p:cellEditor>
-                                </p:column>   
-                            </p:dataTable>
+                                    <p:column headerText="#{messages.SubTotal}"  styleClass="font-5 last-column">
+                                        <p:cellEditor>
+                                            <f:facet name="output">
+                                                <h:outputText value="#{messages.Currency} #{item.subTotal}" styleClass="font-5 last-column"/>
+                                            </f:facet>
+                                            <f:facet name="input">
+                                                <h:outputText value="#{messages.Currency} #{item.subTotal}" styleClass="font-5 last-column"/>
+                                            </f:facet>
+                                        </p:cellEditor>
+                                    </p:column>   
+                                </p:dataTable>
 
 
-                            <div id="addrow" class="ui-datatable ui-widget datalist">
-                                <div class="ui-datatable-tablewrapper">
-                                    <table jsf:id="row" role="grid">
-                                        <tbody  class="ui-datatable-data ui-widget-content">
-                                            <tr data-ri="0" class="ui-widget-content ui-datatable-even ui-state-highlight ui-row-editing" role="row">
-                                                <td role="gridcell" style="width:55px">
-                                                    <div  class="ui-row-editor ui-helper-clearfix">
-                                                        <div style="display: inline-block; ">
-                                                            <p:commandLink styleClass="ui-icon ui-icon-check" process=":PurchaseOrderForm:row" update=":PurchaseOrderForm:orderLines :PurchaseOrderForm:msgs" actionListener="#{purchaseOrderController.onRowAdd}" oncomplete="hiderow('addrow','add',args);"/>
-                                                        </div>
-                                                        <div style="display: inline-block; margin-left: -5px">  
-                                                            <p:commandLink styleClass="ui-icon ui-icon-close" global="false" resetValues="true"  process="@this" update=":PurchaseOrderForm:row" onclick="hiderow('addrow', 'add');
-                                                                    showTableButtons();" actionListener="#{purchaseOrderController.onRowCancel}"/>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td role="gridcell" class="ui-editable-column">
-                                                    <div  class="ui-cell-editor">
-                                                        <div class="ui-cell-editor-input">
-                                                            <p:selectOneMenu onchange="showProductListTwo();" styleClass="required" id="productMenuTwo" widgetVar="productMenuTwo" value="#{purchaseOrderController.purchaseOrderLine.product}" required="true" requiredMessage="#{messages.ProductRequired}"  converter="productConverter" style="width:100%">
-                                                                <p:ajax resetValues="true" global="false" listener="#{purchaseOrderController.onProductChange}" process="@this" update=":PurchaseOrderForm:uom :PurchaseOrderForm:price" />
-                                                                <f:selectItem itemLabel="&#160;"/>
-                                                                <f:selectItems value="#{purchaseOrderController.topPurchasedNProducts}"
-                                                                               var="product"
-                                                                               itemValue="#{product}"
-                                                                               itemLabel="#{product.description.toString()}"/>
-                                                                <f:selectItem itemLabel="#{messages.SearchMore}" itemValue=""/>
-                                                            </p:selectOneMenu> 
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td role="gridcell" class="ui-editable-column">
-                                                    <div  class="ui-cell-editor">
-                                                        <div class="ui-cell-editor-input">
-                                                            <p:spinner value="#{purchaseOrderController.purchaseOrderLine.quantity}" 
-                                                                       styleClass="required" 
-                                                                       id="secondQuantity" 
-                                                                       min="0" 
-                                                                       size="10"
-                                                                       stepFactor="#{messages.stepFactor}"  
-                                                                       required="true" 
-                                                                       requiredMessage="#{messages.QuantityRequired}" 
-                                                                       converterMessage="#{messages.InvalidQuantity}"/>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td role="gridcell" class="ui-editable-column">
-                                                    <div  class="ui-cell-editor">
-                                                        <div class="ui-cell-editor-input">
-                                                            <h:outputText id="uom" value="#{purchaseOrderController.purchaseOrderLine.uom}" style="width:100%"/>      
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td role="gridcell" class="ui-editable-column">
-                                                    <div  class="ui-cell-editor">
-                                                        <div class="ui-cell-editor-input">
-                                                            <p:selectOneMenu id="tax"  value="#{purchaseOrderController.purchaseOrderLine.tax}" converter="taxConverter" style="width:100%">
-                                                                <f:selectItem  itemLabel="&#160;" />
-                                                                <f:selectItems value="#{taxController.purchaseTaxes}"
-                                                                               var="tax"
-                                                                               itemValue="#{tax}"
-                                                                               itemLabel="#{tax.name.toString()}"
-                                                                               />
-                                                            </p:selectOneMenu>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td role="gridcell" class="ui-editable-column">
-                                                    <div  class="ui-cell-editor">
-                                                        <div class="ui-cell-editor-input">
-                                                             <p:spinner value="#{purchaseOrderController.purchaseOrderLine.price}" 
-                                                                       id="price"
-                                                                       class="required"
-                                                                       required="true" 
-                                                                       min="0"                                                                       
-                                                                       stepFactor="#{messages.stepFactor}"                                                  
-                                                                       size="12"                                                        
-                                                                       requiredMessage="#{messages.PriceRequired}" 
-                                                                       converterMessage="#{messages.InvalidPrice}"/>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td role="gridcell" class="ui-editable-column">
-                                                    <div  class="ui-cell-editor">
-                                                        <div class="ui-cell-editor-input">
-                                                            #{messages.Currency}
-                                                            <h:outputText id="subTotal" value="#{purchaseOrderController.purchaseOrderLine.subTotal}" style="width:100%"/>     
-                                                        </div>
-                                                    </div>
-                                                </td>
-
-                                            </tr></tbody></table></div></div>
-
-                            <div id="extraLines">
-                                <div class="ui-datatable ui-widget datalist">
+                                <div id="addrow" class="ui-datatable ui-widget datalist">
                                     <div class="ui-datatable-tablewrapper">
-                                        <table role="grid">
+                                        <table jsf:id="row" role="grid">
                                             <tbody  class="ui-datatable-data ui-widget-content">
-                                                <tr>
-                                                    <td style="text-align: left !important;">
-                                                        <a style="display: inline;"  id="add" onclick="showRow();
-                                                                hideTableButtons();">#{messages.AddAnItem}</a>
-                                                        &#160;
+                                                <tr data-ri="0" class="ui-widget-content ui-datatable-even ui-state-highlight ui-row-editing" role="row">
+                                                    <td role="gridcell" class="table-row-buttons">
+                                                        <div  class="ui-row-editor ui-helper-clearfix">
+                                                            <div>
+                                                                <p:commandLink styleClass="ui-icon ui-icon-check" process=":mainForm:row" update=":mainForm:orderLines" actionListener="#{purchaseOrderController.onRowAdd}" oncomplete="hiderow(args);"/>
+                                                            </div>
+                                                            <div>  
+                                                                <p:commandLink styleClass="ui-icon ui-icon-close" global="false"  
+                                                                               resetValues="true"  process="@this" update=":mainForm:row" 
+                                                                               onclick="hiderow(); showTableButtons();" actionListener="#{purchaseOrderController.onRowCancel}"/>
+                                                            </div>
+                                                        </div>
                                                     </td>
-                                                </tr>
-                                                <tr jsf:rendered="#{purchaseOrderController.purchaseOrderLines.size() lt 3}">
-                                                    <td>&#160;</td>
-                                                </tr>
-                                            </tbody>
-                                            <tfoot class="tableFoot"><td><tr></tr></td></tfoot>
-                                        </table></div></div>
-                            </div>  
+                                                    <td role="gridcell" class="ui-editable-column">
+                                                        <div  class="ui-cell-editor">
+                                                            <div class="ui-cell-editor-input">
+                                                                <p:selectOneMenu onchange="showProductListTwo();" class="required input-width-90" id="productMenuTwo" widgetVar="productMenuTwo" value="#{purchaseOrderController.purchaseOrderLine.product}" required="true" requiredMessage="#{messages.ProductRequired}"  converter="productConverter">
+                                                                    <p:ajax resetValues="true" global="false" listener="#{purchaseOrderController.onProductChange}" process="@this" update=":mainForm:price" />
+                                                                    <f:selectItem itemLabel="&#160;"/>
+                                                                    <f:selectItems value="#{purchaseOrderController.topPurchasedNProducts}"
+                                                                                   var="product"
+                                                                                   itemValue="#{product}"
+                                                                                   itemLabel="#{product.description.toString()}"/>
+                                                                    <f:selectItem itemLabel="#{messages.SearchMore}" itemValue=""/>
+                                                                </p:selectOneMenu> 
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td role="gridcell" class="ui-editable-column">
+                                                        <div  class="ui-cell-editor">
+                                                            <div class="ui-cell-editor-input">
+                                                                <p:spinner value="#{purchaseOrderController.purchaseOrderLine.quantity}" 
+                                                                           styleClass="required" 
+                                                                           id="secondQuantity"  
+                                                                           min="0" 
+                                                                           size="10"
+                                                                           stepFactor="#{messages.stepFactor}"  
+                                                                           required="true" 
+                                                                           requiredMessage="#{messages.QuantityRequired}" 
+                                                                           converterMessage="#{messages.InvalidQuantity}"/>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td role="gridcell" class="ui-editable-column">
+                                                        <div  class="ui-cell-editor">
+                                                            <div class="ui-cell-editor-input">
+                                                                <h:outputText id="uom" value="#{purchaseOrderController.purchaseOrderLine.uom}" style="width:100%"/>      
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td role="gridcell" class="ui-editable-column">
+                                                        <div  class="ui-cell-editor">
+                                                            <div class="ui-cell-editor-input">
+                                                                <p:spinner value="#{purchaseOrderController.purchaseOrderLine.price}" 
+                                                                           id="price"
+                                                                           class="required"
+                                                                           required="true" 
+                                                                           min="0"                                                                       
+                                                                           stepFactor="#{messages.stepFactor}"                                                  
+                                                                           size="12"                                                        
+                                                                           requiredMessage="#{messages.PriceRequired}" 
+                                                                           converterMessage="#{messages.InvalidPrice}"/>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td role="gridcell" class="ui-editable-column">
+                                                        <div  class="ui-cell-editor">
+                                                            <div class="ui-cell-editor-input">
+                                                                <p:selectOneMenu id="tax" class="input-width-100" value="#{purchaseOrderController.purchaseOrderLine.tax}" converter="taxConverter">
+                                                                    <f:selectItem  itemLabel="&#160;" />
+                                                                    <f:selectItems value="#{taxController.purchaseTaxes}"
+                                                                                   var="tax"
+                                                                                   itemValue="#{tax}"
+                                                                                   itemLabel="#{tax.name.toString()}"
+                                                                                   />
+                                                                </p:selectOneMenu>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td role="gridcell" class="ui-editable-column">
+                                                        <div  class="ui-cell-editor">
+                                                            <div class="ui-cell-editor-input">
+                                                                <h:outputText value="#{messages.Currency} #{purchaseOrderController.purchaseOrderLine.subTotal}" class="font-5 last-column" id="subTotal"/>     
+                                                            </div>
+                                                        </div>
+                                                    </td>
 
-                            <div jsf:id="OrderTotal" style="text-align: right; padding-right: 15px"> 
-                                <div class="row" style="margin-top: 26px; font-size: 15px; padding-bottom:5px;">
-                                    <div class="col-md-4 col-md-offset-6">
-                                        <h:outputText value="#{messages.UntaxedAmount}"/>
-                                    </div> 
-                                    <div class="col-md-2" style="padding-right:0px">
-                                        #{messages.Currency}
-                                        <h:outputText id="amountUntaxed" value="#{purchaseOrderController.purchaseOrder.amountUntaxed}"/>                       
-                                    </div>
+                                                </tr></tbody></table></div></div>
+
+                                <div id="extraLines">
+                                    <div class="ui-datatable ui-widget datalist">
+                                        <div class="ui-datatable-tablewrapper">
+                                            <table role="grid">
+                                                <tbody  class="ui-datatable-data ui-widget-content">
+                                                    <tr>
+                                                        <td id="add">
+                                                            <a onclick="showRow(); hideTableButtons();">
+                                                                <i class="fa fa-plus-circle" aria-hidden="true"/>
+                                                            </a>
+                                                            &#160;
+                                                        </td>
+                                                    </tr>
+                                                    <tr jsf:rendered="#{purchaseOrderController.purchaseOrderLines.size() lt 3}">
+                                                        <td>&#160;</td>
+                                                    </tr>
+                                                </tbody>
+                                                <tfoot class="tableFoot"><td><tr></tr></td></tfoot>
+                                            </table></div></div>
+                                </div>  
+
+                                <div jsf:id="OrderTotal" class="row form-totals"> 
+                                    <div class="col-md-offset-7 col-md-5">
+                                        <div class="row form-data-1 line-breaks-1">
+                                            <div class="col-md-7">
+                                                <h:outputText class="font-1" value="#{messages.UntaxedAmount}"/>
+                                            </div> 
+                                            <div class="col-md-5">
+                                                <h:outputText class="font-1" id="amountUntaxed" value="#{messages.Currency} #{purchaseOrderController.purchaseOrder.amountUntaxed}"/>                     
+                                            </div>
+                                        </div>
+                                        <div class="row form-data-1 line-breaks-1">
+                                            <div class="col-md-7">
+                                                <h:outputText class="font-1" value="#{messages.Taxes}"/>
+                                            </div> 
+                                            <div class="col-md-5">
+                                                <h:outputText class="font-1" id="amountTax" value="#{messages.Currency} #{purchaseOrderController.purchaseOrder.amountTax}"/>
+                                            </div>
+                                        </div>
+                                        <div class="row form-data-2">
+                                            <div class="col-md-7 form-data-label">
+                                                <h:outputText class="font-3" value="#{messages.Total}"/>
+                                            </div> 
+                                            <div class="col-md-5 form-data-value">
+                                                <h:outputText class="font-3" id="amountTotal" value="#{messages.Currency} #{purchaseOrderController.purchaseOrder.amountTotal}"/>
+                                            </div>
+                                        </div> 
+                                    </div>    
+
                                 </div>
-                                <div class="row" style="font-size: 15px; padding-bottom:5px;">
-                                    <div class="col-md-2 col-md-offset-8">
-                                        <h:outputText value="#{messages.Taxes}"/>
-                                    </div> 
-                                    <div class="col-md-2" style="padding-right:0px">
-                                        #{messages.Currency}
-                                        <h:outputText id="amountTax" value="#{purchaseOrderController.purchaseOrder.amountTax}"/>
-                                    </div>
-                                </div>
-                                <div class="row" style="font-size: 20px;">
-                                    <div class="col-md-2 col-md-offset-8 form-label-2">
-                                        <h:outputText value="#{messages.Totall}"/>
-                                    </div> 
-                                    <div class="col-md-2 form-label-2" style="padding-right:0px">
-                                        #{messages.Currency}
-                                        <h:outputText id="amountTotal" value="#{purchaseOrderController.purchaseOrder.amountTotal}"/>
+                            </div>                     
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <p:inputTextarea rows="4" cols="50" id="notes" value="#{purchaseOrderController.purchaseOrder.notes}" placeholder="#{messages.TermsAndConditions}" autoResize="false"/>
+                                </div> 
+                            </div> 
+                        </div>
+                        <div class="tab-pane" id="form-tab-2">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="row form-data-1 line-breaks-3">
+                                        <div class="col-md-5 form-data-label font-2">
+                                            <span class="form-value">#{messages.ProductsReceived}</span>
+                                        </div>
+                                        <div class="col-md-7 form-data-value">
+                                            <p:selectBooleanCheckbox id="shipped" value="#{purchaseOrderController.purchaseOrder.shipped}" disabled="true"/>
+                                        </div>
                                     </div>
                                 </div> 
                             </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-12">
-                                <p:inputTextarea rows="4" cols="50" id="notes" value="#{purchaseOrderController.purchaseOrder.notes}" placeholder="#{messages.TermsAndConditions}" autoResize="false"/>
-                            </div> 
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="row form-data-1 line-breaks-3">
+                                        <div class="col-md-5 form-data-label font-2">
+                                            <span>#{messages.Paid}</span>
+                                        </div>
+                                        <div class="col-md-7 form-data-value">
+                                            <p:selectBooleanCheckbox id="paid" value="#{purchaseOrderController.purchaseOrder.paid}" disabled="true" />
+                                        </div>
+                                    </div>
+                                </div>  
+                            </div>                   
                         </div>
                     </div>
-                    <div class="tab-pane" id="form-tab-2" style="padding-top: 41px; padding-bottom: 62px;">
-                        <div class="row" style="padding-bottom: 15px; padding-left: 20px; margin-bottom:10px">
-                            <div class="col-md-2point5 form-label">
-                                <p:outputLabel value="#{messages.ProductsReceived}" for="shipped" />
-                            </div>
-                            <div class="col-md-3point5">
-                                <p:selectBooleanCheckbox id="shipped" value="#{purchaseOrderController.purchaseOrder.shipped}" disabled="true" />
-                            </div>
-                        </div>
-
-                        <div class="row" style="padding-bottom: 15px; padding-left: 20px; margin-bottom:10px">
-                            <div class="col-md-2point5 form-label">
-                                <p:outputLabel value="#{messages.Paid}" for="paid" />
-
-                            </div>
-                            <div class="col-md-3point5">
-                                <p:selectBooleanCheckbox id="paid" value="#{purchaseOrderController.purchaseOrder.paid}" disabled="true" />
-                            </div>
-                        </div>                
-                    </div>
-
                 </div>
             </div>
-        </div>
+        </div> 
     </div> 
 
-    <p:dialog id="PartnerListDialog" modal="true" styleClass="disable-scroll item-select-dialog" widgetVar="PartnerList"  resizable="false" closable="true"  appendTo="@(body)"  header="#{messages.SearchVendor}" width="#{messages.ItemSelectDialogWidth}" closeOnEscape="true">
+    <p:dialog id="PartnerListDialog" 
+              modal="true" 
+              styleClass="disable-scroll item-select-dialog" 
+              widgetVar="PartnerList"  
+              resizable="false" 
+              closable="true"  
+              appendTo="@(body)"  
+              header="#{messages.SearchVendor}" 
+              width="#{messages.ItemSelectDialogWidth}" 
+              closeOnEscape="true">
         <h:form>
 
             <p:dataTable id="PartnerTable"
@@ -402,7 +446,7 @@
                 <p:ajax event="page" oncomplete="updateTable(partnersTableId);"/>
                 <p:ajax event="sort" oncomplete="updateTable(partnersTableId);"/>
                 <p:ajax event="filter" global="false" onstart="showSearchLoader();" oncomplete="updateTable(partnersTableId); hideSearchLoader();"/>      
-                <p:ajax event="rowSelect" resetValues="true"  listener="#{purchaseOrderController.onSelectSupplier}" onstart="PF('PartnerList').hide(); PF('PartnerTable').clearFilters();" update=":PurchaseOrderForm:partnerMenu"/>
+                <p:ajax event="rowSelect" resetValues="true"  listener="#{purchaseOrderController.onSelectSupplier}" onstart="PF('PartnerList').hide(); PF('PartnerTable').clearFilters();" update=":mainForm:partnerMenu"/>
 
 
                 <p:column>
@@ -436,12 +480,21 @@
     </p:dialog>
 
 
-    <p:dialog id="ProductListDialog" modal="true" styleClass="disable-scroll item-select-dialog" widgetVar="ProductList"  resizable="false" closable="true"  appendTo="@(body)" header="#{messages.SearchProduct}" width="#{messages.ItemSelectDialogWidth}" closeOnEscape="true">
+    <p:dialog id="ProductListDialog" 
+              modal="true" 
+              styleClass="disable-scroll item-select-dialog" 
+              widgetVar="ProductList"  
+              resizable="false" 
+              closable="true"  
+              appendTo="@(body)" 
+              header="#{messages.SearchProduct}" 
+              width="#{messages.ItemSelectDialogWidth}" 
+              closeOnEscape="true">
         <h:form>
 
             <p:dataTable id="ProductTable"
                          value="#{productController.purchasedProducts}"
-                         class="fit-content-table"
+                         class="fit-content-table dialog-table"
                          binding="#{products}"
                          filteredValue="#{productController.filteredProducts}"
                          var="item"
@@ -454,12 +507,12 @@
                          widgetVar="ProductTable"
                          rows="#{messages.DialogMaxRows}">
 
-                <f:facet name="header">
+                <f:facet name="header" class="no-background">
                     <p:outputPanel>
                         <div class="searchLoader">
                             <p:graphicImage  name="/img/search-loader.gif"/>
                         </div>
-                        <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('ProductTable').filter()" class="search" placeholder="#{messages.Search}"/>               
+                        <h:inputText id="globalFilter" onkeyup="PF('ProductTable').filter()" class="search"  pass:placeholder="#{messages.Search}"/>               
                     </p:outputPanel>
                 </f:facet>
 
@@ -491,8 +544,7 @@
                     <f:facet name="header">
                         <h:outputText value="#{messages.PurchasePrice}"/>
                     </f:facet>
-                    #{messages.Currency}
-                    <h:outputText value="#{item.purchasePrice}"/>             
+                    <h:outputText value="#{messages.Currency} #{item.purchasePrice}"/>              
                 </p:column>
                 <p:column sortBy="#{item.inventory.quantityOnHand}" filterBy="#{item.inventory.quantityOnHand}">
                     <f:facet name="header">
@@ -512,59 +564,55 @@
                     </f:facet>
                     <h:outputText value="#{item.uom.name}"/>
                 </p:column>
-
             </p:dataTable>
         </h:form>
     </p:dialog>
+    <script>
 
-    <script type="text/JavaScript"> 
+        $("#mainForm\\:partnerMenu_input option:first-of-type").attr("value", "");
+        $("#mainForm\\:productMenuTwo_input option:first-of-type").attr("value", "");
 
-
-
-        $("#PurchaseOrderForm\\:partnerMenu_input option:first-of-type").attr("value","");
-        $("#PurchaseOrderForm\\:productMenuTwo_input option:first-of-type").attr("value","");
-
-        function showPartnerList(){
-        $("#PurchaseOrderForm\\:partnerMenu_input option:first-of-type").attr("value","");
-        if (PF('partnerMenu').getSelectedLabel() === '#{messages.SearchMore}') {
-        PF('partnerMenu').selectValue('');
-        PF('PartnerList').show();  
-        } 
-        }  
-
-        function showProductList(index){
-        $("#PurchaseOrderForm\\:datalist\\:"+index+"\\:productMenu_input option:first-of-type").attr("value","");
-        if (PF('productMenu_' + index).getSelectedLabel() === '#{messages.SearchMore}') {
-        PF('productMenu_' + index).selectValue('');
-        setRowIndex([{name:'rowIndex', value:index}]);
-        PF('ProductList').show();  
-        } 
+        function showPartnerList() {
+            $("#mainForm\\:partnerMenu_input option:first-of-type").attr("value", "");
+            if (PF('partnerMenu').getSelectedLabel() === '#{messages.SearchMore}') {
+                PF('partnerMenu').selectValue('');
+                PF('PartnerList').show();
+            }
         }
 
-        function showProductListTwo(){
-        $("#PurchaseOrderForm\\:productMenuTwo_input option:first-of-type").attr("value","");
-        if (PF('productMenuTwo').getSelectedLabel() === '#{messages.SearchMore}') {
-        PF('productMenuTwo').selectValue('');
-        setRowIndex([{name:'rowIndex', value:'-1'}]);
-        PF('ProductList').show();  
-        } 
-        }    
-        
+        function showProductList(index) {
+            $("#mainForm\\:datalist\\:" + index + "\\:productMenu_input option:first-of-type").attr("value", "");
+            if (PF('productMenu_' + index).getSelectedLabel() === '#{messages.SearchMore}') {
+                PF('productMenu_' + index).selectValue('');
+                setRowIndex([{name: 'rowIndex', value: index}]);
+                PF('ProductList').show();
+            }
+        }
+
+        function showProductListTwo() {
+            $("#mainForm\\:productMenuTwo_input option:first-of-type").attr("value", "");
+            if (PF('productMenuTwo').getSelectedLabel() === '#{messages.SearchMore}') {
+                PF('productMenuTwo').selectValue('');
+                setRowIndex([{name: 'rowIndex', value: '-1'}]);
+                PF('ProductList').show();
+            }
+        }
+
         function updateTable(tableId) {
             addEmptyRows(tableId);
         }
 
+        var invoiceTaxessTableId = '#{invoiceTaxess.clientId}';
         var productsTableId = '#{products.clientId}';
         var partnersTableId = '#{partners.clientId}';
-        
+
         addEmptyRows(productsTableId);
         addEmptyRows(partnersTableId);
-        
-        disableStatusLinks();
-        
-        setActiveTab()
+
+        setActiveTab();
 
 
     </script>
+
 
 </ui:composition>

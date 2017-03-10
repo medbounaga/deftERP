@@ -4,93 +4,93 @@
                 xmlns:p="http://primefaces.org/ui"
                 xmlns:f="http://xmlns.jcp.org/jsf/core"
                 xmlns:jsf="http://xmlns.jcp.org/jsf"
-                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+                xmlns:o="http://omnifaces.org/ui">
 
 
-    <p:growl id="msgs" widgetVar="growl"/>
-    <div class="row form-header-1" style="padding-bottom: 6px !important;">
-        <div class="col-md-8point5" >
-            <p:commandLink update="ProductUomForm:content" process="@this" class="form-nav" actionListener="#{productUomController.showProductUomList}">
-                <h:outputText   value="#{messages.UnitsOfMeasure}"/>
-            </p:commandLink> 
-            <span> / </span>            
-            <p:outputLabel id="namee" value="#{productUomController.productUom.name}" /> 
-        </div>
-        <div class="col-md-2point5 form-pagination" >
-            <div class="pagination-form-number">
-                <div class="form-number">
-                    #{productUomController.productUomIndex} / #{productUomController.productUoms.size()}
-                </div>
-                <ul class="pagination">
-                    <li>
-                        <p:commandLink actionListener="#{productUomController.previousProductUom}" process="@this" styleClass="fa fa-chevron-left" pass:aria-label="Previous" update="ProductUomForm:content" oncomplete="setNextFormURL('id',formId)"/>           
-                    </li>
-                    <li>
-                        <p:commandLink actionListener="#{productUomController.nextProductUom}" process="@this" styleClass="fa fa-chevron-right" pass:aria-label="Next" update="ProductUomForm:content" oncomplete="setNextFormURL('id',formId)"/>
-                    </li>
-                </ul>
+    <div class="row">
+        <div class="col-md-12 card z-depth-1 tool-bar">
+            <div class="form-nav">
+                <span class="form-nav-item">#{messages.UnitsOfMeasure}</span>  
+                <i class="fa fa-chevron-circle-right form-nav-icon" aria-hidden="true"></i>
+                <span class="form-nav-item">#{productUomController.productUom.name}</span>
             </div>
-        </div>
-        <div class="col-md-1 form-pagination" >
-            <ul class="pagination">
-                <li class="active-nav-button">
-                    <p:commandLink  styleClass="fa fa-square-o" style="font-size: 17px !important;" update="@none"/>
-                </li>
-                <li >
-                    <p:commandLink process="@this" actionListener="#{productUomController.showProductUomList}" styleClass="fa fa-bars" style="font-size: 17px !important;" update="ProductUomForm:content"/>
-                </li>
-            </ul>
         </div>
     </div> 
-    <div class="row form-header-2">
-        <div class="col-md-12 record-status-buttons">  
-            <p:commandButton class="btnn btnn-primary" value="#{messages.Edit}" actionListener="#{productUomController.prepareEditProductUom(productUomController.productUom.id)}"  update="ProductUomForm:content" />               
-            <p:commandButton class="btnn btnn-default" value="#{messages.Create}" actionListener="#{productUomController.prepareCreateProductUom}" update="ProductUomForm:content" /> 
-            <p:commandButton class="btnn btnn-default" value="#{messages.Delete}" actionListener="#{productUomController.deleteProductUom(productUomController.productUom.id)}" update="ProductUomForm:content"/>
+
+    <div class="row">
+        <div class="col-md-12 card z-depth-1 tool-bar">
+            <a class="waves-effect waves-light btn btn-icon btn-primary list-slider" onclick="listSliderClicked();">
+                <i class="fa fa-bars"/>
+            </a>
+            <div class="vertical-spacer"/>
+            <p:commandButton class="waves-effect waves-light btn btn-primary" value="#{messages.Edit}" actionListener="#{productUomController.prepareEditProductUom}"  update=":mainForm:itemForm, :mainForm:itemList"/>               
+            <p:commandButton class="waves-effect waves-light btn btn-primary" value="#{messages.Create}" actionListener="#{productUomController.prepareCreateProductUom}" update=":mainForm:itemForm, :mainForm:itemList"/> 
+            <p:commandButton class="waves-effect waves-light btn btn-primary" value="#{messages.Delete}" actionListener="#{productUomController.deleteProductUom}" update=":mainForm:itemForm, :mainForm:itemList"/>
         </div>
     </div>
-    <div class="row form-body-full">                   
-        <div class="row">
-            <div class="col-md-6point5">
-                <div class="row form-row">
-                    <div class="col-md-4 form-label">
-                        <p:outputLabel value="#{messages.UnitOfMeasure}"/>
-                    </div> 
-                    <div class="col-md-8">
-                        <h:outputText value="#{productUomController.productUom.name}"/>    
-                    </div>
-                </div>
-                <div class="row form-row">
-                    <div class="col-md-4 form-label">
-                        <p:outputLabel value="#{messages.NumberOfDecimals}"/>
-                    </div> 
-                    <div class="col-md-8">
-                        <h:outputText value="#{productUomController.productUom.decimals}"/>                    
-                    </div>
-                </div>                                      
-            </div>
-            <div class="col-md-5point5">
-                <div class="row form-row">
-                    <div class="col-md-4 form-label">
-                        <p:outputLabel value="#{messages.Category}"/>
-                    </div> 
-                    <div class="col-md-8">
-                        <h:outputText value="#{productUomController.productUom.category.name}"/>
-                    </div>
-                </div>
-                <div class="row form-row">
-                    <div class="col-md-4 form-label">
-                       <p:outputLabel value="#{messages.Active}" for="active"/>
-                    </div> 
-                    <div class="col-md-8">
-                         <p:selectBooleanCheckbox id="active" value="#{productUomController.productUom.active}" disabled="true"/>
+
+    <div class="row">  
+        <div class="col-md-10 col-md-offset-1 form-body card z-depth-2" style="padding-bottom: 100px;">          
+            <div class="row" style="margin-bottom: 26px;">
+                <div class="col-md-12">
+                    <div class="form-pagination">
+                        <p:commandLink class="left-arrow" actionListener="#{productUomController.previousProductUom}" process="@this" update=":mainForm:itemForm, :mainForm:itemList" oncomplete="setNextFormURL('id',formId)"> 
+                            <span class="fa fa-chevron-left" aria-hidden="true"/> 
+                        </p:commandLink>    
+                        <div class="form-number">
+                            <span>#{productUomController.productUomIndex} / #{productUomController.productUoms.size()}</span>
+                        </div>
+                        <p:commandLink class="right-arrow" actionListener="#{productUomController.nextProductUom}" process="@this" update=":mainForm:itemForm, :mainForm:itemList" oncomplete="setNextFormURL('id',formId)"> 
+                            <span class="fa fa-chevron-right" aria-hidden="true"/> 
+                        </p:commandLink> 
                     </div>
                 </div>
             </div>
-        </div>
-    </div>  
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-5">
+                            <span class="form-data-label font-2">#{messages.UnitOfMeasure}</span>
+                        </div> 
+                        <div class="col-md-7">
+                            <span class="form-data-value font-1">#{productUomController.productUom.name}</span>
+                        </div>
+                    </div>
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-5">
+                            <span class="form-data-label font-2">#{messages.NumberOfDecimals}</span>
+                        </div>
+                        <div class="col-md-7">
+                            <span class="form-data-value font-1">#{productUomController.productUom.decimals}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-5">
+                            <span class="form-data-label font-2">#{messages.Category}</span>
+                        </div>
+                        <div class="col-md-7">
+                            <span class="form-data-value font-1">#{productUomController.productUom.category.name}</span>
+                        </div>
+                    </div>
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-5">
+                            <span class="form-data-label font-2">#{messages.Active}</span>
+                        </div>
+                        <div class="col-md-7">
+                            <p:selectBooleanCheckbox id="active" value="#{productUomController.productUom.active}" disabled="true"/>
+                        </div>
+                    </div>
+                </div>
+            </div> 
+        </div>     
+    </div>
+
     <script type="text/javascript">
         var formId = "#{productUomController.productUom.id}";
         setFormURL('id', formId);
     </script>
+
+
 </ui:composition>

@@ -1,7 +1,7 @@
 
 package com.casa.erp.dao;
 
-import com.casa.erp.entities.Journal;
+import com.defterp.modules.accounting.entities.Journal;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;

@@ -4,104 +4,114 @@
                 xmlns:p="http://primefaces.org/ui"
                 xmlns:f="http://xmlns.jcp.org/jsf/core"
                 xmlns:jsf="http://xmlns.jcp.org/jsf"
-                xmlns:o="http://omnifaces.org/ui"
-                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough"
+                xmlns:o="http://omnifaces.org/ui"> 
 
-
-    <p:growl id="msgs" widgetVar="growl"/>
-    <h:selectBooleanCheckbox  id="imageModified" value="#{userController.imageModified}" style="display: none;" />
-    <div class="row form-header-1">
-        <div class="col-md-12" >
-            <p:commandLink class="form-nav" value="#{messages.Users}" process="@this" actionListener="#{userController.showUserList}" update=":UserForm:content"/>
-            <span> / </span>
-            <span>#{messages.Edit}</span>
+     <h:selectBooleanCheckbox style="display: none;"  id="imageModified" value="#{userController.imageModified}"/>
+    <div class="row">
+        <div class="col-md-12 card z-depth-1 tool-bar">
+            <div class="form-nav">
+                <span class="form-nav-item">#{messages.Users}</span>  
+                <i class="fa fa-chevron-circle-right form-nav-icon" aria-hidden="true"></i>
+                <span class="form-nav-item">#{userController.user.name}</span>  
+                <i class="fa fa-chevron-circle-right form-nav-icon" aria-hidden="true"></i>
+                <span class="form-nav-item">#{messages.Edit}</span>   
+            </div>
         </div>
     </div> 
-    <div class="row form-header-2" style="padding-top: 5px;">
-        <div class="col-md-12 record-status-buttons">   
-            <h:commandButton id="saveBtn" action="#{userController.updateUser(userController.user.id)}"  value="#{messages.Save}" styleClass="btnn btnn-primary jsf-btn">
-                <f:ajax execute="@form"  render=":UserForm:content"/> 
+
+    <div class="row">
+        <div class="col-md-12 card z-depth-1 tool-bar">
+            <a class="waves-effect waves-light btn btn-icon btn-primary list-slider" onclick="listSliderClicked();">
+                <i class="fa fa-bars"/>
+            </a>
+            <div class="vertical-spacer"/> 
+            <h:commandButton id="saveBtn" action="#{userController.updateUser}"  value="#{messages.Save}" styleClass="waves-effect waves-light btn btn-primary jsf-btn">
+                <f:ajax execute="@form"  render=":mainForm:itemForm :mainForm:itemList"/> 
             </h:commandButton>
-            <p:commandButton class="btnn btnn-default" value="#{messages.Discard}" process="@this" actionListener="#{userController.cancelEditUser(userController.user.id)}"  update=":UserForm:content" /> 
+            <p:commandButton class="waves-effect waves-light btn btn-primary" value="#{messages.Discard}" process="@this" actionListener="#{userController.cancelUpdateUser}"  update=":mainForm:itemForm, :mainForm:itemList" /> 
         </div>
     </div>
-    <div class="row form-body-full">  
-        <div class="row">
-            <div class="col-md-1point5">
-                <p:graphicImage  value="#" name="#{userController.getFormDefaultImage()}"  binding="#{altImage}" style="display: none;" />
-                <h:inputFile style="display:none;"   id="pictureUpload"  value="#{userController.image}" binding="#{upload}" validator="#{userController.validateImage}" />
-                <div class="form_image">
-                    <o:graphicImage rendered="#{userController.user.image != null}"  value="#{userController.user.image}" dataURI="true" />   
-                    <p:graphicImage rendered="#{userController.user.image == null}"  value="#" name="#{userController.getFormDefaultImage()}"  />
-                    <div class="form_image_buttons" style="position: absolute; width: 100%;">
-                        <a class="fa fa-pencil form_image_edit" id="upload_link"/>
-                        <a class="fa fa-trash-o form_image_remove" id="remove_link"/> 
+
+    <div class="row">  
+        <div class="col-md-10 col-md-offset-1 form-body card z-depth-2" style="padding-top: 32px; padding-bottom: 100px;">
+            <div class="row line-breaks-3">
+                <div class="col-md-12">
+                    <p:graphicImage  value="#" name="#{userController.getFormDefaultImage()}"  binding="#{altImage}" style="display: none;" />
+                    <h:inputFile style="display:none;" id="pictureUpload" value="#{userController.image}" binding="#{upload}" validator="#{userController.validateImage}" />
+                    <div class="form_image">
+                        <o:graphicImage rendered="#{userController.user.image != null}"  value="#{userController.user.image}" dataURI="true" />   
+                        <p:graphicImage rendered="#{userController.user.image == null}"  value="#" name="#{userController.getFormDefaultImage()}"  />
+                        <div class="form_image_buttons" style="position: absolute; width: 100%;">
+                            <a class="fa fa-pencil form_image_edit" id="upload_link"/>
+                            <a class="fa fa-trash-o form_image_remove" id="remove_link"/> 
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-md-6point5">
-                <div class="row form-row">
-                    <div class="col-md-4 form-label">
-                        <p:outputLabel value="#{messages.FullName}" for="fullName"/>
-                    </div> 
-                    <div class="col-md-8">
-                        <p:inputText id="fullName" value="#{userController.user.name}" class="fullWidth required" required="true" requiredMessage="#{messages.FullNameRequired}" maxlength="55"/>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-4point5">
+                            <p:outputLabel value="#{messages.FullName}" class="form-data-label font-2" for="fullName"/>
+                        </div> 
+                        <div class="col-md-7point5">
+                            <p:inputText id="fullName" value="#{userController.user.name}" class="form-data-value font-1 input-width-90 required" required="true" requiredMessage="#{messages.FullNameRequired}" maxlength="55"/>
+                        </div>
+                    </div>
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-4point5">
+                            <p:outputLabel value="#{messages.UserType}" for="userType" class="form-data-label font-2"/>
+                        </div> 
+                        <div class="col-md-7point5">
+                            <p:selectOneMenu class="form-data-value font-1 input-width-90 required" id="userType" value="#{userController.user.userType}" required="true" requiredMessage="#{messages.UserTypeRequired}">   
+                                <f:selectItem  itemLabel="&#160;" />
+                                <f:selectItems value="#{userController.userTypes}"
+                                               var="userType"
+                                               itemValue="#{userType}"
+                                               itemLabel="#{userType.toString()}"/>
+                            </p:selectOneMenu>
+                        </div>
                     </div>
                 </div>
-                <div class="row form-row">
-                    <div class="col-md-4 form-label">
-                        <p:outputLabel value="#{messages.UserType}" for="userType"/>
-                    </div> 
-                    <div class="col-md-8">
-                        <p:selectOneMenu class="fullWidth required" id="userType" value="#{userController.user.userType}" required="true" requiredMessage="#{messages.UserTypeRequired}">   
-                            <f:selectItem  itemLabel="&#160;" />
-                            <f:selectItems value="#{userController.userTypes}"
-                                           var="userType"
-                                           itemValue="#{userType}"
-                                           itemLabel="#{userType.toString()}"/>
-                        </p:selectOneMenu>
+
+                <div class="col-md-offset-point5 col-md-5point5">
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-5">
+                            <p:outputLabel value="#{messages.UserName}" for="userName" class="form-data-label font-2"/>
+                        </div> 
+                        <div class="col-md-7">
+                            <p:inputText id="userName" value="#{userController.user.login}" class="form-data-value font-1 input-width-90 required" required="true" requiredMessage="#{messages.UserNameRequired}" maxlength="55"/>
+                        </div>
                     </div>
-                </div>                                      
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-5">
+                            <p:outputLabel value="#{messages.Password}" for="password" class="form-data-label font-2"/>
+                        </div> 
+                        <div class="col-md-7">
+                            <p:inputText id="password" value="#{userController.user.password}" class="form-data-value font-1 input-width-90 required" required="true" requiredMessage="#{messages.PasswordRequired}" maxlength="55"/>
+                        </div>
+                    </div>
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-5">
+                            <p:outputLabel value="#{messages.Active}" for="active" class="form-data-label font-2"/>
+                        </div> 
+                        <div class="col-md-7">
+                            <p:selectBooleanCheckbox id="active" value="#{userController.user.active}" />
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-5point5">
-                <div class="row form-row">
-                    <div class="col-md-4 form-label">
-                        <p:outputLabel value="#{messages.UserName}" for="userName"/>
-                    </div> 
-                    <div class="col-md-8">
-                        <p:inputText id="userName" value="#{userController.user.login}" class="fullWidth required" required="true" requiredMessage="#{messages.UserNameRequired}" maxlength="55"/>
-                    </div>
-                </div>
-                <div class="row form-row">
-                    <div class="col-md-4 form-label">
-                        <p:outputLabel value="#{messages.Password}" for="password"/>
-                    </div> 
-                    <div class="col-md-8">
-                        <p:inputText id="password" value="#{userController.user.password}" class="fullWidth required" required="true" requiredMessage="#{messages.PasswordRequired}" maxlength="55"/>
-                    </div>
-                </div>
-                <div class="row form-row" style="padding-top: 5px;">
-                    <div class="col-md-4 form-label">
-                        <p:outputLabel value="#{messages.Active}" for="active"/>
-                    </div> 
-                    <div class="col-md-8">
-                        <p:selectBooleanCheckbox id="active" value="#{userController.user.active}" />
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>  
-    
-    
+        </div>     
+    </div>
+
      <script>
         
 
         $(function () {
             $("#upload_link").on('click', function (e) {
                 e.preventDefault();
-                $("#UserForm\\:pictureUpload:hidden").trigger('click');
+                $("#mainForm\\:pictureUpload:hidden").trigger('click');
             });
         });
 
@@ -111,7 +121,7 @@
                 var source = $("[id='#{altImage.clientId}']").attr('src');
                 $(".form_image img").attr('src', source);
                 $("[id='#{upload.clientId}']").val('');
-                $("#UserForm\\:imageModified").prop('checked', true);
+                $("#mainForm\\:imageModified").prop('checked', true);
                        
             });
         });
@@ -120,7 +130,7 @@
                 function ()
                 {
                     readPicture(this, $(".form_image img"));
-                    $("#UserForm\\:imageModified").prop('checked', true);
+                    $("#mainForm\\:imageModified").prop('checked', true);
                 }          
         );
 

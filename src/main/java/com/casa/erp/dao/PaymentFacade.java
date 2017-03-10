@@ -1,11 +1,11 @@
 package com.casa.erp.dao;
 
-import com.casa.erp.beans.util.IdGenerator;
-import com.casa.erp.entities.Account;
-import com.casa.erp.entities.Journal;
-import com.casa.erp.entities.JournalEntry;
-import com.casa.erp.entities.Partner;
-import com.casa.erp.entities.Payment;
+import com.defterp.util.IdGenerator;
+import com.defterp.modules.accounting.entities.Account;
+import com.defterp.modules.accounting.entities.Journal;
+import com.defterp.modules.accounting.entities.JournalEntry;
+import com.defterp.modules.partners.entities.Partner;
+import com.defterp.modules.accounting.entities.Payment;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;

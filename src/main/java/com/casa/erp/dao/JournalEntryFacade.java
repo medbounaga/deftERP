@@ -1,7 +1,7 @@
 
 package com.casa.erp.dao;
 
-import com.casa.erp.entities.JournalEntry;
+import com.defterp.modules.accounting.entities.JournalEntry;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -27,13 +27,13 @@ public class JournalEntryFacade {
     }
     
 
-    public List<JournalEntry> findByPartner(Integer partnerId) {
-        List<JournalEntry> JournalEntriesByPartner = em.createNamedQuery("JournalEntry.findByPartner")
-                .setParameter("partnerId", partnerId)
-                .getResultList();
-        
-        return JournalEntriesByPartner;  
-    }
+//    public List<JournalEntry> findByPartner(Integer partnerId) {
+//        List<JournalEntry> JournalEntriesByPartner = em.createNamedQuery("JournalEntry.findByPartner")
+//                .setParameter("partnerId", partnerId)
+//                .getResultList();
+//        
+//        return JournalEntriesByPartner;  
+//    }
  
     public List<JournalEntry> findAll() {
         javax.persistence.criteria.CriteriaQuery cq = em.getCriteriaBuilder().createQuery();

@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:p="http://primefaces.org/ui">
+
+
+
+    <!-- page start-->
+    <p:growl id="msgs" widgetVar="growl" />
+    <div class="row form-header-1">
+        <div class="col-md-10point5" >  
+            <div jsf:rendered="#{empty supDeliveryOrderController.listType}">  
+                <h:outputText value="#{messages.IncomingShipments}"/> 
+            </div>
+            <div jsf:rendered="#{supDeliveryOrderController.listType == 'partner'}">  
+                <p:link  class="form-nav" value="#{supDeliveryOrderController.deliveryOrders[0].partner.name}"  outcome="/sc/supplier/index">
+                    <f:param name="id" value="#{supDeliveryOrderController.partnerId}"/>
+                </p:link>
+                <span> / </span> 
+                <h:outputText value="#{messages.IncomingShipments}"/> 
+            </div>
+            <div jsf:rendered="#{supDeliveryOrderController.listType == 'purchaseOrder'}"> 
+                <p:link  class="form-nav" value="#{supDeliveryOrderController.deliveryOrders[0].origin}"  outcome="/sc/purchaseOrder/index">
+                    <f:param name="id" value="#{supDeliveryOrderController.purchaseId}"/>
+                </p:link>
+                <span> / </span> 
+                <h:outputText value="#{messages.IncomingShipments}"/> 
+            </div>
+            <div jsf:rendered="#{supDeliveryOrderController.listType == 'partialDelivery'}"> 
+                <p:commandLink update=":DeliveryOrderForm:content" process="@this" value="#{supDeliveryOrderController.deliveryOrders[0].backOrder.name}" class="form-nav" actionListener="#{supDeliveryOrderController.showForm(supDeliveryOrderController.deliveryOrders[0].backOrder.id)}"/>
+                <span> / </span> 
+                <h:outputText value="#{messages.PartialIncomingShipments}"/> 
+            </div>
+        </div>
+        <div class="col-md-1point5 form-pagination" style="display: inline-table;" >
+            <ul class="pagination">
+                <li>
+                    <p:commandLink process="@this" actionListener="#{supDeliveryOrderController.showForm}" styleClass="fa fa-square-o" style="font-size: 17px !important;" update=":DeliveryOrderForm:content"/>           
+                </li>
+                <li class="active-nav-button">
+                    <p:commandLink  styleClass="fa fa-bars" style="font-size: 17px !important;" update="@none"/>
+                </li>
+            </ul>
+        </div>
+    </div> 
+
+    <div class="row"> 
+        <p:dataTable id="supDeliveryOrders"
+                     class="fit-content-table"
+                     binding="#{supDeliveryOrders}"
+                     value="#{supDeliveryOrderController.deliveryOrders}"
+                     filteredValue="#{supDeliveryOrderController.filteredDeliveryOrders}"
+                     var="item"
+                     sortBy="#{item.date}"
+                     sortOrder="descending"
+                     widgetVar="supDeliveryOrders"
+                     selection="#{supDeliveryOrderController.deliveryOrder}"
+                     rowKey="#{item.id}"
+                     selectionMode="single"
+                     paginator="true"
+                     rows="#{messages.MaxRows}"
+                     paginatorAlwaysVisible="true">                  
+            
+            <f:facet name="header">
+                <p:outputPanel>
+                    <p:commandButton process="@this" class="btnn btnn-primary" value="#{messages.Create}" actionListener="#{supDeliveryOrderController.prepareCreate}" update=":DeliveryOrderForm:content" />           
+                    <div class="searchLoader">
+                        <p:graphicImage  name="/img/search-loader.gif"/>
+                    </div>
+                    <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('supDeliveryOrders').filter()"
+                           onkeypress="if (event.keyCode == 13) {return false}" class="search" placeholder="#{messages.Search}"/>
+                </p:outputPanel>
+            </f:facet>
+            
+            <p:ajax event="page" oncomplete="updateTable();"/>
+            <p:ajax event="sort" oncomplete="updateTable();"/>
+            <p:ajax event="filter" global="false" onstart="showSearchLoader();" oncomplete="updateTable(); hideSearchLoader();"/>           
+            <p:ajax event="rowSelect" listener="#{supDeliveryOrderController.prepareView}" update=":DeliveryOrderForm:content" />
+
+            <p:column>
+                <f:facet name="header">
+                    <h:outputText value=""/>
+                </f:facet>
+                <h:outputText value=""/>
+            </p:column>
+
+            <p:column sortBy="#{item.name}" filterBy="#{item.name}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Number}"/>
+                </f:facet>
+                <h:outputText value="#{item.name}"/>
+            </p:column>
+            
+             <p:column sortBy="#{item.date}" filterBy="#{item.date}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.CreationDate}"/>
+                </f:facet>
+                <h:outputText value="#{item.date}">
+                    <f:convertDateTime pattern="MM-dd-yyyy" />
+                </h:outputText>
+            </p:column>
+
+            <p:column sortBy="#{item.partner.name}" filterBy="#{item.partner.name}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Vendor}"/>
+                </f:facet>
+                <h:outputText value="#{item.partner.name}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.origin}" filterBy="#{item.origin}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.SourceDocument}"/>
+                </f:facet>
+                <h:outputText value="#{item.origin}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.backOrder.name}" filterBy="#{item.backOrder.name}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.ParentDelivery}"/>
+                </f:facet>
+                <h:outputText value="#{item.backOrder.name}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.state}" filterBy="#{item.state}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Status}"/>
+                </f:facet>
+                <h:outputText value="#{supDeliveryOrderController.getStatus(item.state)}" styleClass="badge" style="background-color: #{supDeliveryOrderController.getStatusColor(item.state)}"/>
+            </p:column>
+        </p:dataTable>       
+    </div>  
+    <script>
+
+        function updateTable() {
+            addEmptyRows(tableId);
+            hidePaginator(tableId);
+        }
+
+        var tableId = '#{supDeliveryOrders.clientId}';
+        addEmptyRows(tableId);
+        hidePaginator(tableId);
+        setListURL();
+
+    </script>
+</ui:composition>

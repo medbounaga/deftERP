@@ -21,11 +21,11 @@
                 editable="true">
 
                 <p:ajax event="rowEditInit" global="false"  onstart="hideTableButtons();" /> 
-                <p:ajax event="rowEdit" listener="#{supDeliveryOrderController.onDialogRowEdit(rowIndex)}" update=":DeliveryOrderForm:msgs" oncomplete="if(args.validationFailed){hideTableButtons();}else{showTableButtons();}"/>
-                <p:ajax event="rowEditCancel" listener="#{supDeliveryOrderController.onDialogRowCancel}" update=":DeliveryOrderForm:msgs" oncomplete="showTableButtons();"/>
+                <p:ajax event="rowEdit" listener="#{supDeliveryOrderController.onDialogRowEdit(rowIndex)}" update="" oncomplete="if(args.validationFailed){hideTableButtons();}else{showTableButtons();}"/>
+                <p:ajax event="rowEditCancel" listener="#{supDeliveryOrderController.onDialogRowCancel}" update="" oncomplete="showTableButtons();"/>
 
-                <p:column style="width:60px;">
-                    <div style="display: inline-block;">
+                <p:column styleClass="table-row-buttons">
+                    <div>
                         <p:commandLink styleClass="ui-icon ui-icon-trash" actionListener="#{supDeliveryOrderController.removeOrderLine(rowIndex)}" update=":DeliveryForm:linesToDeliver"/>
                     </div>
                     <p:rowEditor/>
@@ -63,16 +63,16 @@
                 
                 <p:column headerText="#{messages.Status}">
                     <p:cellEditor>                       
-                        <f:facet name="output"><h:outputText value="#{supDeliveryOrderController.getStatus(item.state)}" styleClass="badge" style="background-color: #{supDeliveryOrderController.getStatusColor(item.state)}"/></f:facet>
-                        <f:facet name="input"><h:outputText value="#{supDeliveryOrderController.getStatus(item.state)}" styleClass="badge" style="background-color: #{supDeliveryOrderController.getStatusColor(item.state)}"/></f:facet>
+                        <f:facet name="output"><h:outputText value="#{supDeliveryOrderController.getStatus(item.state)}" styleClass="row-status" style="background-color: #{supDeliveryOrderController.getStatusColor(item.state)}"/></f:facet>
+                        <f:facet name="input"><h:outputText value="#{supDeliveryOrderController.getStatus(item.state)}" styleClass="row-status" style="background-color: #{supDeliveryOrderController.getStatusColor(item.state)}"/></f:facet>
                     </p:cellEditor>
                 </p:column>
 
             </p:dataTable>
 
             <br></br><br></br>
-            <p:commandButton class="btnn btnn-primary" value="#{messages.Receive}" process="@this"  actionListener="#{supDeliveryOrderController.deliver(supDeliveryOrderController.deliveryOrder.id)}"  update=":DeliveryOrderForm:content,:DeliveryForm,:DeliveryOrderForm:msgs" oncomplete="handleSubmit(xhr,status,args,PF('DeliveryOrderLineDialog'));"/> 
-            <a class="btnn btnn-default jsf-btn"  onclick="PF('DeliveryOrderLineDialog').hide()">#{messages.Cancel}</a>
+            <p:commandButton class="waves-effect waves-light btn btn-primary" value="#{messages.Receive}" process="@this"  actionListener="#{supDeliveryOrderController.deliver}"  update=":mainForm:itemForm, :mainForm:itemList, :DeliveryForm" oncomplete="handleSubmit(xhr,status,args,PF('DeliveryOrderLineDialog'));"/> 
+            <a class="waves-effect waves-light btn link-btn btn-secondary"  onclick="PF('DeliveryOrderLineDialog').hide()">#{messages.Cancel}</a>
 
 
         </h:form>

@@ -2,7 +2,7 @@
 package com.casa.erp.dao;
 
 
-import com.casa.erp.entities.ProductUomCategory;
+import com.defterp.modules.inventory.entities.ProductUomCategory;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;

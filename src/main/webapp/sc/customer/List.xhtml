@@ -1,38 +1,31 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
                 xmlns:h="http://java.sun.com/jsf/html"
                 xmlns:f="http://java.sun.com/jsf/core"
                 xmlns:jsf="http://xmlns.jcp.org/jsf"
-                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough"
                 xmlns:p="http://primefaces.org/ui">
 
 
-    <p:growl id="msgs" widgetVar="growl" />
-    <div class="row form-header-1">
-        <div class="col-md-10" >
-           <p:selectOneMenu style="width: 150px;" id="partnerType" value="#{customerController.partnerType}">
-                <p:ajax listener="#{customerController.updatePartnerType}" process="@this" update="@form" oncomplete="PF('partnerTable').filter();"/>
-                <f:selectItem itemLabel="#{messages.Vendors}" itemValue="Vendor"/>
-                <f:selectItem itemLabel="#{messages.Customers}" itemValue="Customer"/>
-                <f:selectItem itemLabel="#{messages.PartnersAll}" itemValue="Partner"/>
-            </p:selectOneMenu>
+    <div class="row">
+        <div class="col-md-12 card z-depth-1 tool-bar">     
+            
+            <div class="form-nav">  
+                <p:selectOneMenu style="width: 150px; margin-top: 6px;" id="partnerType" value="#{customerController.partnerType}">
+                    <p:ajax listener="#{customerController.updatePartnerType}" process="@this" global="false" update=":mainForm:partnerTable, mainForm:partnerTable:globalFilter, :mainForm:itemForm" oncomplete="PF('partnerTable').filter();"/>
+                    <f:selectItem itemLabel="#{messages.Vendors}" itemValue="Vendor"/>
+                    <f:selectItem itemLabel="#{messages.Customers}" itemValue="Customer"/>
+                    <f:selectItem itemLabel="#{messages.PartnersAll}" itemValue="Partner"/>
+                </p:selectOneMenu>
+            </div>
+            
+             <p:commandLink actionListener="#{customerController.showCustomerGrid()}" oncomplete="listSliderClicked();" process="@this" update=":mainForm:itemList" class="waves-effect waves-light btn btn-icon btn-primary float-right" style="margin-top: 4px; margin-bottom: 4px;"> 
+                <i class="fa fa-th" aria-hidden="true"/> 
+            </p:commandLink>  
         </div>
-        <div class="col-md-2 form-pagination" >
-            <ul class="pagination">
-                <li>
-                    <p:commandLink process="@this" actionListener="#{customerController.showCustomerGrid}"  styleClass="fa fa-th" style="font-size: 17px !important;" update=":PartnerForm:content"/>           
-                </li>
-                <li>
-                    <p:commandLink process="@this" actionListener="#{customerController.showCustomerForm}" styleClass="fa fa-square-o" style="font-size: 17px !important;" update=":PartnerForm:content"/>           
-                </li>
-                <li class="active-nav-button">
-                    <p:commandLink  styleClass="fa fa-bars" style="font-size: 17px !important;" update="@none"/>
-                </li>
-            </ul>
-        </div>
-    </div> 
+    </div>
+
+
     <div class="row"> 
         <p:dataTable id="partnerTable"
                      binding="#{customerTable}"
@@ -51,25 +44,24 @@
                      widgetVar="partnerTable"
                      rows="#{messages.MaxRows}">
 
-            <f:facet name="header">
+            <f:facet name="header" class="card z-depth-1">
                 <p:outputPanel>
                     <h:commandButton rendered="false" action="#{customerController.prepareCreateCustomer}" value="#{messages.Create}" styleClass="btnn btnn-primary">
-                        <f:ajax execute="@this" render=":PartnerForm:content"/> 
+                        <f:ajax execute="@this" render=":mainForm:itemForm, :mainForm:itemList"/> 
                     </h:commandButton>
-                    <p:commandButton update=":PartnerForm:content" process="@this" actionListener="#{customerController.prepareCreateCustomer}" value="#{messages.Create}"  styleClass="btnn btnn-primary"/> 
+                    <p:commandButton process="@this" class="waves-effect waves-light btn btn-primary" value="#{messages.Create}" actionListener="#{customerController.prepareCreateCustomer}" update=":mainForm:itemForm, :mainForm:itemList" onstart="hideItemsList();" />           
                     <div class="searchLoader">
                         <p:graphicImage  name="/img/search-loader.gif"/>
                     </div>
-                    <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('partnerTable').filter()" class="search"
-                           onkeypress="if (event.keyCode == 13) {return false}" placeholder="#{messages.Search}"/>
+                    <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('partnerTable').filter()" class="search" placeholder="#{messages.Search}"/>               
                 </p:outputPanel>
             </f:facet>
-            
+
             <p:ajax event="page" oncomplete="updateTable();"/>
             <p:ajax event="sort" oncomplete="updateTable();"/>
             <p:ajax event="filter" global="false" onstart="showSearchLoader();" oncomplete="updateTable(); hideSearchLoader();"/>           
-            <p:ajax event="rowSelect" listener="#{customerController.prepareViewCustomer}" update=":PartnerForm:content" />
-            
+            <p:ajax event="rowSelect" listener="#{customerController.prepareViewPartner}" update=":mainForm:itemForm, :mainForm:itemList" onstart="hideItemsList();" oncomplete="PF('partnerTable').clearFilters();" />
+
             <p:column>
                 <f:facet name="header">
                     <h:outputText value=""/>
@@ -114,11 +106,11 @@
                 #{messages.Currency}
                 <h:outputText value="#{customerController.getTotalPayables(item.id)}"/>
             </p:column>
-
-        </p:dataTable>       
-    </div> 
+        </p:dataTable>     
+    </div>  
     <script>
-           function updateTable() {
+
+        function updateTable() {
             addEmptyRows(tableId);
             hidePaginator(tableId);
         }
@@ -126,8 +118,6 @@
         var tableId = '#{customerTable.clientId}';
         addEmptyRows(tableId);
         hidePaginator(tableId);
-        setListURL();
+        
     </script>
-
-    <!-- page end--> 
 </ui:composition>

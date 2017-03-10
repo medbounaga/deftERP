@@ -1,0 +1,115 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+
+
+    <p:growl id="msgs" widgetVar="growl"/>
+    <div class="row form-header-1" style="padding-bottom: 6px !important;">
+        <div class="col-md-8point5" >
+            <p:commandLink update="UserForm:content" process="@this" class="form-nav" actionListener="#{userController.showUserList}">
+                <h:outputText   value="#{messages.Users}"/>
+            </p:commandLink> 
+            <span> / </span>            
+            <p:outputLabel id="namee" value="#{userController.user.name}" /> 
+        </div>
+        <div class="col-md-2point5 form-pagination" >
+            <div class="pagination-form-number">
+                <div class="form-number">
+                    #{userController.userIndex} / #{userController.users.size()}
+                </div>
+                <ul class="pagination">
+                    <li>
+                        <p:commandLink actionListener="#{userController.previousUser}" process="@this" styleClass="fa fa-chevron-left" pass:aria-label="Previous" update="UserForm:content" oncomplete="setNextFormURL('id',formId)"/>           
+                    </li>
+                    <li>
+                        <p:commandLink actionListener="#{userController.nextUser}" process="@this" styleClass="fa fa-chevron-right" pass:aria-label="Next" update="UserForm:content" oncomplete="setNextFormURL('id',formId)"/>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-1 form-pagination" >
+            <ul class="pagination">
+                <li class="active-nav-button">
+                    <p:commandLink  styleClass="fa fa-square-o" style="font-size: 17px !important;" update="@none"/>
+                </li>
+                <li >
+                    <p:commandLink process="@this" actionListener="#{userController.showUserList}" styleClass="fa fa-bars" style="font-size: 17px !important;" update="UserForm:content"/>
+                </li>
+            </ul>
+        </div>
+    </div> 
+    <div class="row form-header-2">
+        <div class="col-md-12 record-status-buttons">  
+            <p:commandButton class="btnn btnn-primary" value="#{messages.Edit}" actionListener="#{userController.prepareEditUser(userController.user.id)}"  update="UserForm:content" />               
+            <p:commandButton class="btnn btnn-default" value="#{messages.Create}" actionListener="#{userController.prepareCreateUser}" update="UserForm:content" /> 
+            <p:commandButton class="btnn btnn-default" value="#{messages.Delete}" actionListener="#{userController.deleteUser(userController.user.id)}" update="UserForm:content"/>
+        </div>
+    </div>
+    <div class="row form-body-full">  
+        
+        <div class="row">
+        <div class="col-md-12">
+                <span class="form_image">
+                    <p:graphicImage rendered="#{userController.user.image == null}"  value="#" name="#{userController.getFormDefaultImage()}"  />
+                    <o:graphicImage rendered="#{userController.user.image != null}"  value="#{userController.user.image}" dataURI="true" />
+                </span>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6point5">
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.FullName}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <h:outputText value="#{userController.user.name}"/>    
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.UserType}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <h:outputText value="#{userController.user.userType}"/>                        
+                    </div>
+                </div>                                      
+            </div>
+            <div class="col-md-5point5">
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.UserName}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <h:outputText value="#{userController.user.login}"/>
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Password}"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <h:outputText value="#{userController.user.password}"/>
+                    </div>
+                </div>
+                <div class="row form-row">
+                    <div class="col-md-4 form-label">
+                        <p:outputLabel value="#{messages.Active}" for="active"/>
+                    </div> 
+                    <div class="col-md-8">
+                        <p:selectBooleanCheckbox id="active" value="#{userController.user.active}" disabled="true"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>  
+    <script type="text/javascript">
+        var formId = "#{userController.user.id}";
+        setFormURL('id', formId);
+    </script>
+</ui:composition>

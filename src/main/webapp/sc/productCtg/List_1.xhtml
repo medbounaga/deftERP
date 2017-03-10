@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:p="http://primefaces.org/ui">
+
+
+
+    <p:growl id="msgs" widgetVar="growl" />
+    <div class="row form-header-1">
+        <div class="col-md-10point5" >
+            <h:outputText value="#{messages.ProductCategories}"/>
+        </div>
+        <div class="col-md-1point5 form-pagination" style="display: inline-table;" >
+            <ul class="pagination">
+                <li>
+                    <p:commandLink process="@this" actionListener="#{productCategoryController.showProductCategoryForm}" styleClass="fa fa-square-o" style="font-size: 17px !important;" update=":ProductCategoryForm:content"/>           
+                </li>
+                <li class="active-nav-button">
+                    <p:commandLink  styleClass="fa fa-bars" style="font-size: 17px !important;" update="@none"/>
+                </li>
+            </ul>
+        </div>
+    </div> 
+    <div class="row"> 
+
+        <p:dataTable id="productCategories"
+                     binding="#{productCategories}"
+                     value="#{productCategoryController.productCategories}"
+                     filteredValue="#{productCategoryController.filteredProductCategories}"
+                     var="item"
+                     selection="#{productCategoryController.productCategory}"
+                     sortBy="#{item.name}"
+                     sortOrder="ascending"
+                     rowKey="#{item.id}"
+                     widgetVar="productCategoriesTable"
+                     selectionMode="single"
+                     paginatorAlwaysVisible="true"
+                     paginator="true"
+                     rows="#{messages.MaxRows}">
+
+            <f:facet name="header">
+                <p:outputPanel>
+                    <p:commandButton process="@this" class="btnn btnn-primary" value="#{messages.Create}" actionListener="#{productCategoryController.prepareCreateProductCategory}" update=":ProductCategoryForm:content" />           
+                    <div class="searchLoader">
+                        <p:graphicImage  name="/img/search-loader.gif"/>
+                    </div>
+                    <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('productCategoriesTable').filter()"
+                           onkeypress="if (event.keyCode == 13) {return false}" class="search" placeholder="#{messages.Search}"/>
+                </p:outputPanel>
+            </f:facet>
+            
+            <p:ajax event="page" oncomplete="updateTableTotals();"/>
+            <p:ajax event="sort" oncomplete="updateTableTotals();"/>
+            <p:ajax event="filter" global="false" onstart="showSearchLoader();" oncomplete="updateTableTotals(); hideSearchLoader();"/>
+            <p:ajax event="rowSelect" listener="#{productCategoryController.prepareView}" update=":ProductCategoryForm:content"/>
+            <p:ajax event="rowUnselect"/>
+
+            <p:column style="width:30px;">
+                <f:facet name="header">
+                    <h:outputText value=""/>
+                </f:facet>
+                <h:outputText value=""/>
+            </p:column>           
+            
+            <p:column sortBy="#{item.name}" filterBy="#{item.name}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Name}"/>
+                </f:facet>
+                <h:outputText value="#{item.name}"/>
+            </p:column>
+
+        </p:dataTable>
+    </div>  
+    <script>
+        var tableId = '#{productCategories.clientId}';
+        addEmptyRows(tableId);
+        hidePaginator(tableId);
+
+        function updateTableTotals() {
+            addEmptyRows(tableId);
+            hidePaginator(tableId);
+        }
+        setListURL();
+    </script>
+</ui:composition>

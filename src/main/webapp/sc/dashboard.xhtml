@@ -8,7 +8,7 @@
 
 
     <h:head>
-        
+
         <title>#{messages.Dashboard}&#160;#{messages.AppName}</title>
 
         <script type="text/javascript">
@@ -19,42 +19,28 @@
             });</script>
 
 
-        <h:outputStylesheet library="css" name="bootstrap.min.css"/> 
-        <h:outputStylesheet library="css" name="bootstrap-reset.css"/>
-        <h:outputStylesheet library="webjars" name="font-awesome/4.4.0/css/font-awesome-jsf.css" />
-        <h:outputStylesheet library="css" name="style-responsive.css"/>
-        <h:outputStylesheet library="css" name="pfcrud.css"/>
-        <h:outputStylesheet library="css" name="style.css"/>
-        <h:outputStylesheet library="css" name="morris.css"/>
-
-        <h:outputScript library="scripts" name="jquery.dcjqaccordion.2.7.js"/>
         <h:outputScript library="scripts" name="bootstrap.min.js"/>
-        <h:outputScript library="scripts" name="jquery.scrollTo.min.js"/>
-        <h:outputScript library="scripts" name="jquery.slimscroll.js"/>
-        <h:outputScript library="scripts" name="jquery.nicescroll.js"/>
-        <h:outputScript library="scripts" name="scripts.js"/>
-        <h:outputScript library="scripts" name="hover-dropdown.js"/>
-        <h:outputScript library="scripts" name="pfcrud.js"/>
-        <h:outputScript library="scripts" name="dashboard.js"/>
-
-
+        <h:outputScript library="scripts" name="materialize.min.js"/>
         <h:outputScript library="scripts" name="morris.min.js"/>
         <h:outputScript library="scripts" name="raphael-min.js"/>      
         <h:outputScript library="scripts" name="morris.init.js"/>
-        
-        <script type="text/javascript">
-           function redirectLogin(){
-               alert("fffff");
-                window.location="http://www.tutorialspoint.com";
-                
-            }
-        </script>
-
-
+        <h:outputScript library="scripts" name="script.js"/>
+        <h:outputScript library="scripts" name="dashboard.js"/>
 
     </h:head>
 
     <h:body class="full-width">
+
+        <f:facet name="last">
+            <h:outputStylesheet library="css" name="bootstrap.min.css"/> 
+            <h:outputStylesheet library="webjars" name="font-awesome/4.4.0/css/font-awesome-jsf.css" />
+            <h:outputStylesheet library="css" name="pfcrud.css"/>           
+            <h:outputStylesheet library="css" name="materialize.min.css"/>
+            <h:outputStylesheet library="css" name="style.css"/>
+            <h:outputStylesheet library="css" name="morris.css"/>
+            
+        </f:facet>
+
         <f:view locale="#{localeController.locale}">
             <div class="loader"></div> 
             <section id="container" class="hr-menu" >
@@ -72,7 +58,7 @@
                                     <div class="col-md-7">
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <section class="panel">
+                                                <section class="panel dashboard-widget">
                                                     <header class="panel-heading">
                                                         <span class="panel-heading-title">#{messages.KeyPerformanceIndicators}</span>  
                                                     </header>
@@ -137,7 +123,7 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <section class="panel">
+                                                <section class="panel dashboard-widget">
                                                     <header class="panel-heading" >                                              
                                                         <span class="panel-heading-title">#{messages.SalesVsCOGSVsProfit}</span> 
                                                         <div  class="btn-group pull-right stat-tab chart-nav">
@@ -179,7 +165,7 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <section class="panel">
+                                                <section class="panel dashboard-widget">
                                                     <header class="panel-heading" >                                              
                                                         <span class="panel-heading-title">#{messages.PurchasesInvoiced}</span>                                                  
                                                         <div  class="btn-group pull-right nav stat-tab chart-nav">
@@ -221,7 +207,7 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <section class="panel">
+                                                <section class="panel dashboard-widget">
                                                     <header class="panel-heading" >                                              
                                                         <span class="panel-heading-title">#{messages.VendorPayments}</span>                                                  
                                                         <div  class="btn-group pull-right nav stat-tab chart-nav">
@@ -263,7 +249,7 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <section class="panel">
+                                                <section class="panel dashboard-widget">
                                                     <header class="panel-heading" >                                              
                                                         <span class="panel-heading-title">#{messages.CustomerPayments}</span>                                                  
                                                         <div  class="btn-group pull-right nav stat-tab chart-nav">
@@ -305,7 +291,7 @@
                                         </div>  
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <section class="panel" style="height:300px;  ">
+                                                <section class="panel dashboard-widget" style="height:300px;  ">
                                                     <header class="panel-heading" >                                              
                                                         <span class="panel-heading-title">#{messages.NewCustomers}</span>                                                  
                                                         <div  class="btn-group pull-right nav stat-tab chart-nav">
@@ -349,7 +335,7 @@
                                     <div class="col-md-5">
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <section class="panel">
+                                                <section class="panel dashboard-widget">
                                                     <div class="panel-body">
                                                         <div id="payableReceivable">
                                                             <table class="table">
@@ -363,7 +349,7 @@
                                         </div> 
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <section class="panel">
+                                                <section class="panel dashboard-widget">
                                                     <header class="panel-heading">
                                                         <span class="panel-heading-title">#{messages.Reminders}</span>
                                                     </header>
@@ -380,7 +366,7 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <section class="panel">
+                                                <section class="panel dashboard-widget">
                                                     <header class="panel-heading">
                                                         <span class="panel-heading-title">#{messages.TopSalesByProduct}</span>
                                                         <div  class="btn-group pull-right nav stat-tab chart-nav">
@@ -425,7 +411,7 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <section class="panel">
+                                                <section class="panel dashboard-widget">
                                                     <header class="panel-heading">
                                                         <span class="panel-heading-title">#{messages.TopPurchasesByProduct}</span>
                                                         <div  class="btn-group pull-right nav stat-tab chart-nav">
@@ -470,7 +456,7 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <section class="panel">
+                                                <section class="panel dashboard-widget">
                                                     <header class="panel-heading">
                                                         <span class="panel-heading-title">#{messages.TopSalesByCustomer}</span>
                                                         <div  class="btn-group pull-right nav stat-tab chart-nav">
@@ -515,7 +501,7 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <section class="panel">
+                                                <section class="panel dashboard-widget">
                                                     <header class="panel-heading">
                                                         <span class="panel-heading-title">#{messages.TopPurchasesByVendor}</span>
                                                         <div  class="btn-group pull-right nav stat-tab chart-nav">
@@ -560,7 +546,7 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <section class="panel">
+                                                <section class="panel dashboard-widget">
                                                     <header class="panel-heading">
                                                         <span class="panel-heading-title">#{messages.TopReceivablesByCustomer}</span>
                                                         <div  class="btn-group pull-right nav stat-tab chart-nav">
@@ -594,7 +580,7 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <section class="panel">
+                                                <section class="panel dashboard-widget">
                                                     <header class="panel-heading">
                                                         <span class="panel-heading-title">#{messages.TopPayablesByVendor}</span>
                                                         <div  class="btn-group pull-right nav stat-tab chart-nav">
@@ -638,155 +624,141 @@
 
         <script type="text/javascript">
 
-                    var compareTable_JSON = JSON.parse('#{dashBoard.getCompareTable()}');
-                    var salesCogsProfit_JSON = JSON.parse('#{dashBoard.getSalesCogsProfit()}');
-                    var purchasesAmount_JSON = JSON.parse('#{dashBoard.getPurchasesAmount()}');
-                    var topSalesByProduct_JSON = JSON.parse('#{dashBoard.getTopSalesByProduct()}');
-                    var topPurchasesByProduct_JSON = JSON.parse('#{dashBoard.getTopPurchasesByProduct()}');
-                    var topPurchasesByVendor_JSON = JSON.parse('#{dashBoard.getTopPurchasesByVendor()}');
-                    var topSalesByCustomer_JSON = JSON.parse('#{dashBoard.getTopSalesByCustomer()}');
-                    var topReceivablesByCustomer_JSON = JSON.parse('#{dashBoard.getTopReceivablesByCustomer()}');
-                    var topPayablesByVendor_JSON = JSON.parse('#{dashBoard.getTopPayablesByVendor()}');
-                    var newCustomers_JSON = JSON.parse('#{dashBoard.getNewCustomers()}');
-                    var customerPayment_JSON = JSON.parse('#{dashBoard.getCustomerPayment()}');
-                    var vendorPayment_JSON = JSON.parse('#{dashBoard.getVendorPayment()}');
-                    var reminders_JSON = JSON.parse('#{dashBoard.getReminders()}');
-                    var payableReceivable_JSON = JSON.parse('#{dashBoard.getPayableReceivable()}');
-                    var purchasesAmountBarChart;
-                    var purchasesAmountLineChart;
-                    var salesCogsProfitBarChart;
-                    var salesCogsProfitLineChart;
-                    var vendorPaymentBarChart;
-                    var vendorPaymentLineChart;
-                    var customerPaymentBarChart;
-                    var customerPaymentLineChart;
-                    var newCustomersBarChart;
-                    var newCustomersLineChart;
-                    var purchasesAmountArray;
-                    var salesCogsProfitArray;
-                    var vendorPaymentArray;
-                    var customerPaymentArray;
-                    var newCustomersArray;
-                    var topPurchasesByProductArray;
-                    var topPurchasesByVendorArray;
-                    var topSalesByProductArray;
-                    var topSalesByCustomerArray;
-                    var topPayablesByVendorArray;
-                    var topReceivablesByCustomerArray;
-                    
-                    var today = '#{messages.Today}';
-                    var yesterday = '#{messages.Yesterday}';
-                    var thisMonth = '#{messages.ThisMonth}';
-                    var lastMonth = '#{messages.LastMonth}';
-                    var thisWeek = '#{messages.ThisWeek}';
-                    var lastWeek = '#{messages.LastWeek}';
-                    var thisQuarter = '#{messages.ThisQuarter}';
-                    var lastQuarter = '#{messages.LastQuarter}';
-                    
-                    var currency = '#{messages.Currency}';
-                    var salesToConfirm = '#{messages.SalesToConfirm}';
-                    var purchasesToConfirm = '#{messages.PurchasesToConfirm}';
-                    var invoicesToConfirm = '#{messages.InvoicesToConfirm}';
-                    var billsToConfirm = '#{messages.BillsToConfirm}';
-                    var receivables = '#{messages.Receivables}';
-                    var payables = '#{messages.Payables}';
-                    var sales = '#{messages.Sales}';
-                    var COGS = '#{messages.COGS}';
-                    var profit = '#{messages.Profit}';
-                    var purchases = '#{messages.Purchases}';
-                    var newCustomers = '#{messages.NewCustomers}';
-                    var bank = '#{messages.Bank}';
-                    var cash = '#{messages.Cash}';                    
-                    
-                    
-                    $(document).ready(function () {
-                    compareTable();
-                    fillSalesCogsProfitArray();
-                    salesCogsProfitBar();
-                    fillPurchasesAmountArray();
-                    purchasesAmountLine();
-                    fillVendorPaymentArray();
-                    vendorPaymentBar();
-                    fillCustomerPaymentArray();
-                    customerPaymentBar();
-                    fillNewCustomersArray();
-                    newCustomersLine();
-                    fillTopSalesByProductArray();
-                    topSalesByProductTable();
-                    fillTopPurchasesByProductArray();
-                    topPurchasesByProductTable();
-                    fillTopSalesByCustomerArray();
-                    topSalesByCustomerTable();
-                    fillTopPurchasesByVendorArray();
-                    topPurchasesByVendorTable();
-                    fillTopReceivablesByCustomerArray();
-                    topReceivablesByCustomerTable();
-                    fillTopPayablesByVendorArray();
-                    topPayablesByVendorTable();
-                    reminders();
-                    payableReceivable();
+            var compareTable_JSON = JSON.parse('#{dashBoard.getCompareTable()}');
+            var salesCogsProfit_JSON = JSON.parse('#{dashBoard.getSalesCogsProfit()}');
+            var purchasesAmount_JSON = JSON.parse('#{dashBoard.getPurchasesAmount()}');
+            var topSalesByProduct_JSON = JSON.parse('#{dashBoard.getTopSalesByProduct()}');
+            var topPurchasesByProduct_JSON = JSON.parse('#{dashBoard.getTopPurchasesByProduct()}');
+            var topPurchasesByVendor_JSON = JSON.parse('#{dashBoard.getTopPurchasesByVendor()}');
+            var topSalesByCustomer_JSON = JSON.parse('#{dashBoard.getTopSalesByCustomer()}');
+            var topReceivablesByCustomer_JSON = JSON.parse('#{dashBoard.getTopReceivablesByCustomer()}');
+            var topPayablesByVendor_JSON = JSON.parse('#{dashBoard.getTopPayablesByVendor()}');
+            var newCustomers_JSON = JSON.parse('#{dashBoard.getNewCustomers()}');
+            var customerPayment_JSON = JSON.parse('#{dashBoard.getCustomerPayment()}');
+            var vendorPayment_JSON = JSON.parse('#{dashBoard.getVendorPayment()}');
+            var reminders_JSON = JSON.parse('#{dashBoard.getReminders()}');
+            var payableReceivable_JSON = JSON.parse('#{dashBoard.getPayableReceivable()}');
+            var purchasesAmountBarChart;
+            var purchasesAmountLineChart;
+            var salesCogsProfitBarChart;
+            var salesCogsProfitLineChart;
+            var vendorPaymentBarChart;
+            var vendorPaymentLineChart;
+            var customerPaymentBarChart;
+            var customerPaymentLineChart;
+            var newCustomersBarChart;
+            var newCustomersLineChart;
+            var purchasesAmountArray;
+            var salesCogsProfitArray;
+            var vendorPaymentArray;
+            var customerPaymentArray;
+            var newCustomersArray;
+            var topPurchasesByProductArray;
+            var topPurchasesByVendorArray;
+            var topSalesByProductArray;
+            var topSalesByCustomerArray;
+            var topPayablesByVendorArray;
+            var topReceivablesByCustomerArray;
+            var today = '#{messages.Today}';
+            var yesterday = '#{messages.Yesterday}';
+            var thisMonth = '#{messages.ThisMonth}';
+            var lastMonth = '#{messages.LastMonth}';
+            var thisWeek = '#{messages.ThisWeek}';
+            var lastWeek = '#{messages.LastWeek}';
+            var thisQuarter = '#{messages.ThisQuarter}';
+            var lastQuarter = '#{messages.LastQuarter}';
+            var currency = '#{messages.Currency}';
+            var salesToConfirm = '#{messages.SalesToConfirm}';
+            var purchasesToConfirm = '#{messages.PurchasesToConfirm}';
+            var invoicesToConfirm = '#{messages.InvoicesToConfirm}';
+            var billsToConfirm = '#{messages.BillsToConfirm}';
+            var receivables = '#{messages.Receivables}';
+            var payables = '#{messages.Payables}';
+            var sales = '#{messages.Sales}';
+            var COGS = '#{messages.COGS}';
+            var profit = '#{messages.Profit}';
+            var purchases = '#{messages.Purchases}';
+            var newCustomers = '#{messages.NewCustomers}';
+            var bank = '#{messages.Bank}';
+            var cash = '#{messages.Cash}';
+            $(document).ready(function () {
+            compareTable();
+            fillSalesCogsProfitArray();
+            salesCogsProfitBar();
+            fillPurchasesAmountArray();
+            purchasesAmountLine();
+            fillVendorPaymentArray();
+            vendorPaymentBar();
+            fillCustomerPaymentArray();
+            customerPaymentBar();
+            fillNewCustomersArray();
+            newCustomersLine();
+            fillTopSalesByProductArray();
+            topSalesByProductTable();
+            fillTopPurchasesByProductArray();
+            topPurchasesByProductTable();
+            fillTopSalesByCustomerArray();
+            topSalesByCustomerTable();
+            fillTopPurchasesByVendorArray();
+            topPurchasesByVendorTable();
+            fillTopReceivablesByCustomerArray();
+            topReceivablesByCustomerTable();
+            fillTopPayablesByVendorArray();
+            topPayablesByVendorTable();
+            reminders();
+            payableReceivable();
             });
-                    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
             if ($(e.target).attr('href') === '#purchasesAmountBarTab' &amp; $('#purchasesAmountBar').contents().length === 0) {
             if (purchasesAmountArray.length > 0){
             purchasesAmountBar();
             }
             }
-
             else if ($(e.target).attr('href') === '#salesCogsProfitLineTab' &amp; $('#salesCogsProfitLine').contents().length === 0) {
             if (salesCogsProfitArray.length > 0){
             salesCogsProfitLine();
             }
             }
-
             else if ($(e.target).attr('href') === '#vendorPaymentLineTab' &amp; $('#vendorPaymentLine').contents().length === 0) {
             if (vendorPaymentArray.length > 0){
             vendorPaymentLine();
             }
             }
-
             else if ($(e.target).attr('href') === '#customerPaymentLineTab' &amp; $('#customerPaymentLine').contents().length === 0) {
             if (customerPaymentArray.length > 0){
             customerPaymentLine();
             }
             }
-
             else if ($(e.target).attr('href') === '#newCustomersBarTab' &amp; $('#newCustomersBar').contents().length === 0) {
             if (newCustomersArray.length > 0){
             newCustomersBar();
             }
             }
-
             else if ($(e.target).attr('href') === '#topPurchasesByProductBarTab' &amp; $('#topPurchasesByProductBar').contents().length === 0) {
             if (topPurchasesByProductArray.length > 0){
             topPurchasesByProductBar();
             }
             }
-
             else if ($(e.target).attr('href') === '#topPurchasesByVendorBarTab' &amp; $('#topPurchasesByVendorBar').contents().length === 0) {
             if (topPurchasesByVendorArray.length > 0){
             topPurchasesByVendorBar();
             }
             }
-
             else if ($(e.target).attr('href') === '#topSalesByProductBarTab' &amp; $('#topSalesByProductBar').contents().length === 0) {
             if (topSalesByProductArray.length > 0){
             topSalesByProductBar();
             }
             }
-
             else if ($(e.target).attr('href') === '#topSalesByCustomerBarTab' &amp; $('#topSalesByCustomerBar').contents().length === 0) {
             if (topSalesByCustomerArray.length > 0){
             topSalesByCustomerBar();
             }
             }
-
             else if ($(e.target).attr('href') === '#topPayablesByVendorBarTab' &amp; $('#topPayablesByVendorBar').contents().length === 0) {
             if (topPayablesByVendorArray.length > 0){
             topPayablesByVendorBar();
             }
             }
-
             else if ($(e.target).attr('href') === '#topReceivablesByCustomerBarTab' &amp; $('#topReceivablesByCustomerBar').contents().length === 0) {
             if (topReceivablesByCustomerArray.length > 0){
             topReceivablesByCustomerBar();
@@ -794,10 +766,10 @@
             }
 
             });
-                    $('.stat-tab .stat-btn').click(function () {
+            $('.stat-tab .stat-btn').click(function () {
 
             $(this).addClass('active');
-                    $(this).siblings('.btn').removeClass('active');
+            $(this).siblings('.btn').removeClass('active');
             });
 
         </script>

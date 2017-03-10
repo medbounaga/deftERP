@@ -1,7 +1,7 @@
 
 package com.casa.erp.dao;
 
-import com.casa.erp.entities.Tax;
+import com.defterp.modules.accounting.entities.Tax;
 
 import java.util.List;
 import javax.ejb.Stateless;

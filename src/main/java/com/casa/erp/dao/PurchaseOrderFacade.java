@@ -1,15 +1,15 @@
 
 package com.casa.erp.dao;
 
-import com.casa.erp.beans.util.IdGenerator;
-import com.casa.erp.entities.Account;
-import com.casa.erp.entities.DeliveryOrder;
-import com.casa.erp.entities.Invoice;
-import com.casa.erp.entities.Journal;
-import com.casa.erp.entities.Partner;
-import com.casa.erp.entities.Product;
-import com.casa.erp.entities.PurchaseOrder;
-import com.casa.erp.entities.PurchaseOrderLine;
+import com.defterp.util.IdGenerator;
+import com.defterp.modules.accounting.entities.Account;
+import com.defterp.modules.inventory.entities.DeliveryOrder;
+import com.defterp.modules.accounting.entities.Invoice;
+import com.defterp.modules.accounting.entities.Journal;
+import com.defterp.modules.partners.entities.Partner;
+import com.defterp.modules.inventory.entities.Product;
+import com.defterp.modules.purchases.entities.PurchaseOrder;
+import com.defterp.modules.purchases.entities.PurchaseOrderLine;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -29,26 +29,24 @@ public class PurchaseOrderFacade {
     @PersistenceContext(unitName = "CasaERP_PU")
     private EntityManager em;
 
-    private IdGenerator idGeerator = new IdGenerator();
-
     public PurchaseOrder create(PurchaseOrder entity) {
 
         em.persist(entity);
         em.flush();
-        entity.setName(idGeerator.generatePurchaseId(entity.getId()));
+        entity.setName(IdGenerator.generatePurchaseId(entity.getId()));
         return entity;
     }
 
     public void create(DeliveryOrder entity) {
         em.persist(entity);
         em.flush();
-        entity.setName(idGeerator.generateDeliveryInId(entity.getId()));
+        entity.setName(IdGenerator.generateDeliveryInId(entity.getId()));
     }
 
     public Invoice create(Invoice entity) {
         em.persist(entity);
         em.flush();
-        entity.setName(idGeerator.generateInvoiceInId(entity.getId()));
+        entity.setName(IdGenerator.generateBillId(entity.getId()));
         return entity;
     }
 

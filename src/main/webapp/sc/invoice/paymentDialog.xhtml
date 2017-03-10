@@ -1,0 +1,104 @@
+
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:p="http://primefaces.org/ui">
+
+    <p:dialog id="PaymentDialog" styleClass="disable-scroll" widgetVar="PaymentDialog" modal="true" resizable="false" header="#{messages.RegisterPayment}" width="900" closeOnEscape="true"  dynamic="true">
+        <h:form id="paymentForm">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-5">
+                            <p:outputLabel class="form-data-label font-2" value="#{messages.PaymentMethod}" for="paymentJournal"/>
+                        </div>
+                        <div class="col-md-7">
+                            <p:selectOneMenu id="paymentJournal" value="#{invoiceController.payment.journal}" class="required input-width-80" required="true" requiredMessage="#{messages.PaymentMethodRequired}" converter="journalConverter">
+                                <f:selectItem  itemLabel=""/>
+                                <f:selectItems value="#{journalController.paymentJournals}"
+                                               var="journal"
+                                               itemValue="#{journal}"
+                                               itemLabel="#{journal.name.toString()}"
+                                               />
+                            </p:selectOneMenu>
+                        </div>
+                    </div> 
+                    <div class="row form-data-1 line-breaks-1">
+                        <div class="col-md-5 form-data-label font-1">
+                            <p:outputLabel value="#{messages.PaymentAmount}" for="amount"/>
+                        </div>
+                        <div class="col-md-7 form-data-value">
+                            #{messages.Currency}
+
+                            <p:spinner value="#{invoiceController.payment.amount}" 
+                                       id="amount"
+                                       class="required"
+                                       required="true" 
+                                       min="0"                                                                       
+                                       stepFactor="#{messages.stepFactor}"                                                  
+                                       size="12"                                                        
+                                       requiredMessage="#{messages.PaidAmountRequired}" 
+                                       converterMessage="#{messages.InvalidPaidAmount}">     
+
+                                <p:ajax event="blur" resetValues="true" global="false" process="@this" listener="#{invoiceController.updateDifferenceAmount}" update=":paymentForm:paymentDetails, :paymentForm:amount"/>
+                            </p:spinner> 
+                        </div>
+                    </div>
+                    <div jsf:id="paymentDetails">
+                        <div jsf:id="differenceAmount" class="row line-breaks-1">
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.DifferenceAmount}"/>
+                            </div>
+                            <div class="col-md-9point5">
+                                #{messages.Currency}
+                                <h:outputText value="#{invoiceController.differenceAmount}"/>
+                                <br></br>
+                            </div>        
+                        </div>            
+                        <div class="row" jsf:rendered="#{invoiceController.differenceAmount != 0}" >
+                            <div class="col-md-offset-2point5 col-md-9point5">
+                                <h:selectOneRadio value="#{invoiceController.paymentType}" layout="pageDirection">
+                                    <f:ajax event="change" execute="@this" render=":paymentForm:paymentDetails" listener="#{invoiceController.onPaymentDifferenceStrategyChange}"/>
+                                    <f:selectItem itemLabel="#{messages.KeepOpen}" itemValue="keep open" />
+                                    <f:selectItem itemLabel="#{messages.FullyPaid}" itemValue="fully paid" />
+                                </h:selectOneRadio>  
+                            </div>         
+                        </div>
+                        <div jsf:rendered="#{(invoiceController.paymentType == 'fully paid') and (invoiceController.differenceAmount != 0)}" class="row">
+                            <div class="col-md-2point5 form-label">
+                                <p:outputLabel value="#{messages.PostDifferenceIn}" for="writeOff"/>
+                            </div> 
+                            <div class="col-md-3point5">
+                                <p:selectOneMenu id="writeOff" value="#{invoiceController.writeOffAccount}" style="width: 70%;" styleClass="required input-width-80"  required="true" requiredMessage="#{messages.DifferenceAmountAccountRequired}" converter="accountConverter">
+                                    <f:selectItem  itemLabel=""/>
+                                    <f:selectItems value="#{invoiceController.paymentWriteOffAccounts}"
+                                                   var="account"
+                                                   itemValue="#{account}"
+                                                   itemLabel="#{account.name.toString()}"
+                                                   />
+                                </p:selectOneMenu>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="row form-data-1">
+                        <div class="col-md-5 form-data-labe font-1">
+                            <p:outputLabel value="#{messages.PaymentDate}" for="paymentDate"/>
+                        </div>
+                        <div class="col-md-7 form-data-value">
+                            <p:calendar id="paymentDate" class="required"  pattern="MM-dd-yyyy" value="#{invoiceController.payment.date}"  required="true" requiredMessage="#{messages.DateRequired}" converterMessage="#{messages.InvalidDate}" locale="#{messages.CalendarLanguage}"/>                                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <p:commandButton class="waves-effect waves-light btn btn-primary" value="#{messages.Validate}" process="@form"  actionListener="#{invoiceController.payInvoice}"  update=":mainForm:itemForm, :mainForm:itemList, :paymentForm" oncomplete="handleSubmit(xhr,status,args,PF('PaymentDialog'));"/>
+                <p:button value="#{messages.Cancel}" class="waves-effect waves-light btn btn-secondary"  onclick="PF('PaymentDialog').hide();"/>
+            </div>
+        </h:form>
+    </p:dialog> 
+
+</ui:composition>

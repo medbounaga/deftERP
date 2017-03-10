@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
                 xmlns:h="http://java.sun.com/jsf/html"
@@ -10,51 +9,44 @@
                 xmlns:o="http://omnifaces.org/ui">
 
 
-
-    <!-- page start-->
-    <p:growl id="msgs" widgetVar="growl" />
-    <div class="row form-header-1">
-        <div class="col-md-10" >
-            <h:outputText value="#{messages.Products}"/>
+    <div class="row">
+        <div class="col-md-12 card z-depth-1 tool-bar">          
+            <div class="form-nav">
+                <span class="form-nav-item">#{messages.Products}</span>
+            </div>
+            <p:commandLink actionListener="#{productController.showProductList()}" oncomplete="listSliderClicked();" process="@this" update=":mainForm:itemList" class="waves-effect waves-light btn btn-icon btn-primary float-right" style="margin-top: 4px; margin-bottom: 4px;"> 
+                <i class="fa fa-bars" aria-hidden="true"/> 
+            </p:commandLink>      
         </div>
-        <div class="col-md-2 form-pagination" >
-            <ul class="pagination">
-                <li class="active-nav-button">
-                    <p:commandLink process="@this" actionListener="#{productController.showProductGrid}"  styleClass="fa fa-th" style="font-size: 17px !important;" update=":ProductForm:content"/>           
-                </li>
-                <li>
-                    <p:commandLink process="@this" actionListener="#{productController.showProductForm}" styleClass="fa fa-square-o" style="font-size: 17px !important;" update=":ProductForm:content"/>           
-                </li>
-                <li>
-                    <p:commandLink process="@this" actionListener="#{productController.showProductList}" styleClass="fa fa-bars" style="font-size: 17px !important;" update=":ProductForm:content"/>
-                </li>
-            </ul>
+        <div class="col-md-12 card z-depth-1 tool-bar" style="padding: 4px; padding-left: 8px;">          
+            <div class="col-md-3">
+                <h:commandButton rendered="false" action="#{productController.prepareCreateProduct}" value="#{messages.Create}" styleClass="waves-effect waves-light btn btn-primary">
+                    <f:ajax execute="@this" render=":mainForm:itemForm, :mainForm:itemList"/> 
+                </h:commandButton>  
+                <p:commandButton update=":mainForm:itemForm, :mainForm:itemList" process="@this" actionListener="#{productController.prepareCreateProduct}" value="#{messages.Create}"  styleClass="waves-effect waves-light btn btn-primary"/> 
+            </div>
+            <div class="col-md-9" style="padding-right: 5px !important;">
+                <div style="float:right;">                
+                    <div class="searchLoader" style="padding-right: 5px;">
+                        <p:graphicImage  name="/img/search-loader.gif" style="margin-top: 3px; vertical-align: middle;"/>
+                    </div>              
+                    <h:inputText value="#{productController.searchKey}" id="gridFilter" 
+                                 onkeypress="if (event.keyCode === 13) {
+                                             return false;
+                                         }"
+                                 class="search" pass:placeholder="#{messages.Search}">
+                        <p:ajax  global="false" delay="500"  event="keyup" listener="#{productController.searchByName}" process="@this" update=":mainForm:gridView" onstart="showSearchLoader();" oncomplete="updateGrid(); hideSearchLoader();"/>
+                    </h:inputText>
+                </div>           
+            </div>
         </div>
-    </div> 
-    <div class="row form-header-2" style="padding-top: 5px;">
-        <div class="col-md-3">
-            <h:commandButton rendered="false" action="#{productController.prepareCreateProduct}" value="#{messages.Create}" styleClass="btnn btnn-primary">
-                <f:ajax execute="@this" render=":ProductForm:content"/> 
-            </h:commandButton>  
-            <p:commandButton update=":ProductForm:content" process="@this" actionListener="#{productController.prepareCreateProduct}" value="#{messages.Create}"  styleClass="btnn btnn-primary"/> 
-        </div>
-        <div class="col-md-9" style="padding-right: 5px !important;">
-            <div style="float:right;">                
-                <div class="searchLoader" style="padding-right: 5px;">
-                    <p:graphicImage  name="/img/search-loader.gif" style="margin-top: 3px; vertical-align: middle;"/>
-                </div>              
-                <h:inputText value="#{productController.searchKey}" id="gridFilter"
-                             onkeypress="if (event.keyCode == 13) {return false}" style="display: inline-block; margin-right: 10px;" class="search"
-                             pass:placeholder="#{messages.Search}">
-                    <p:ajax  global="false" delay="500"  event="keyup" listener="#{productController.searchByName}" process="@this"
-                             update=":ProductForm:gridView" onstart="showSearchLoader();" oncomplete="updateGrid(); hideSearchLoader();"/>
-                </h:inputText>
-            </div>           
-        </div> 
     </div>
 
+
     <div class="row"> 
-        <p:dataGrid   var="product" 
+        <p:dataGrid   id="gridView"  
+                      styleClass="z-depth-1"
+                      var="product" 
                       binding="#{productsGrid}"
                       value="#{productController.products}"
                       columns="3" 
@@ -62,16 +54,15 @@
                       rowIndexVar="rowIndex"
                       paginatorAlwaysVisible="true"
                       layout="grid"
-                      rows="#{messages.GridMaxRows}"  
+                      rows="#{messages.GridMaxRows}"   
                       paginator="true" 
-                      id="gridView"
-                      paginatorTemplate="{FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}">
+                      paginatorTemplate="{FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}">
 
             <p:ajax event="page" oncomplete="updateGrid();"/>
-            <p:commandLink class="data-grid-link" actionListener="#{productController.prepareViewProduct(rowIndex, product.id)}" process="@this" update=":ProductForm:content">
+            <p:commandLink class="data-grid-link" actionListener="#{productController.prepareViewProduct(product.id)}" process="@this" update=":mainForm:itemForm, :mainForm:itemList">
                 <div class="data-grid">
-                    <p:graphicImage rendered="#{product.image == null}"  class="data-grid_image"   value="#" name="img/placeholder.png"  />
-                    <o:graphicImage  rendered="#{product.image != null}" class="data-grid_image"  value="#{product.image}" dataURI="true" />
+                    <p:graphicImage rendered="#{product.image == null}"  class="data-grid_image"   value="#" name="img/placeholder.png"/>
+                    <o:graphicImage rendered="#{product.image != null}" class="data-grid_image"  value="#{product.image}" dataURI="true"/>
                     <div class="data-grid_details">
                         <ul>
                             <li class="data-grid_details-heading text_overflow">#{product.description}</li>
@@ -90,9 +81,10 @@
                     </div>
                 </div>
             </p:commandLink>
-        </p:dataGrid>
-    </div> 
+        </p:dataGrid>  
+    </div>  
     <script>
+
         var tableId = '#{productsGrid.clientId}';
         hideGridPaginator(tableId);
         $('.ui-datagrid-content').css('min-height', $(window).height());
@@ -101,6 +93,6 @@
             tableId = '#{productsGrid.clientId}';
             hideGridPaginator(tableId);
         }
-        setListURL();
+
     </script>
 </ui:composition>

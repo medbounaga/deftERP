@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:p="http://primefaces.org/ui">
+
+
+    <p:growl id="msgs" widgetVar="growl" />
+    <div class="row form-header-1">
+            <div class="col-md-10point5" >  
+            <div jsf:rendered="#{empty supInvoiceController.partialListType}">  
+                <h:outputText value="#{messages.VendorBills}"/> 
+            </div>
+            <div jsf:rendered="#{supInvoiceController.partialListType == 'partner'}">  
+                <p:link  class="form-nav" value="#{supInvoiceController.invoices[0].partner.name}"  outcome="/sc/supplier/index">
+                    <f:param name="id" value="#{supInvoiceController.partnerId}"/>
+                </p:link>
+                <span> / </span> 
+                <h:outputText value="#{messages.VendorBills}"/> 
+            </div>
+            <div jsf:rendered="#{supInvoiceController.partialListType == 'purchaseOrder'}"> 
+                <p:link  class="form-nav" value="#{supInvoiceController.invoices[0].origin}"  outcome="/sc/purchaseOrder/index">
+                    <f:param name="id" value="#{supInvoiceController.purchaseId}"/>
+                </p:link>
+                <span> / </span> 
+                <h:outputText value="#{messages.Bills}"/> 
+            </div>
+        </div>
+        <div class="col-md-1point5 form-pagination" style="display: inline-table;" >
+            <ul class="pagination">
+                <li>
+                    <p:commandLink process="@this" actionListener="#{supInvoiceController.showInvoiceForm}" styleClass="fa fa-square-o" style="font-size: 17px !important;" update=":InvoiceForm:content"/>           
+                </li>
+                <li class="active-nav-button">
+                    <p:commandLink  styleClass="fa fa-bars" style="font-size: 17px !important;" update="@none"/>
+                </li>
+            </ul>
+        </div>
+    </div> 
+    <div class="row"> 
+        <p:dataTable id="supplierBills"
+                     binding="#{supplierBills}"
+                     class="fit-content-table"
+                     value="#{supInvoiceController.invoices}"
+                     var="item"
+                     selection="#{supInvoiceController.invoice}"
+                     filteredValue="#{supInvoiceController.filteredInvoices}"
+                     sortBy="#{item.date}"
+                     sortOrder="descending"
+                     rowKey="#{item.id}"
+                     selectionMode="single"
+                     widgetVar="supplierInvoiceTable"
+                     paginatorAlwaysVisible="true"
+                     paginator="true"
+                     rows="#{messages.MaxRows}">
+           
+            <f:facet name="header">
+                <p:outputPanel>
+                      <p:commandButton process="@this" class="btnn btnn-primary" value="#{messages.Create}" actionListener="#{supInvoiceController.prepareCreate}" update=":InvoiceForm:content" />           
+                    <div class="searchLoader">
+                        <p:graphicImage  name="/img/search-loader.gif"/>
+                    </div>
+                    <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('supplierInvoiceTable').filter()"
+                           onkeypress="if (event.keyCode == 13) {return false}" class="search" placeholder="#{messages.Search}"/>
+                </p:outputPanel>
+            </f:facet>
+            
+            <p:ajax event="page" oncomplete="updateTableTotals();"/>
+            <p:ajax event="sort" oncomplete="updateTableTotals();"/>
+            <p:ajax event="filter" global="false" onstart="showSearchLoader();" oncomplete="updateTableTotals(); hideSearchLoader();"/>
+            <p:ajax event="rowSelect"  listener="#{supInvoiceController.prepareView}" update=":InvoiceForm:content"/>
+
+            <p:column>
+                <f:facet name="header">
+                    <h:outputText value=""/>
+                </f:facet>
+                <h:outputText value=""/>
+            </p:column>
+            
+            <p:column sortBy="#{item.name}" filterBy="#{item.name}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Number}"/>
+                </f:facet>
+                <h:outputText value="#{item.name}"/>
+            </p:column>
+            
+            <p:column sortBy="#{item.date}" filterBy="#{item.date}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.BillDate}"/>
+                </f:facet>
+                <h:outputText value="#{item.date}">
+                    <f:convertDateTime pattern="MM-dd-yyyy" />
+                </h:outputText>
+            </p:column> 
+            
+            <p:column sortBy="#{item.partner.name}" filterBy="#{item.partner.name}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Vendor}"/>
+                </f:facet>
+                <h:outputText value="#{item.partner.name}"/>
+            </p:column>         
+
+            <p:column sortBy="#{item.origin}" filterBy="#{item.origin}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.SourceDocument}"/>
+                </f:facet>
+                <h:outputText value="#{item.origin}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.amountTotal}" filterBy="#{item.amountTotal}" styleClass="amount">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Total}"/>
+                </f:facet>
+                <h:outputText value="#{messages.Currency} #{item.amountTotal}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.residual}" filterBy="#{item.residual}" styleClass="amountDue">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.AmountDue}"/>
+                </f:facet>
+                <h:outputText value="#{messages.Currency} #{item.residual}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.state}" filterBy="#{item.state}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Status}"/>
+                </f:facet>              
+                <h:outputText value="#{supInvoiceController.getStatus(item.state)}" styleClass="badge" style="background-color: #{supInvoiceController.getStatusColor(item.state)}"/>
+            </p:column>
+
+            <p:columnGroup type="footer">
+                <p:row styleClass="tableFoot">
+                    <p:column colspan="5"/>
+                    <p:column  styleClass="total-amount"/>
+                    <p:column  styleClass="total-due"/>
+                    <p:column/>
+                </p:row>
+            </p:columnGroup>
+
+        </p:dataTable>       
+    </div>  
+    <script>
+
+        function updateTableTotals() {
+            addEmptyRows(tableId);
+            columnSum('amount', 'total-amount');
+            columnSum('amountDue', 'total-due');
+            hidePaginator(tableId);
+        }
+
+        var tableId = '#{supplierBills.clientId}';
+        addEmptyRows(tableId);
+        columnSum('amount', 'total-amount');
+        columnSum('amountDue', 'total-due');
+        hidePaginator(tableId);
+
+        setListURL();
+
+    </script>
+</ui:composition>

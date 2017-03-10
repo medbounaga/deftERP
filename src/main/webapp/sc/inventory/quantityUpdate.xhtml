@@ -38,8 +38,8 @@
 
             <div class="row dialog-footer">
                 <div class="col-md-12">
-                    <p:commandButton class="btnn btnn-primary" value="#{messages.Apply}" process="@form"  actionListener="#{inventoryController.updateQuantity}"  update=":InventoryForm:content, :QuantityUpdateForm,:InventoryForm:msgs" oncomplete="handleSubmit(xhr,status,args,PF('QuantityUpdateDialog'));"/>
-                    <a class="btnn btnn-default jsf-btn"  onclick="PF('QuantityUpdateDialog').hide();">#{messages.Cancel}</a>
+                    <p:commandButton class="waves-effect waves-light btn btn-primary" value="#{messages.Apply}" process="@form"  actionListener="#{inventoryController.updateQuantity}"  update=":mainForm:itemForm, :mainForm:itemList, :QuantityUpdateForm" oncomplete="handleSubmit(xhr,status,args,PF('QuantityUpdateDialog'));"/>
+                    <a class="waves-effect waves-light btn btn-primary"  onclick="PF('QuantityUpdateDialog').hide();">#{messages.Cancel}</a>
                 </div> 
             </div>   
         </h:form>

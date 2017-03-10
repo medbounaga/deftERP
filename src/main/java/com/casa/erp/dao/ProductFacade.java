@@ -1,10 +1,10 @@
 
 package com.casa.erp.dao;
 
-import com.casa.erp.entities.Inventory;
-import com.casa.erp.entities.Product;
-import com.casa.erp.entities.ProductCategory;
-import com.casa.erp.entities.ProductUom;
+import com.defterp.modules.inventory.entities.Inventory;
+import com.defterp.modules.inventory.entities.Product;
+import com.defterp.modules.inventory.entities.ProductCategory;
+import com.defterp.modules.inventory.entities.ProductUom;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;

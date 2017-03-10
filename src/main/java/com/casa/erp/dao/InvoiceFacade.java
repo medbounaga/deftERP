@@ -1,18 +1,18 @@
 
 package com.casa.erp.dao;
 
-import com.casa.erp.beans.util.IdGenerator;
-import com.casa.erp.entities.Account;
-import com.casa.erp.entities.Invoice;
-import com.casa.erp.entities.InvoiceLine;
-import com.casa.erp.entities.InvoicePayment;
-import com.casa.erp.entities.Journal;
-import com.casa.erp.entities.JournalEntry;
-import com.casa.erp.entities.Partner;
-import com.casa.erp.entities.Payment;
-import com.casa.erp.entities.Product;
-import com.casa.erp.entities.PurchaseOrder;
-import com.casa.erp.entities.SaleOrder;
+import com.defterp.util.IdGenerator;
+import com.defterp.modules.accounting.entities.Account;
+import com.defterp.modules.accounting.entities.Invoice;
+import com.defterp.modules.accounting.entities.InvoiceLine;
+import com.defterp.modules.accounting.entities.InvoicePayment;
+import com.defterp.modules.accounting.entities.Journal;
+import com.defterp.modules.accounting.entities.JournalEntry;
+import com.defterp.modules.partners.entities.Partner;
+import com.defterp.modules.accounting.entities.Payment;
+import com.defterp.modules.inventory.entities.Product;
+import com.defterp.modules.purchases.entities.PurchaseOrder;
+import com.defterp.modules.sales.entities.SaleOrder;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -30,17 +30,15 @@ public class InvoiceFacade {
 
     @PersistenceContext(unitName = "CasaERP_PU")
     private EntityManager em;
-    
 
-    private IdGenerator idGeerator = new IdGenerator();
 
     public Invoice create(Invoice entity, String type) {
         em.persist(entity);
         em.flush();
         if(type.equals("invoice")){
-            entity.setName(idGeerator.generateInvoiceOutId(entity.getId()));
+            entity.setName(IdGenerator.generateInvoiceId(entity.getId()));
         }else{
-            entity.setName(idGeerator.generateInvoiceInId(entity.getId()));
+            entity.setName(IdGenerator.generateBillId(entity.getId()));
         }
         
         return entity;
@@ -111,13 +109,13 @@ public class InvoiceFacade {
             em.flush();
             
             if (partnerType.equals("Customer") && type.equals("in")) {
-                entity.setName(idGeerator.generateCustomerInPayment(entity.getId()));
+                entity.setName(IdGenerator.generateCustomerInPayment(entity.getId()));
             } else if (partnerType.equals("Customer") && type.equals("out")) {
-                entity.setName(idGeerator.generateCustomerOutPayment(entity.getId()));
+                entity.setName(IdGenerator.generateCustomerOutPayment(entity.getId()));
             } else if (partnerType.equals("Supplier") && type.equals("in")) {
-                entity.setName(idGeerator.generateSupplierInPayment(entity.getId()));
+                entity.setName(IdGenerator.generateSupplierInPayment(entity.getId()));
             } else if (partnerType.equals("Supplier") && type.equals("out")) {
-                entity.setName(idGeerator.generateSupplierOutPayment(entity.getId()));
+                entity.setName(IdGenerator.generateSupplierOutPayment(entity.getId()));
             }
         }
         return entity;
@@ -132,9 +130,9 @@ public class InvoiceFacade {
         em.persist(entity);
         em.flush();
         if (account.equals("Cash")) {
-            entity.setName(idGeerator.generatePaymentCashEntryId(entity.getId()));
+            entity.setName(IdGenerator.generatePaymentCashEntryId(entity.getId()));
         } else if (account.equals("Bank")) {
-            entity.setName(idGeerator.generatePaymentBankEntryId(entity.getId()));
+            entity.setName(IdGenerator.generatePaymentBankEntryId(entity.getId()));
         }
         return entity;
     }

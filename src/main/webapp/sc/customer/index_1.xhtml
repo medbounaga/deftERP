@@ -1,0 +1,112 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:jsf="http://xmlns.jcp.org/jsf"
+      xmlns:p="http://primefaces.org/ui">
+
+
+    <h:head>
+        <title>#{messages.Customers}&#160;#{messages.AppName}</title>
+
+        <script type="text/javascript">
+
+
+            $(window).load(function () {
+                $(".loader").fadeOut("slow");
+            });
+        </script>
+
+        <h:outputScript library="scripts" name="bootstrap.min.js"/>
+        <h:outputScript library="scripts" name="scripts.js"/>
+        <h:outputScript library="scripts" name="pfcrud.js"/>
+        <h:outputScript library="scripts" name="materialize.min.js"/>
+
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+        <link href="https://code.getmdl.io/1.2.1/material.indigo-pink.min.css" rel="stylesheet"/>
+        <script src="https://code.getmdl.io/1.2.1/material.min.js"/>
+        
+
+        <f:metadata>
+            <f:viewParam name="id" value="#{customerController.partnerId}"/> 
+            <f:viewAction action="#{customerController.viewCustomer}"/>
+        </f:metadata>
+
+    </h:head>
+ 
+    <h:body>
+        
+          <f:facet name="last">
+            <h:outputStylesheet library="css" name="bootstrap.min.css"/> 
+            <h:outputStylesheet library="webjars" name="font-awesome/4.4.0/css/font-awesome-jsf.css" />
+            <h:outputStylesheet library="css" name="pfcrud.css"/>           
+            <h:outputStylesheet library="css" name="materialize.min.css"/>
+            <h:outputStylesheet library="css" name="style.css"/>
+        </f:facet>
+
+        <f:view locale="#{localeController.locale}">
+            <div class="loader"></div> 
+
+            <div id="container" class="row">
+                <div class="col-md-12" >
+                    <ui:include src="/sc/header.xhtml"/> 
+                    <div class="row" style="height: 8px; margin-top: -8px;">
+                        <div class="col-md-12">
+                            <div class="progress">
+                                <div class="indeterminate"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h:form id="PartnerForm" enctype="multipart/form-data">  
+                        <p:growl id="msgs" widgetVar="growl"/>
+                        <div id="itemList" class="row card z-depth-4"> 
+                            <ui:include src="/sc/customer/Grid.xhtml"/> 
+                        </div> 
+                        <div id="backdrop"/> 
+                        <div jsf:id="itemForm"> 
+                            <ui:include src="#{customerController.currentPage}"/>
+                        </div>         
+                    </h:form>
+                </div> 
+                <!--    <ui:include src="/sc/invoice/payment.xhtml"/> -->
+                <ui:include src="/sc/ajaxLoader.xhtml"/> 
+            </div>
+        </f:view>
+    </h:body>
+    
+    <script>
+
+
+            function hideItemsList() {
+                $("#backdrop").hide();
+                $("#itemList").slideUp();
+            }
+
+            function showItemsList() {
+                $("#backdrop").show();  
+                $("#itemList").show( "slow" );   
+            }
+
+            $(".list-slider").click(function () {
+                if ($("#itemList").css('display') === 'none') {
+                    showItemsList();
+                } else {
+                    hideItemsList();
+                }
+            });
+
+            $("#backdrop").click(function () {
+                if ($("#itemList").css('display') === 'none') {
+                    showItemsList();
+                } else {
+                    hideItemsList();
+                }
+            });
+
+    </script>
+    
+    
+</html>

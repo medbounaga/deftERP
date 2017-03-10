@@ -1,54 +1,50 @@
-
 package com.casa.erp.dao;
 
-import com.casa.erp.beans.util.IdGenerator;
-import com.casa.erp.entities.Account;
-import com.casa.erp.entities.DeliveryOrder;
-import com.casa.erp.entities.Invoice;
-import com.casa.erp.entities.Journal;
-import com.casa.erp.entities.Partner;
-import com.casa.erp.entities.Product;
-import com.casa.erp.entities.SaleOrder;
-import com.casa.erp.entities.SaleOrderLine;
+import com.defterp.util.IdGenerator;
+import com.defterp.modules.accounting.entities.Account;
+import com.defterp.modules.inventory.entities.DeliveryOrder;
+import com.defterp.modules.accounting.entities.Invoice;
+import com.defterp.modules.accounting.entities.Journal;
+import com.defterp.modules.partners.entities.Partner;
+import com.defterp.modules.inventory.entities.Product;
+import com.defterp.modules.sales.entities.SaleOrder;
+import com.defterp.modules.sales.entities.SaleOrderLine;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 /**
- * 
+ *
  * @author MOHAMMED BOUNAGA
- * 
+ *
  * github.com/medbounaga
  */
-
 @Stateless
 public class SaleOrderFacade {
 
     @PersistenceContext(unitName = "CasaERP_PU")
     private EntityManager em;
 
-    private IdGenerator idGeerator = new IdGenerator();
-
     public SaleOrder create(SaleOrder entity) {
 
         em.persist(entity);
         em.flush();
-        entity.setName(idGeerator.generateSaleId(entity.getId()));
+        entity.setName(IdGenerator.generateSaleId(entity.getId()));
         return entity;
     }
 
     public void create(DeliveryOrder entity) {
         em.persist(entity);
         em.flush();
-        entity.setName(idGeerator.generateDeliveryOutId(entity.getId()));
+        entity.setName(IdGenerator.generateDeliveryOutId(entity.getId()));
 
     }
 
     public Invoice create(Invoice entity) {
         em.persist(entity);
         em.flush();
-        entity.setName(idGeerator.generateInvoiceOutId(entity.getId()));
+        entity.setName(IdGenerator.generateInvoiceId(entity.getId()));
         return entity;
 
     }

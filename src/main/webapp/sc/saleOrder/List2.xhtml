@@ -1,0 +1,149 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:p="http://primefaces.org/ui">
+
+
+    <p:growl id="msgs" widgetVar="growl" />
+    <div class="row form-header-1">
+        <div class="col-md-11" >          
+            <div jsf:rendered="#{empty saleOrderController.partialListType}">  
+                 <h:outputText value="#{messages.SalesOrders}"/>
+            </div>
+            <div jsf:rendered="#{saleOrderController.partialListType == 'partner'}">  
+                <p:link  class="form-nav" value="#{saleOrderController.saleOrders[0].partner.name}"  outcome="/sc/customer/index">
+                    <f:param name="id" value="#{saleOrderController.partnerId}"/>
+                </p:link>
+                <span> / </span> 
+                <h:outputText value="#{messages.SalesOrders}"/>
+            </div>
+        </div>        
+        <div class="col-md-1 form-pagination" style="display: inline-table;" >
+            <ul class="pagination">
+                <li>
+                    <p:commandLink process="@this" actionListener="#{saleOrderController.showForm}" styleClass="fa fa-square-o" style="font-size: 17px !important;" update=":SaleOrderForm:content"/>           
+                </li>
+                <li class="active-nav-button">
+                    <p:commandLink  styleClass="fa fa-bars" style="font-size: 17px !important;" update="@none"/>
+                </li>
+            </ul>
+        </div>
+    </div> 
+    <div class="row"> 
+        <p:dataTable id="saleOrders"
+                     class="fit-content-table"
+                     binding="#{saleOrders}"
+                     value="#{saleOrderController.saleOrders}"
+                     filteredValue="#{saleOrderController.filteredSaleOrders}"
+                     var="item"
+                     selection="#{saleOrderController.saleOrder}"
+                     rowKey="#{item.id}"
+                     selectionMode="single"
+                     sortBy="#{item.date}"
+                     sortOrder="descending"
+                     paginator="true"
+                     paginatorAlwaysVisible="true"
+                     widgetVar="saleOrders"
+                     rows="#{messages.MaxRows}">
+            
+            <f:facet name="header">
+                <p:outputPanel>
+                    <p:commandButton process="@this" class="btnn btnn-primary" value="#{messages.Create}" actionListener="#{saleOrderController.prepareCreate}" update=":SaleOrderForm:content" />           
+                    <div class="searchLoader">
+                        <p:graphicImage  name="/img/search-loader.gif"/>
+                    </div>
+                    <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('saleOrders').filter()" class="search"
+                           onkeypress="if (event.keyCode == 13) {return false}" placeholder="#{messages.Search}"/>
+                </p:outputPanel>
+            </f:facet>
+            
+            <p:ajax event="page" oncomplete="updateTableTotals();"/>
+            <p:ajax event="sort" oncomplete="updateTableTotals();"/>
+            <p:ajax event="filter" global="false" onstart="showSearchLoader();" oncomplete="updateTableTotals(); hideSearchLoader();"/>
+            <p:ajax event="rowSelect"  listener="#{saleOrderController.prepareView}" update=":SaleOrderForm:content"/>
+            
+            <p:column>
+                <f:facet name="header">
+                    <h:outputText value=""/>
+                </f:facet>
+                <h:outputText value=""/>
+            </p:column>
+            
+            <p:column sortBy="#{item.name}" filterBy="#{item.name}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.OrderNumber}"/>
+                </f:facet>
+                <h:outputText value="#{item.name}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.date}" filterBy="#{item.date}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Date}"/>
+                </f:facet>
+                <h:outputText value="#{item.date}">
+                    <f:convertDateTime pattern="MM-dd-yyyy" />
+                </h:outputText>
+            </p:column>
+
+            <p:column sortBy="#{item.partner.name}" filterBy="#{item.partner.name}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Customer}"/>
+                </f:facet>
+                <h:outputText value="#{item.partner.name}"/>
+            </p:column>
+            
+            <p:column sortBy="#{item.amountUntaxed}" filterBy="#{item.amountUntaxed}" styleClass="amountUntaxed">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Untaxed}"/>
+                </f:facet>
+                <h:outputText value="#{messages.Currency} #{item.amountUntaxed}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.amountTotal}" filterBy="#{item.amountTotal}" styleClass="amount">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Total}"/>
+                </f:facet>
+                <h:outputText value="#{messages.Currency} #{item.amountTotal}"/>
+            </p:column>
+
+            <p:column sortBy="#{item.state}" filterBy="#{item.state}">
+                <f:facet name="header">
+                    <h:outputText value="#{messages.Status}"/>
+                </f:facet>
+                 <h:outputText value="#{saleOrderController.getStatus(item.state)}" styleClass="badge" style="background-color: #{saleOrderController.getStatusColor(item.state)}"/>
+            </p:column>
+            
+            <p:columnGroup type="footer">
+                <p:row styleClass="tableFoot">
+                    <p:column colspan="4"/>
+                    <p:column  styleClass="total-untaxed"/>
+                    <p:column  styleClass="total-amount"/>
+                    <p:column/>
+                </p:row>
+            </p:columnGroup>
+        </p:dataTable>       
+    </div> 
+    
+    <script type="text/javascript">
+        
+         function updateTableTotals() {
+            addEmptyRows(tableId);
+            columnSum('amount', 'total-amount');
+            columnSum('amountUntaxed', 'total-untaxed');
+            hidePaginator(tableId);
+        }
+
+        var tableId = '#{saleOrders.clientId}';
+        addEmptyRows(tableId);
+        columnSum('amount', 'total-amount');
+        columnSum('amountUntaxed', 'total-untaxed');
+        hidePaginator(tableId);
+
+        setListURL(); 
+        
+    </script>
+    
+    <!-- page end--> 
+</ui:composition>

@@ -1,13 +1,13 @@
 
 package com.casa.erp.dao;
 
-import com.casa.erp.beans.util.IdGenerator;
-import com.casa.erp.entities.DeliveryOrder;
-import com.casa.erp.entities.Inventory;
-import com.casa.erp.entities.Partner;
-import com.casa.erp.entities.Product;
-import com.casa.erp.entities.PurchaseOrder;
-import com.casa.erp.entities.SaleOrder;
+import com.defterp.util.IdGenerator;
+import com.defterp.modules.inventory.entities.DeliveryOrder;
+import com.defterp.modules.inventory.entities.Inventory;
+import com.defterp.modules.partners.entities.Partner;
+import com.defterp.modules.inventory.entities.Product;
+import com.defterp.modules.purchases.entities.PurchaseOrder;
+import com.defterp.modules.sales.entities.SaleOrder;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;

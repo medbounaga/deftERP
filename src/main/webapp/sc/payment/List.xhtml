@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
                 xmlns:h="http://java.sun.com/jsf/html"
@@ -7,31 +6,24 @@
                 xmlns:jsf="http://xmlns.jcp.org/jsf"
                 xmlns:p="http://primefaces.org/ui">
 
-    <p:growl id="msgs" widgetVar="growl" />
-    <div class="row form-header-1">
-        <div class="col-md-11" >
-            <div jsf:rendered="#{empty paymentController.partialListType}">  
-                <h:outputText value="#{messages.CustomerPayments}"/> 
+
+    <div class="row">
+        <div class="col-md-12 card z-depth-1 tool-bar" jsf:rendered="#{empty paymentController.partialListType}">          
+            <div class="form-nav">
+                <span class="form-nav-item"> #{messages.CustomerPayments}</span>  
             </div>
-            <div jsf:rendered="#{paymentController.partialListType == 'partner'}">  
-                <p:link  class="form-nav" value="#{paymentController.payments[0].partner.name}"  outcome="/sc/customer/index">
+        </div>
+        <div class="col-md-12 card z-depth-1 tool-bar" jsf:rendered="#{paymentController.partialListType == 'partner'}">          
+            <div class="form-nav">
+                <p:link  class="form-nav-item form-link" value="#{paymentController.payments[0].partner.name}"  outcome="/sc/customer/index">
                     <f:param name="id" value="#{paymentController.partnerId}"/>
                 </p:link>
-                <span> / </span> 
-                <h:outputText value="#{messages.CustomerPayments}"/> 
+                <i class="fa fa-chevron-circle-right form-nav-icon" aria-hidden="true"></i>
+                <span class="form-nav-item"> #{messages.CustomerPayments}</span>  
             </div>
         </div>
-        <div class="col-md-1 form-pagination" style="display: inline-table;" >
-            <ul class="pagination">
-                <li>
-                    <p:commandLink process="@this" actionListener="#{paymentController.showPaymentForm}" styleClass="fa fa-square-o" style="font-size: 17px !important;" update=":PaymentForm:content"/>           
-                </li>
-                <li class="active-nav-button">
-                    <p:commandLink  styleClass="fa fa-bars" style="font-size: 17px !important;" update="@none"/>
-                </li>
-            </ul>
-        </div>
     </div>
+
     <div class="row"> 
         <p:dataTable id="customerPayments"
                      class="fit-content-table"
@@ -49,20 +41,22 @@
                      paginator="true"
                      rows="#{messages.MaxRows}">
 
-            <f:facet name="header">
+
+            <f:facet name="header" class="card z-depth-1">
                 <p:outputPanel>
-                    <p:commandButton process="@this" class="btnn btnn-primary" value="#{messages.Create}" actionListener="#{paymentController.prepareCreate}" update=":PaymentForm:content" />           
+                    <p:commandButton process="@this" class="waves-effect waves-light btn btn-primary" value="#{messages.Create}" actionListener="#{paymentController.prepareCreate}" update=":mainForm:itemForm, :mainForm:itemList" onstart="hideItemsList();" />                              
                     <div class="searchLoader">
                         <p:graphicImage  name="/img/search-loader.gif"/>
                     </div>
-                    <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('customerPaymentTable').filter()"
-                           onkeypress="if (event.keyCode == 13) {return false}" class="search" placeholder="#{messages.Search}"/>
+                    <input type="text" jsf:id="globalFilter" jsf:onkeyup="PF('customerPaymentTable').filter()" class="search" placeholder="#{messages.Search}" 
+                           onkeypress="if (event.keyCode == 13) {return false;}"/>               
                 </p:outputPanel>
             </f:facet>
+
             <p:ajax event="page" oncomplete="updateTableTotals();"/>
             <p:ajax event="sort" oncomplete="updateTableTotals();"/>
-            <p:ajax event="filter" global="false" onstart="showSearchLoader();" oncomplete="updateTableTotals(); hideSearchLoader();"/>
-            <p:ajax event="rowSelect" listener="#{paymentController.prepareView}" update=":PaymentForm:content"/>
+            <p:ajax event="filter" global="false" onstart="showSearchLoader();" oncomplete="updateTableTotals(); hideSearchLoader();"/>           
+            <p:ajax event="rowSelect" listener="#{paymentController.prepareViewPayment}" update=":mainForm:itemForm, :mainForm:itemList" onstart="hideItemsList();" oncomplete="PF('customerPaymentTable').clearFilters();"/>
 
             <p:column>
                 <f:facet name="header">
@@ -70,14 +64,14 @@
                 </f:facet>
                 <h:outputText value=""/>
             </p:column>
-            
+
             <p:column sortBy="#{item.name}" filterBy="#{item.name}">
                 <f:facet name="header">
                     <h:outputText value="#{messages.Number}"/>
                 </f:facet>
                 <h:outputText value="#{item.name}"/>
             </p:column> 
-            
+
             <p:column sortBy="#{item.date}" filterBy="#{item.date}">
                 <f:facet name="header">
                     <h:outputText value="#{messages.PaymentDate}"/>
@@ -112,7 +106,7 @@
                 <f:facet name="header">
                     <h:outputText value="#{messages.Status}"/>
                 </f:facet>
-                 <h:outputText value="#{paymentController.getStatus(item.state)}" styleClass="badge" style="background-color: #{paymentController.getStatusColor(item.state)}"/>
+                <h:outputText value="#{paymentController.getStatus(item.state)}" styleClass="row-status" style="background-color: #{paymentController.getStatusColor(item.state)}"/>
             </p:column> 
             <p:columnGroup type="footer">
                 <p:row styleClass="tableFoot">
@@ -121,20 +115,19 @@
                     <p:column/>
                 </p:row>
             </p:columnGroup>
-        </p:dataTable>
+
+        </p:dataTable>     
     </div>  
     <script>
         var tableId = '#{customerPayments.clientId}';
         addEmptyRows(tableId);
         columnSum('amount', 'total-amount');
         hidePaginator(tableId);
-        
-        function updateTableTotals() {           
+
+        function updateTableTotals() {
             addEmptyRows(tableId);
             columnSum('amount', 'total-amount');
             hidePaginator(tableId);
         }
-        setListURL();
     </script>
-
 </ui:composition>
