@@ -18,36 +18,33 @@
             <li><p:link value="#{messages.PurchaseOrders}" outcome="/sc/purchaseOrder/index"/></li> 
         </ul>
         <ul id="inventory-dropdown" class="dropdown-content" constrainwidth="false">
-            <li> <p:link value="#{messages.IncomingShipments}" outcome="/sc/supDeliveryOrder/index" /></li>
-            <li> <p:link value="#{messages.DeliveryOrders}" outcome="/sc/deliveryOrder/index" /></li>
-            <li> <p:link value="#{messages.Products}" outcome="/sc/product/index" /></li> 
-            <li> <p:link value="#{messages.InventoryValuation}" outcome="/sc/inventory/index" /></li>  
-
+            <li> <p:link value="#{messages.IncomingShipments}" outcome="/sc/supDeliveryOrder/index"/></li>
+            <li> <p:link value="#{messages.DeliveryOrders}" outcome="/sc/deliveryOrder/index"/></li>
+            <li> <p:link value="#{messages.Products}" outcome="/sc/product/index"/></li> 
+            <li> <p:link value="#{messages.InventoryValuation}" outcome="/sc/inventory/index"/></li>  
         </ul>
         <ul id="accounting-dropdown" class="dropdown-content">
-            <li> <p:link value="#{messages.CustomerInvoices}" outcome="/sc/invoice/index"  /></li>
-            <li> <p:link value="#{messages.CustomerPayments}" outcome="/sc/payment/index" /></li>
-            <li> <p:link value="#{messages.VendorBills}" outcome="/sc/supInvoice/index" /></li>
-            <li> <p:link value="#{messages.VendorPayments}" outcome="/sc/supPayment/index" /></li>
-            <li> <p:link value="#{messages.JournalEntries}" outcome="/sc/journalEntry/index" /></li>
-            <li> <p:link value="#{messages.JournalItems}" outcome="/sc/journalItem/index" /></li> 
-
+            <li> <p:link value="#{messages.CustomerInvoices}" outcome="/sc/invoice/index"/></li>
+            <li> <p:link value="#{messages.CustomerPayments}" outcome="/sc/payment/index"/></li>
+            <li> <p:link value="#{messages.VendorBills}" outcome="/sc/supInvoice/index"/></li>
+            <li> <p:link value="#{messages.VendorPayments}" outcome="/sc/supPayment/index"/></li>
+            <li> <p:link value="#{messages.JournalEntries}" outcome="/sc/journalEntry/index"/></li>
         </ul>
         <ul id="config-dropdown" class="dropdown-content">
-            <li> <p:link value="#{messages.Accounts}" outcome="/sc/account/index"  /></li>
-            <li> <p:link value="#{messages.Journals}" outcome="/sc/journal/index" /></li>
-            <li> <p:link value="#{messages.Taxess}" outcome="/sc/tax/index" /></li>
-            <li> <p:link value="#{messages.Users}" outcome="/sc/userInfo/index" /></li>
-            <li> <p:link value="#{messages.ProductCategories}" outcome="/sc/productCtg/index" /></li>
-            <li> <p:link value="#{messages.UnitsOfMeasure}" outcome="/sc/productUom/index" /></li>
-            <li> <p:link value="#{messages.ProductUomCategories}" outcome="/sc/productUomCtg/index" /></li>
+            <li> <p:link value="#{messages.Accounts}" outcome="/sc/account/index"/></li>
+            <li> <p:link value="#{messages.Journals}" outcome="/sc/journal/index"/></li>
+            <li> <p:link value="#{messages.Taxess}" outcome="/sc/tax/index"/></li>
+            <li> <p:link value="#{messages.Users}" outcome="/sc/userInfo/index"/></li>
+            <li> <p:link value="#{messages.ProductCategories}" outcome="/sc/productCtg/index"/></li>
+            <li> <p:link value="#{messages.UnitsOfMeasure}" outcome="/sc/productUom/index"/></li>
+            <li> <p:link value="#{messages.ProductUomCategories}" outcome="/sc/productUomCtg/index"/></li>
 
         </ul>
 
         <ul id="languages-dropdown" class="dropdown-content">
-            <li> <p:commandLink value="English" action="#{localeController.changeLanguage('en')}" /></li>
-            <li> <p:commandLink value="Italian" action="#{localeController.changeLanguage('it')}" /></li>
-            <li> <p:commandLink value="Spanish" action="#{localeController.changeLanguage('es')}" /></li>
+            <li> <p:commandLink value="English" action="#{localeController.changeLanguage('en')}"/></li>
+            <li> <p:commandLink value="Italian" action="#{localeController.changeLanguage('it')}"/></li>
+            <li> <p:commandLink value="Spanish" action="#{localeController.changeLanguage('es')}"/></li>
         </ul>
 
         <ul id="user-info-dropdown" class="dropdown-content">
@@ -69,7 +66,7 @@
                                 <p:graphicImage value="#" name="img/brand-logo.png" alt="icon" /> 
                             </p:link>
                         </div>
-                        <div class="z-depth-1"  style="    background: rgb(206, 81, 70);
+                        <div class="z-depth-1"  style="background: rgb(206, 81, 70);
                              width: auto;
                              height: 42px;
                              border-radius: 0px;
