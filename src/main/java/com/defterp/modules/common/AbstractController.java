@@ -1,7 +1,7 @@
 
 package com.defterp.modules.common;
 
-import com.defterp.dataAccess.DataAccessPoint;
+import com.defterp.dataAccess.GenericDAO;
 import com.defterp.util.JsfUtil;
 import com.defterp.util.QueryWrapper;
 import java.io.Serializable;
@@ -20,7 +20,7 @@ public abstract class AbstractController
 
     private static final long serialVersionUID = 1;
     @Inject
-    private DataAccessPoint dataAccess;
+    private GenericDAO dataAccess;
     protected String currentForm;
     protected String currentList;
     protected Integer MAX_DROPDOWN_ITEMS;

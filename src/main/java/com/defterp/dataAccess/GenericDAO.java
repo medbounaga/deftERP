@@ -14,7 +14,7 @@ import javax.persistence.PersistenceContextType;
 import javax.persistence.Query;
 
 @Stateful
-public class DataAccessPoint implements Serializable {
+public class GenericDAO implements Serializable {
 
     private static final long serialVersionUID = -169258812805375171L;
 
