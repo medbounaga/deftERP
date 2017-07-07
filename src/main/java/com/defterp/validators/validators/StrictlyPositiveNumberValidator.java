@@ -1,5 +1,5 @@
 
-package com.defterp.validators;
+package com.defterp.validators.validators;
 
 import com.defterp.validators.annotations.StrictlyPositiveNumber;
 import javax.validation.ConstraintValidator;

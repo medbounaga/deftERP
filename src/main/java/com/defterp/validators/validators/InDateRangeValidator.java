@@ -1,4 +1,4 @@
-package com.defterp.validators;
+package com.defterp.validators.validators;
 
 import com.defterp.validators.annotations.InDateRange;
 import java.util.Date;
