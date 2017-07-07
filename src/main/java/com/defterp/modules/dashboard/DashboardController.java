@@ -25,7 +25,7 @@ import org.primefaces.context.RequestContext;
 
 @Named(value = "dashBoard")
 @ViewScoped
-public class DashBoard implements Serializable {
+public class DashboardController implements Serializable {
 
     @Inject
     DashBoardFacade dashBoardFacade;
