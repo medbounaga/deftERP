@@ -1,4 +1,4 @@
-package com.defterp.util;
+package com.defterp.security.filters;
 
 import java.io.IOException;
 
