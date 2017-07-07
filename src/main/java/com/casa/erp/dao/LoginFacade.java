@@ -1,6 +1,6 @@
 
 package com.casa.erp.dao;
-import com.defterp.security.User;
+import com.defterp.modules.users.entities.User;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;

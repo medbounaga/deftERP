@@ -1,5 +1,6 @@
 package com.defterp.security;
 
+import com.defterp.modules.users.entities.User;
 import com.casa.erp.dao.UserFacade;
 import com.defterp.util.JsfUtil;
 import java.util.logging.Level;

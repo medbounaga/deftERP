@@ -1,5 +1,6 @@
 package com.defterp.security;
 
+import com.defterp.modules.users.entities.User;
 import com.defterp.util.JsfUtil;
 import com.casa.erp.dao.UserFacade;
 import java.io.IOException;

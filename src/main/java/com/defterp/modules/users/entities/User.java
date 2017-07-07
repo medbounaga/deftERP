@@ -1,5 +1,5 @@
 
-package com.defterp.security;
+package com.defterp.modules.users.entities;
 
 import com.defterp.modules.commonClasses.BaseEntity;
 import javax.persistence.Basic;
