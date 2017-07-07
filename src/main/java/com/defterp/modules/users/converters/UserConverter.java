@@ -1,4 +1,4 @@
-package com.defterp.security;
+package com.defterp.modules.users.converters;
 
 import com.defterp.modules.users.entities.User;
 import com.casa.erp.dao.UserFacade;
