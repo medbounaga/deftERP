@@ -10,97 +10,84 @@ public class InvoiceQueryBuilder {
     private static final String FIND_BY_PURCHASE_ORDER = "SELECT i FROM Invoice i WHERE i.purchaseOrder.id = :purchaseId";
     private static final String FIND_BY_PARTNER = "SELECT i FROM Invoice i WHERE i.partner.id = :partnerId AND i.type = :type";
     private static final String INVOICED_SUM_BY_PARTNER = "SELECT SUM(i.amountUntaxed) FROM Invoice i WHERE i.partner.id = :partnerId AND i.type = :type ";
-    private static final String TOTAL_DUE_AMOUNT_BY_PARTNER = "SELECT SUM(i.residual) FROM Invoice i WHERE i.partner.id = :partnerId AND i.type = :type "; 
+    private static final String TOTAL_DUE_AMOUNT_BY_PARTNER = "SELECT SUM(i.residual) FROM Invoice i WHERE i.partner.id = :partnerId AND i.type = :type ";
     private static final String COUNT_BY_PARTNER = "SELECT COUNT(i) FROM Invoice i WHERE i.partner.id = :partnerId AND i.type = :type ";
 
     public static QueryWrapper getCountByVendorQuery(Integer vendorId) {
-        QueryWrapper query = new QueryWrapper(COUNT_BY_PARTNER)
-                                 .setParameter("partnerId", vendorId)
-                                 .setParameter("type", "Purchase");
 
-        return query;
+        return new QueryWrapper(COUNT_BY_PARTNER)
+                .setParameter("partnerId", vendorId)
+                .setParameter("type", "Purchase");
     }
-    
-     public static QueryWrapper getCountByCustomerQuery(Integer customerId) {
-        QueryWrapper query = new QueryWrapper(COUNT_BY_PARTNER)
-                                 .setParameter("partnerId", customerId)
-                                 .setParameter("type", "Sale");
 
-        return query;
+    public static QueryWrapper getCountByCustomerQuery(Integer customerId) {
+
+        return new QueryWrapper(COUNT_BY_PARTNER)
+                .setParameter("partnerId", customerId)
+                .setParameter("type", "Sale");
     }
-    
-    
+
     public static QueryWrapper getFindBySaleOrderQuery(Integer saleOrderId) {
-        QueryWrapper qw = new QueryWrapper(FIND_BY_SALE_ORDER)
-                .setParameter("saleId", saleOrderId);
 
-        return qw;
+        return new QueryWrapper(FIND_BY_SALE_ORDER)
+                .setParameter("saleId", saleOrderId);
     }
 
     public static QueryWrapper getFindByPurchaseOrderQuery(Integer purchaseOrderId) {
-        QueryWrapper qw = new QueryWrapper(FIND_BY_PURCHASE_ORDER)
-                .setParameter("purchaseId", purchaseOrderId);
 
-        return qw;
+        return new QueryWrapper(FIND_BY_PURCHASE_ORDER)
+                .setParameter("purchaseId", purchaseOrderId);
     }
 
     public static QueryWrapper getFindByCustomerQuery(Integer customerId) {
-        QueryWrapper qw = new QueryWrapper(FIND_BY_PARTNER)
+
+        return new QueryWrapper(FIND_BY_PARTNER)
                 .setParameter("partnerId", customerId)
                 .setParameter("type", "Sale");
-
-        return qw;
     }
 
     public static QueryWrapper getFindByVendorQuery(Integer vendorId) {
-        QueryWrapper qw = new QueryWrapper(FIND_BY_PARTNER)
+
+        return new QueryWrapper(FIND_BY_PARTNER)
                 .setParameter("partnerId", vendorId)
                 .setParameter("type", "Purchase");
-
-        return qw;
     }
 
     public static QueryWrapper getInvoiceSumByCustomerQuery(Integer customerId) {
-        QueryWrapper qw = new QueryWrapper(INVOICED_SUM_BY_PARTNER)
+
+        return new QueryWrapper(INVOICED_SUM_BY_PARTNER)
                 .setParameter("partnerId", customerId)
                 .setParameter("type", "Sale");
-
-        return qw;
     }
-    
-        public static QueryWrapper getInvoiceSumByVendorQuery(Integer vendorId) {
-        QueryWrapper qw = new QueryWrapper(INVOICED_SUM_BY_PARTNER)
+
+    public static QueryWrapper getInvoiceSumByVendorQuery(Integer vendorId) {
+        
+        return new QueryWrapper(INVOICED_SUM_BY_PARTNER)
                 .setParameter("partnerId", vendorId)
                 .setParameter("type", "Purchase");
-
-        return qw;
     }
 
     public static QueryWrapper getTotalDueAmountByCustomerQuery(Integer customerId) {
-        QueryWrapper qw = new QueryWrapper(TOTAL_DUE_AMOUNT_BY_PARTNER)
+        
+        return new QueryWrapper(TOTAL_DUE_AMOUNT_BY_PARTNER)
                 .setParameter("partnerId", customerId)
                 .setParameter("type", "Sale");
-
-        return qw;
     }
 
     public static QueryWrapper getTotalDueAmountByVendorQuery(Integer vendorId) {
-        QueryWrapper qw = new QueryWrapper(TOTAL_DUE_AMOUNT_BY_PARTNER)
+        
+        return new QueryWrapper(TOTAL_DUE_AMOUNT_BY_PARTNER)
                 .setParameter("partnerId", vendorId)
                 .setParameter("type", "Purchase");
-
-        return qw;
     }
 
     public static QueryWrapper getFindAllInvoicesQuery() {
-        QueryWrapper qw = new QueryWrapper(FIND_ALL_INVOICES);
-
-        return qw;
+       
+        return new QueryWrapper(FIND_ALL_INVOICES);
     }
 
     public static QueryWrapper getFindAllBillsQuery() {
-        QueryWrapper qw = new QueryWrapper(FIND_ALL_BILLS);
-
-        return qw;
+        
+        return new QueryWrapper(FIND_ALL_BILLS);
     }
 }
