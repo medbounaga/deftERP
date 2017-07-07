@@ -1,6 +1,6 @@
 package com.defterp.dataAccess;
 
-import com.defterp.modules.common.BaseEntity;
+import com.defterp.modules.commonClasses.BaseEntity;
 import com.defterp.util.QueryWrapper;
 import java.io.Serializable;
 import java.util.ArrayList;

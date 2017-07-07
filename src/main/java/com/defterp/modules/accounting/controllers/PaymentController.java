@@ -6,7 +6,7 @@ import com.defterp.modules.accounting.entities.JournalEntry;
 import com.defterp.modules.accounting.entities.JournalItem;
 import com.defterp.modules.accounting.entities.Payment;
 import com.defterp.modules.accounting.queryBuilders.AccountQueryBuilder;
-import com.defterp.modules.common.AbstractController;
+import com.defterp.modules.commonClasses.AbstractController;
 import com.defterp.modules.partners.entities.Partner;
 import com.defterp.util.IdGenerator;
 import com.defterp.util.JsfUtil;

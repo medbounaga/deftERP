@@ -1,5 +1,5 @@
 
-package com.defterp.modules.common;
+package com.defterp.modules.commonClasses;
 
 import com.defterp.dataAccess.GenericDAO;
 import com.defterp.util.JsfUtil;

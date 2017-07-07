@@ -1,7 +1,7 @@
 
 package com.defterp.modules.accounting.entities;
 
-import com.defterp.modules.common.BaseEntity;
+import com.defterp.modules.commonClasses.BaseEntity;
 import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;

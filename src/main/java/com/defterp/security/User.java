@@ -1,7 +1,7 @@
 
 package com.defterp.security;
 
-import com.defterp.modules.common.BaseEntity;
+import com.defterp.modules.commonClasses.BaseEntity;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;

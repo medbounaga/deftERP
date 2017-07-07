@@ -1,7 +1,7 @@
 
 package com.defterp.modules.accounting.entities;
 
-import com.defterp.modules.common.BaseEntity;
+import com.defterp.modules.commonClasses.BaseEntity;
 import com.defterp.modules.partners.entities.Partner;
 import java.util.ArrayList;
 import java.util.List;

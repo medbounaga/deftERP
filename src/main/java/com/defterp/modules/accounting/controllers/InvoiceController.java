@@ -2,7 +2,7 @@ package com.defterp.modules.accounting.controllers;
 
 import com.defterp.modules.accounting.queryBuilders.*;
 import com.defterp.modules.accounting.entities.*;
-import com.defterp.modules.common.AbstractController;
+import com.defterp.modules.commonClasses.AbstractController;
 import com.defterp.modules.inventory.queryBuilders.ProductQueryBuilder;
 import com.defterp.modules.inventory.entities.Product;
 import com.defterp.modules.partners.queryBuilders.PartnerQueryBuilder;

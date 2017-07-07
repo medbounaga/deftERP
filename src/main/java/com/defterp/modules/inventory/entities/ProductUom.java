@@ -1,7 +1,7 @@
 
 package com.defterp.modules.inventory.entities;
 
-import com.defterp.modules.common.BaseEntity;
+import com.defterp.modules.commonClasses.BaseEntity;
 import com.defterp.modules.accounting.entities.JournalItem;
 import java.util.List;
 import javax.persistence.Basic;

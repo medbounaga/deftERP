@@ -1,4 +1,4 @@
-package com.defterp.modules.common;
+package com.defterp.modules.commonClasses;
 
 import java.io.Serializable;
 import javax.persistence.Basic;

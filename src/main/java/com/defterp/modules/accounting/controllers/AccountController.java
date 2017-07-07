@@ -3,7 +3,7 @@ package com.defterp.modules.accounting.controllers;
 import com.defterp.modules.accounting.entities.Account;
 import com.defterp.modules.accounting.queryBuilders.AccountQueryBuilder;
 import com.defterp.modules.accounting.queryBuilders.JournalItemQueryBuilder;
-import com.defterp.modules.common.AbstractController;
+import com.defterp.modules.commonClasses.AbstractController;
 import com.defterp.util.JsfUtil;
 import com.defterp.util.QueryWrapper;
 import java.util.ArrayList;

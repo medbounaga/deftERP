@@ -1,7 +1,7 @@
 
 package com.defterp.modules.inventory.entities;
 
-import com.defterp.modules.common.BaseEntity;
+import com.defterp.modules.commonClasses.BaseEntity;
 import com.defterp.modules.purchases.entities.PurchaseOrder;
 import com.defterp.modules.sales.entities.SaleOrder;
 import com.defterp.modules.partners.entities.Partner;

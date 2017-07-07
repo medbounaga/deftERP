@@ -1,7 +1,7 @@
 
 package com.defterp.modules.accounting.entities;
 
-import com.defterp.modules.common.BaseEntity;
+import com.defterp.modules.commonClasses.BaseEntity;
 import com.defterp.modules.purchases.entities.PurchaseOrderLine;
 import com.defterp.modules.sales.entities.SaleOrderLine;
 import com.defterp.validators.StrictlyPositiveNumber;

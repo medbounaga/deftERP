@@ -1,7 +1,7 @@
 
 package com.defterp.modules.inventory.entities;
 
-import com.defterp.modules.common.BaseEntity;
+import com.defterp.modules.commonClasses.BaseEntity;
 import com.defterp.modules.partners.entities.Partner;
 import com.defterp.validators.StrictlyPositiveNumber;
 import javax.persistence.Basic;

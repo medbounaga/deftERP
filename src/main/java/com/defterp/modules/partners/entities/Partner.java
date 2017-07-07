@@ -10,7 +10,7 @@ import com.defterp.modules.accounting.entities.JournalItem;
 import com.defterp.modules.accounting.entities.Invoice;
 import com.defterp.modules.accounting.entities.Account;
 import com.defterp.modules.accounting.entities.InvoiceLine;
-import com.defterp.modules.common.BaseEntity;
+import com.defterp.modules.commonClasses.BaseEntity;
 import com.defterp.modules.purchases.entities.PurchaseOrder;
 import com.defterp.modules.sales.entities.SaleOrder;
 import com.defterp.validators.InDateRange;
