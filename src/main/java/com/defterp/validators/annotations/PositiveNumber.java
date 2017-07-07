@@ -1,6 +1,7 @@
 
-package com.defterp.validators;
+package com.defterp.validators.annotations;
 
+import com.defterp.validators.PositiveNumberValidator;
 import javax.validation.Constraint;
 import javax.validation.Payload;
 import javax.validation.ReportAsSingleViolation;
