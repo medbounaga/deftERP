@@ -131,7 +131,7 @@ public class InvoiceController extends AbstractController {
         JournalItem journalItem = new JournalItem();
         String ref = invoice.getSaleOrder() == null ? null : invoice.getSaleOrder().getName();
 
-        query = JournalQueryBuilder.getFindJournalByCodeQuery("INV");
+        query = JournalQueryBuilder.getFindByCodeQuery("INV");
         journalEntry.setJournal((Journal) super.findSingleWithQuery(query));
         journalEntry.setName(invoice.getName());
         journalEntry.setRef(ref);
@@ -330,7 +330,7 @@ public class InvoiceController extends AbstractController {
         JournalItem journalItem = new JournalItem();
         JournalEntry journalEntry = new JournalEntry();
 
-        query = JournalQueryBuilder.getFindJournalByCodeQuery(account);
+        query = JournalQueryBuilder.getFindByCodeQuery(account);
         journalEntry.setJournal((Journal) super.findSingleWithQuery(query));
 
         journalEntry.setRef(payment.getInvoice().getOrigin());
@@ -424,7 +424,7 @@ public class InvoiceController extends AbstractController {
             receivableDebit = 0d;
         }
 
-        query = JournalQueryBuilder.getFindJournalByCodeQuery(account);
+        query = JournalQueryBuilder.getFindByCodeQuery(account);
         journalEntry.setJournal((Journal) super.findSingleWithQuery(query));
 
         journalEntry.setRef(payment.getInvoice().getOrigin());
@@ -978,7 +978,7 @@ public class InvoiceController extends AbstractController {
 
         query = AccountQueryBuilder.getFindByNameQuery("Account Receivable");
         invoice.setAccount((Account) super.findSingleWithQuery(query));
-        query = JournalQueryBuilder.getFindJournalByCodeQuery("INV");
+        query = JournalQueryBuilder.getFindByCodeQuery("INV");
         invoice.setJournal((Journal) super.findSingleWithQuery(query));
 
         loadActiveCustomers();
