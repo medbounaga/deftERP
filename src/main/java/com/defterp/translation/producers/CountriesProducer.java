@@ -1,4 +1,4 @@
-package com.defterp.util;
+package com.defterp.translation.producers;
 
 import com.defterp.translation.annotations.UserLocale;
 import com.defterp.translation.annotations.Countries;

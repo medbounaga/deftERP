@@ -1,6 +1,7 @@
-package com.defterp.util;
+package com.defterp.translation.producers;
 
 import com.defterp.translation.annotations.DayMonth;
+import com.defterp.util.JsfUtil;
 import java.util.HashMap;
 import java.util.ResourceBundle;
 import javax.enterprise.inject.Produces;
