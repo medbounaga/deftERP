@@ -1,11 +1,16 @@
 package com.defterp.modules.dashboard.controllers;
 
+
+import com.defterp.dataAccess.GenericDAO;
+import com.defterp.modules.dashboard.queryBuilders.DashboardQueryBuilder;
 import com.defterp.util.UserLocale;
-import com.casa.erp.dao.DashBoardFacade;
 import com.google.gson.Gson;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
@@ -17,283 +22,564 @@ import org.joda.time.format.DateTimeFormatter;
 import org.primefaces.context.RequestContext;
 
 /**
- * 
+ *
  * @author MOHAMMED BOUNAGA
- * 
+ *
  * github.com/medbounaga
  */
-
 @Named(value = "dashBoard")
 @ViewScoped
 public class DashboardController implements Serializable {
 
     @Inject
-    DashBoardFacade dashBoardFacade;
+    private GenericDAO dataAccess;
     @Inject
     @UserLocale
-    Locale locale;
-    String period;
-    List<Object[]> resultList;
+    private Locale locale;
+    private String query;
+    private Gson gson;
+    private String periodType;
+    private List<Object[]> resultList;
+    private String compareTable;
+    private String salesCogsProfit;
+    private String purchasesAmount;
+    private String topSalesByProduct;
+    private String topPurchasesByProduct;
+    private String topSalesByCustomer;
+    private String topPurchasesByVendor;
+    private String topReceivablesByCustomer;
+    private String topPayablesByVendor;
+    private String newCustomers;
+    private String reminders;
+    private String payableReceivable;
+    private String customerPayment;
+    private String vendorPayment;
 
-    String compareTable;
-    String salesCogsProfit;
-    String purchasesAmount;
-    String topSalesByProduct;
-    String topPurchasesByProduct;
-    String topSalesByCustomer;
-    String topPurchasesByVendor;
-    String topReceivablesByCustomer;
-    String topPayablesByVendor;
-    String newCustomers;
-    String reminders;
-    String payableReceivable;
-    String customerPayment;
-    String vendorPayment;
+    private int interval;
+    private final int NUMBER_OF_WEEKS = 8;
+    private final int NUMBER_OF_MONTHS = 6;
+    private final int NUMBER_OF_DAYS = 10;
+    private final int NUMBER_OF_QUARTERS = 4;
 
-    int interval;
-    int weekInterval = 8;
-    int monthInterval = 6;
-    int dayInterval = 10;
-    int quarterInterval = 4;
-    int topItems = 5;
+    private final int NUMBER_OF_TOP_ITEMS = 5;
 
     @PostConstruct
     public void init() {
 
-        period = "Month";
+        periodType = "Month";
+        gson = new Gson();
+        resultList = new ArrayList<>();
 
-        resultList = dashBoardFacade.salesOrderCount(2, period);
-        resultList.addAll(dashBoardFacade.salesAmount(2, period));
-        resultList.addAll(dashBoardFacade.costOfGoodsSold(2, period));
-        resultList.addAll(dashBoardFacade.profit(2, period));
-        compareTable = new Gson().toJson(resultList);
+        try {
 
-        resultList = dashBoardFacade.salesAmount(monthInterval, period);
-        resultList.addAll(dashBoardFacade.costOfGoodsSold(monthInterval, period));
-        resultList.addAll(dashBoardFacade.profit(monthInterval, period));
-        resultList.add(resolveMonthName(monthInterval));
-        salesCogsProfit = new Gson().toJson(resultList);
+            query = DashboardQueryBuilder.getNumberOfSaleOrdersByPeriodQuery(2, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
 
-        resultList = dashBoardFacade.PurchasesAmount(monthInterval, period);
-        resultList.add(resolveMonthName(monthInterval));
-        purchasesAmount = new Gson().toJson(resultList);
+            query = DashboardQueryBuilder.getSalesAmountByPeriodQuery(2, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
 
-        resultList = dashBoardFacade.topSalesByProduct(topItems, period, 0);
-        topSalesByProduct = new Gson().toJson(resultList);
+            query = DashboardQueryBuilder.getCostOfGoodsSoldByPeriodQuery(2, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
 
-        resultList = dashBoardFacade.topPurchasesByProduct(topItems, period, 0);
-        topPurchasesByProduct = new Gson().toJson(resultList);
+            query = DashboardQueryBuilder.getTotalProfitByPeriodQuery(2, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
 
-        resultList = dashBoardFacade.topSalesByCustomer(topItems, period, 0);
-        topSalesByCustomer = new Gson().toJson(resultList);
+            compareTable = gson.toJson(resultList);
 
-        resultList = dashBoardFacade.topPurchasesByVendor(topItems, period, 0);
-        topPurchasesByVendor = new Gson().toJson(resultList);
+            // ----------------------------------------------------------------
+            
+            resultList.clear();
 
-        resultList = dashBoardFacade.topReceivablesByCustomer();
-        topReceivablesByCustomer = new Gson().toJson(resultList);
+            query = DashboardQueryBuilder.getSalesAmountByPeriodQuery(NUMBER_OF_MONTHS, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
 
-        resultList = dashBoardFacade.topPayablesByVendor();
-        topPayablesByVendor = new Gson().toJson(resultList);
+            query = DashboardQueryBuilder.getCostOfGoodsSoldByPeriodQuery(NUMBER_OF_MONTHS, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
 
-        resultList = dashBoardFacade.newCustomers(monthInterval, period);
-        resultList.add(resolveMonthName(monthInterval));
-        newCustomers = new Gson().toJson(resultList);
+            query = DashboardQueryBuilder.getTotalProfitByPeriodQuery(NUMBER_OF_MONTHS, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
 
-        resultList = dashBoardFacade.salesOrdersToConfirm();
-        resultList.addAll(dashBoardFacade.purchaseOrdersToConfirm());
-        resultList.addAll(dashBoardFacade.invoicesToConfirm());
-        resultList.addAll(dashBoardFacade.billsToConfirm());
-        reminders = new Gson().toJson(resultList);
+            resultList.add(resolveMonthName(NUMBER_OF_MONTHS));
 
-        resultList = dashBoardFacade.receivables();
-        resultList.addAll(dashBoardFacade.payables());
-        payableReceivable = new Gson().toJson(resultList);
+            salesCogsProfit = gson.toJson(resultList);
 
-        resultList = dashBoardFacade.customerPayment(monthInterval, period);
-        resultList.add(resolveMonthName(monthInterval));
-        customerPayment = new Gson().toJson(resultList);
+            // ----------------------------------------------------------------
+            
+            resultList.clear();
 
-        resultList = dashBoardFacade.vendorPayment(monthInterval, period);
-        resultList.add(resolveMonthName(monthInterval));
-        vendorPayment = new Gson().toJson(resultList);
+            query = DashboardQueryBuilder.getPurchasesAmountByPeriodQuery(NUMBER_OF_MONTHS, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            resultList.add(resolveMonthName(NUMBER_OF_MONTHS));
+
+            purchasesAmount = gson.toJson(resultList);
+
+            // ----------------------------------------------------------------
+            
+            resultList.clear();
+
+            query = DashboardQueryBuilder.getTopSalesByProductQuery(NUMBER_OF_TOP_ITEMS, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            topSalesByProduct = gson.toJson(resultList);
+
+            // ----------------------------------------------------------------
+            
+            resultList.clear();
+
+            query = DashboardQueryBuilder.getTopPurchasesByProductQuery(NUMBER_OF_TOP_ITEMS, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            topPurchasesByProduct = gson.toJson(resultList);
+
+            // ----------------------------------------------------------------    
+            
+            resultList.clear();
+
+            query = DashboardQueryBuilder.getTopSalesByCustomerQuery(NUMBER_OF_TOP_ITEMS, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            topSalesByCustomer = gson.toJson(resultList);
+
+            // ----------------------------------------------------------------
+            
+            resultList.clear();
+
+            query = DashboardQueryBuilder.getTopPurchasesByVendorQuery(NUMBER_OF_TOP_ITEMS, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            topPurchasesByVendor = gson.toJson(resultList);
+
+            // ----------------------------------------------------------------
+            
+            resultList.clear();
+
+            query = DashboardQueryBuilder.getTopReceivablesByCustomerQuery();
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            topReceivablesByCustomer = gson.toJson(resultList);
+
+            // ----------------------------------------------------------------
+            
+            resultList.clear();
+
+            query = DashboardQueryBuilder.getTopPayablesByVendorQuery();
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            topPayablesByVendor = gson.toJson(resultList);
+
+            // ----------------------------------------------------------------
+            
+            resultList.clear();
+
+            query = DashboardQueryBuilder.getNumberOfNewCustomersByPeriodQuery(NUMBER_OF_MONTHS, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+            resultList.add(resolveMonthName(NUMBER_OF_MONTHS));
+
+            newCustomers = gson.toJson(resultList);
+
+            // ----------------------------------------------------------------
+            
+            resultList.clear();
+
+            query = DashboardQueryBuilder.getNumberOfSaleOrdersToConfirmQuery();
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            query = DashboardQueryBuilder.getNumberOfPurchaseOrdersToConfirmQuery();
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            query = DashboardQueryBuilder.getNumberOfInvoicesToConfirmQuery();
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            query = DashboardQueryBuilder.getNumberOfBillsToConfirmQuery();
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            reminders = gson.toJson(resultList);
+
+            // ----------------------------------------------------------------
+            
+            resultList.clear();
+
+            query = DashboardQueryBuilder.getTotalReceivablesQuery();
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            query = DashboardQueryBuilder.getTotalPayablesQuery();
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            payableReceivable = gson.toJson(resultList);
+
+            // ----------------------------------------------------------------
+            
+            resultList.clear();
+
+            query = DashboardQueryBuilder.getCustomerPaymentsByPeriodQuery(NUMBER_OF_MONTHS, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+            resultList.add(resolveMonthName(NUMBER_OF_MONTHS));
+            customerPayment = gson.toJson(resultList);
+
+            // ----------------------------------------------------------------
+            
+            resultList.clear();
+
+            query = DashboardQueryBuilder.getVendorPaymentsByPeriodQuery(NUMBER_OF_MONTHS, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+            resultList.add(resolveMonthName(NUMBER_OF_MONTHS));
+            vendorPayment = gson.toJson(resultList);
+
+        } catch (Exception ex) {
+            Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
     }
 
     public void performanceIndicators() {
 
         RequestContext reqCtx = RequestContext.getCurrentInstance();
+        resultList = new ArrayList<>();
 
-        resultList = dashBoardFacade.salesOrderCount(2, period);
-        resultList.addAll(dashBoardFacade.salesAmount(2, period));
-        resultList.addAll(dashBoardFacade.costOfGoodsSold(2, period));
-        resultList.addAll(dashBoardFacade.profit(2, period));
+        try {
 
-        reqCtx.addCallbackParam("compareTable", new Gson().toJson(resultList));
+            query = DashboardQueryBuilder.getNumberOfSaleOrdersByPeriodQuery(2, periodType);
+            resultList = dataAccess.findWithNativeQuery(query);
+
+            query = DashboardQueryBuilder.getSalesAmountByPeriodQuery(2, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            query = DashboardQueryBuilder.getCostOfGoodsSoldByPeriodQuery(2, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            query = DashboardQueryBuilder.getTotalProfitByPeriodQuery(2, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            reqCtx.addCallbackParam("compareTable", gson.toJson(resultList));
+
+        } catch (Exception ex) {
+            Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
 
-    public void saleAmount() {
-        resultList = dashBoardFacade.salesAmount(6, "Month");
-        resultList.add(resolveMonthName(6));
-
-        RequestContext reqCtx = RequestContext.getCurrentInstance();
-        reqCtx.addCallbackParam("salesAmount", new Gson().toJson(resultList));
-    }
-
+//    public void saleAmount() {
+//
+//        RequestContext reqCtx = RequestContext.getCurrentInstance();
+//        resultList = new ArrayList<>();
+//
+//        try {
+//
+//            query = DashboardQueryBuilder.getSalesAmountByPeriodQuery(6, "Month");
+//            resultList.addAll(dataAccess.findWithNativeQuery(query));
+//            resultList.add(resolveMonthName(6));
+//            reqCtx.addCallbackParam("salesAmount", gson.toJson(resultList));
+//
+//        } catch (Exception ex) {
+//            Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//
+//    }
     public void topSalesByProduct() {
 
-        resultList = dashBoardFacade.topSalesByProduct(topItems, period, 0);
-
         RequestContext reqCtx = RequestContext.getCurrentInstance();
-        reqCtx.addCallbackParam("topSalesByProduct", new Gson().toJson(resultList));
+        resultList = new ArrayList<>();
+
+        try {
+
+            query = DashboardQueryBuilder.getTopSalesByProductQuery(NUMBER_OF_TOP_ITEMS, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            reqCtx.addCallbackParam("topSalesByProduct", gson.toJson(resultList));
+
+        } catch (Exception ex) {
+            Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void topPurchasesByProduct() {
 
-        resultList = dashBoardFacade.topPurchasesByProduct(topItems, period, 0);
-
         RequestContext reqCtx = RequestContext.getCurrentInstance();
-        reqCtx.addCallbackParam("topPurchasesByProduct", new Gson().toJson(resultList));
+        resultList = new ArrayList<>();
+
+        try {
+
+            query = DashboardQueryBuilder.getTopPurchasesByProductQuery(NUMBER_OF_TOP_ITEMS, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            reqCtx.addCallbackParam("topPurchasesByProduct", gson.toJson(resultList));
+
+        } catch (Exception ex) {
+            Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void topPurchasesByVendor() {
 
-        resultList = dashBoardFacade.topPurchasesByVendor(topItems, period, 0);
-
         RequestContext reqCtx = RequestContext.getCurrentInstance();
-        reqCtx.addCallbackParam("topPurchasesByVendor", new Gson().toJson(resultList));
+        resultList = new ArrayList<>();
+
+        try {
+
+            query = DashboardQueryBuilder.getTopPurchasesByVendorQuery(NUMBER_OF_TOP_ITEMS, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            reqCtx.addCallbackParam("topPurchasesByVendor", gson.toJson(resultList));
+
+        } catch (Exception ex) {
+            Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void topSalesByCustomer() {
 
-        resultList = dashBoardFacade.topSalesByCustomer(topItems, period, 0);
-
         RequestContext reqCtx = RequestContext.getCurrentInstance();
-        reqCtx.addCallbackParam("topSalesByCustomer", new Gson().toJson(resultList));
+        resultList = new ArrayList<>();
+
+        try {
+
+            query = DashboardQueryBuilder.getTopSalesByCustomerQuery(NUMBER_OF_TOP_ITEMS, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            reqCtx.addCallbackParam("topSalesByCustomer", gson.toJson(resultList));
+
+        } catch (Exception ex) {
+            Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void topReceivablesByCustomer() {
 
-        resultList = dashBoardFacade.topReceivablesByCustomer();
-
         RequestContext reqCtx = RequestContext.getCurrentInstance();
-        reqCtx.addCallbackParam("topReceivablesByCustomer", new Gson().toJson(resultList));
+        resultList = new ArrayList<>();
+
+        try {
+
+            query = DashboardQueryBuilder.getTopReceivablesByCustomerQuery();
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            reqCtx.addCallbackParam("topReceivablesByCustomer", gson.toJson(resultList));
+
+        } catch (Exception ex) {
+            Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void topPayablesByVendor() {
 
-        resultList = dashBoardFacade.topPayablesByVendor();
-
         RequestContext reqCtx = RequestContext.getCurrentInstance();
-        reqCtx.addCallbackParam("topPayablesByVendor", new Gson().toJson(resultList));
+        resultList = new ArrayList<>();
+
+        try {
+
+            query = DashboardQueryBuilder.getTopPayablesByVendorQuery();
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            reqCtx.addCallbackParam("topPayablesByVendor", gson.toJson(resultList));
+
+        } catch (Exception ex) {
+            Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void newCustomers() {
 
-        resultList = dashBoardFacade.newCustomers(interval, period);
-        resultList.add(getPeriodLabels());
-
         RequestContext reqCtx = RequestContext.getCurrentInstance();
-        reqCtx.addCallbackParam("newCustomers", new Gson().toJson(resultList));
+        resultList = new ArrayList<>();
+
+        try {
+
+            query = DashboardQueryBuilder.getNumberOfNewCustomersByPeriodQuery(interval, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+            resultList.add(getPeriodLabels());
+
+            reqCtx.addCallbackParam("newCustomers", gson.toJson(resultList));
+
+        } catch (Exception ex) {
+            Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void salesOrdersToConfirm() {
 
-        resultList = dashBoardFacade.salesOrdersToConfirm();
-
         RequestContext reqCtx = RequestContext.getCurrentInstance();
-        reqCtx.addCallbackParam("salesOrdersToConfirm", new Gson().toJson(resultList));
+        resultList = new ArrayList<>();
+
+        try {
+
+            query = DashboardQueryBuilder.getNumberOfSaleOrdersToConfirmQuery();
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            reqCtx.addCallbackParam("salesOrdersToConfirm", gson.toJson(resultList));
+
+        } catch (Exception ex) {
+            Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void purchaseOrdersToConfirm() {
 
-        resultList = dashBoardFacade.purchaseOrdersToConfirm();
-
         RequestContext reqCtx = RequestContext.getCurrentInstance();
-        reqCtx.addCallbackParam("purchaseOrdersToConfirm", new Gson().toJson(resultList));
+        resultList = new ArrayList<>();
+
+        try {
+
+            query = DashboardQueryBuilder.getNumberOfPurchaseOrdersToConfirmQuery();
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            reqCtx.addCallbackParam("purchaseOrdersToConfirm", gson.toJson(resultList));
+
+        } catch (Exception ex) {
+            Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void invoicesToConfirm() {
 
-        resultList = dashBoardFacade.invoicesToConfirm();
-
         RequestContext reqCtx = RequestContext.getCurrentInstance();
-        reqCtx.addCallbackParam("invoicesToConfirm", new Gson().toJson(resultList));
+        resultList = new ArrayList<>();
+
+        try {
+
+            query = DashboardQueryBuilder.getNumberOfInvoicesToConfirmQuery();
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            reqCtx.addCallbackParam("invoicesToConfirm", gson.toJson(resultList));
+
+        } catch (Exception ex) {
+            Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void billsToConfirm() {
 
-        resultList = dashBoardFacade.billsToConfirm();
-
         RequestContext reqCtx = RequestContext.getCurrentInstance();
-        reqCtx.addCallbackParam("billsToConfirm", new Gson().toJson(resultList));
+        resultList = new ArrayList<>();
+
+        try {
+
+            query = DashboardQueryBuilder.getNumberOfBillsToConfirmQuery();
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            reqCtx.addCallbackParam("billsToConfirm", gson.toJson(resultList));
+
+        } catch (Exception ex) {
+            Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void receivables() {
 
-        resultList = dashBoardFacade.receivables();
-
         RequestContext reqCtx = RequestContext.getCurrentInstance();
-        reqCtx.addCallbackParam("receivables", new Gson().toJson(resultList));
+        resultList = new ArrayList<>();
+
+        try {
+
+            query = DashboardQueryBuilder.getTotalReceivablesQuery();
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            reqCtx.addCallbackParam("receivables", gson.toJson(resultList));
+
+        } catch (Exception ex) {
+            Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void payables() {
 
-        resultList = dashBoardFacade.payables();
-
         RequestContext reqCtx = RequestContext.getCurrentInstance();
-        reqCtx.addCallbackParam("payables", new Gson().toJson(resultList));
+        resultList = new ArrayList<>();
+
+        try {
+
+            query = DashboardQueryBuilder.getTotalPayablesQuery();
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            reqCtx.addCallbackParam("payables", gson.toJson(resultList));
+
+        } catch (Exception ex) {
+            Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void customerPayment() {
 
-        resultList = dashBoardFacade.customerPayment(interval, period);
-        resultList.add(getPeriodLabels());
-
         RequestContext reqCtx = RequestContext.getCurrentInstance();
-        reqCtx.addCallbackParam("customerPayment", new Gson().toJson(resultList));
+        resultList = new ArrayList<>();
+
+        try {
+
+            query = DashboardQueryBuilder.getCustomerPaymentsByPeriodQuery(interval, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+            resultList.add(getPeriodLabels());
+
+            reqCtx.addCallbackParam("customerPayment", gson.toJson(resultList));
+
+        } catch (Exception ex) {
+            Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void vendorPayment() {
 
-        resultList = dashBoardFacade.vendorPayment(interval, period);
-        resultList.add(getPeriodLabels());
-
         RequestContext reqCtx = RequestContext.getCurrentInstance();
-        reqCtx.addCallbackParam("vendorPayment", new Gson().toJson(resultList));
-    }
+        resultList = new ArrayList<>();
 
-    public void invoiceCount() {
-        List<Object[]> invoices = dashBoardFacade.invoiceCount(6, period);
-        invoices.add(resolveMonthName(6));
+        try {
 
-        RequestContext reqCtx = RequestContext.getCurrentInstance();
-        reqCtx.addCallbackParam("invoiceCountByMonth", new Gson().toJson(invoices));//additional serialized data to be sent
+            query = DashboardQueryBuilder.getVendorPaymentsByPeriodQuery(interval, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+            resultList.add(getPeriodLabels());
+
+            reqCtx.addCallbackParam("vendorPayment", gson.toJson(resultList));
+
+        } catch (Exception ex) {
+            Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void salesCogsProfit() {
 
-        resultList = dashBoardFacade.salesAmount(interval, period);
-        resultList.addAll(dashBoardFacade.costOfGoodsSold(interval, period));
-        resultList.addAll(dashBoardFacade.profit(interval, period));
-        resultList.add(getPeriodLabels());
-
         RequestContext reqCtx = RequestContext.getCurrentInstance();
-        reqCtx.addCallbackParam("salesCogsProfit", new Gson().toJson(resultList));
+        resultList = new ArrayList<>();
+
+        try {
+
+            query = DashboardQueryBuilder.getSalesAmountByPeriodQuery(interval, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            query = DashboardQueryBuilder.getCostOfGoodsSoldByPeriodQuery(interval, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            query = DashboardQueryBuilder.getTotalProfitByPeriodQuery(interval, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+
+            resultList.add(getPeriodLabels());
+
+            reqCtx.addCallbackParam("salesCogsProfit", gson.toJson(resultList));
+
+        } catch (Exception ex) {
+            Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
     }
 
     public void purchasesAmount() {
 
-        resultList = dashBoardFacade.PurchasesAmount(interval, period);
-        resultList.add(getPeriodLabels());
-
         RequestContext reqCtx = RequestContext.getCurrentInstance();
-        reqCtx.addCallbackParam("purchasesAmount", new Gson().toJson(resultList));
+        resultList = new ArrayList<>();
+
+        try {
+
+            query = DashboardQueryBuilder.getPurchasesAmountByPeriodQuery(interval, periodType);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+            resultList.add(getPeriodLabels());
+
+            reqCtx.addCallbackParam("purchasesAmount", gson.toJson(resultList));
+
+        } catch (Exception ex) {
+            Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     private Object[] getPeriodLabels() {
-        switch (period) {
+        switch (periodType) {
             case "Quarter":
                 return resolveQuarterName(interval);
             case "Month":
@@ -304,12 +590,22 @@ public class DashboardController implements Serializable {
                 return resolveDays(interval);
         }
     }
-    
-    
+
     private Object[] resolveQuarterName(int interval) {
-        return dashBoardFacade.getQuarters(interval).get(0);         
-    }        
+        
+        resultList = new ArrayList<>();
+      
+        try {
             
+            query = DashboardQueryBuilder.getGenerateYearQuartersNamesQuery(interval);
+            resultList.addAll(dataAccess.findWithNativeQuery(query));
+            return resultList.get(0);
+            
+        } catch (Exception ex) {
+            Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE, null, ex);
+            return new Object[0];  
+        }                      
+    }
 
     private Object[] resolveMonthName(int interval) {
 
@@ -360,24 +656,25 @@ public class DashboardController implements Serializable {
     }
 
     public String getPeriod() {
-        return period;
+        return periodType;
     }
 
-    public void setPeriod(String period) {
-        this.period = period;
+    public void setPeriod(String periodType) {
 
-        switch (period) {
+        this.periodType = periodType;
+
+        switch (periodType) {
             case "Month":
-                interval = monthInterval;
+                interval = NUMBER_OF_MONTHS;
                 break;
             case "Quarter":
-                interval = quarterInterval;
-                break;    
+                interval = NUMBER_OF_QUARTERS;
+                break;
             case "Week":
-                interval = weekInterval;
+                interval = NUMBER_OF_WEEKS;
                 break;
             default:
-                interval = dayInterval;
+                interval = NUMBER_OF_DAYS;
                 break;
         }
     }
