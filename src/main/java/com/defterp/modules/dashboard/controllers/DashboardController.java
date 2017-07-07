@@ -1,4 +1,4 @@
-package com.defterp.modules.dashboard;
+package com.defterp.modules.dashboard.controllers;
 
 import com.defterp.util.UserLocale;
 import com.casa.erp.dao.DashBoardFacade;
