@@ -21,8 +21,8 @@ import javax.servlet.annotation.WebFilter;
  * github.com/medbounaga
  */
 
-@WebFilter(filterName = "loginFilter")
-public class LoginFilter implements Filter {
+@WebFilter(filterName = "isLogedInFilter")
+public class IsLogedInFilter implements Filter {
 
     @Inject
     UserSessionController userSessionController;
