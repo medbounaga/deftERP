@@ -1,4 +1,4 @@
-package com.defterp.util;
+package com.defterp.translation.controllers;
 
 import com.defterp.translation.annotations.UserLocale;
 import java.io.IOException;
