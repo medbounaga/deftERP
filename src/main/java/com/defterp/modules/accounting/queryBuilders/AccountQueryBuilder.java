@@ -4,7 +4,6 @@ import com.defterp.modules.commonClasses.QueryWrapper;
 
 
 public class AccountQueryBuilder{
-    
   private static final String FIND_BY_NAME = "SELECT a FROM Account a WHERE a.title = :name";
   private static final String FIND_BY_TYPE = "SELECT a FROM Account a WHERE a.type = :type ";
   private static final String FIND_ALL_ACCOUNTS = "SELECT a FROM Account a";
