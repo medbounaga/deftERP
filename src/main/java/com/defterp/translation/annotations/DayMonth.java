@@ -1,4 +1,4 @@
-package com.defterp.util;
+package com.defterp.translation.annotations;
 
 import javax.inject.Qualifier;
 import java.lang.annotation.Retention;

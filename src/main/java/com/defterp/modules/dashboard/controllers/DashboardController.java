@@ -3,7 +3,7 @@ package com.defterp.modules.dashboard.controllers;
 
 import com.defterp.dataAccess.GenericDAO;
 import com.defterp.modules.dashboard.queryBuilders.DashboardQueryBuilder;
-import com.defterp.util.UserLocale;
+import com.defterp.translation.annotations.UserLocale;
 import com.google.gson.Gson;
 import java.io.Serializable;
 import java.util.ArrayList;

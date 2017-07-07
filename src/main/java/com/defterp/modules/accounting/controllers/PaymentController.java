@@ -11,7 +11,7 @@ import com.defterp.modules.partners.entities.Partner;
 import com.defterp.modules.commonClasses.IdGenerator;
 import com.defterp.util.JsfUtil;
 import com.defterp.modules.commonClasses.QueryWrapper;
-import com.defterp.util.Status;
+import com.defterp.translation.annotations.Status;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;

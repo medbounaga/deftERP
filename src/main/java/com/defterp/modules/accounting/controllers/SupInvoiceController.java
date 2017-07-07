@@ -13,7 +13,7 @@ import com.defterp.modules.accounting.entities.Account;
 import com.defterp.modules.accounting.entities.InvoicePayment;
 import com.defterp.modules.accounting.entities.InvoiceLine;
 import com.defterp.util.JsfUtil;
-import com.defterp.util.Status;
+import com.defterp.translation.annotations.Status;
 import com.casa.erp.dao.InvoiceFacade;
 import net.sf.jasperreports.engine.*;
 import org.apache.commons.lang.SerializationUtils;

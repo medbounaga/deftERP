@@ -45,7 +45,7 @@ public class SupDeliveryOrderController implements Serializable {
     @Inject
     private DeliveryOrderFacade deliveryOrderFacade;
     @Inject
-    @com.defterp.util.Status
+    @com.defterp.translation.annotations.Status
     private HashMap<String, String> statuses;
     private List<DeliveryOrder> deliveryOrders;
     private List<DeliveryOrder> filteredDeliveryOrders;

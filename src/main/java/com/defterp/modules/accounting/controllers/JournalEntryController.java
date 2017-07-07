@@ -1,7 +1,7 @@
 package com.defterp.modules.accounting.controllers;
 
 import com.defterp.util.JsfUtil;
-import com.defterp.util.Status;
+import com.defterp.translation.annotations.Status;
 import com.defterp.modules.accounting.entities.JournalEntry;
 import com.casa.erp.dao.JournalEntryFacade;
 import java.io.Serializable;

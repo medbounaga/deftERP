@@ -1,7 +1,7 @@
 package com.defterp.modules.purchases.controllers;
 
 import com.defterp.util.JsfUtil;
-import com.defterp.util.Status;
+import com.defterp.translation.annotations.Status;
 import com.defterp.modules.inventory.entities.DeliveryOrder;
 import com.defterp.modules.inventory.entities.DeliveryOrderLine;
 import com.defterp.modules.accounting.entities.Invoice;

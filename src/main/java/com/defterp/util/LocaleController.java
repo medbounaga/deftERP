@@ -1,6 +1,6 @@
 package com.defterp.util;
 
-import com.defterp.util.UserLocale;
+import com.defterp.translation.annotations.UserLocale;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Locale;

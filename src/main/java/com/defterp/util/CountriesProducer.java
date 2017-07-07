@@ -1,7 +1,9 @@
 package com.defterp.util;
 
-import static com.defterp.util.Countries.Version.FIRST;
-import static com.defterp.util.Countries.Version.SECOND;
+import com.defterp.translation.annotations.UserLocale;
+import com.defterp.translation.annotations.Countries;
+import static com.defterp.translation.annotations.Countries.Version.FIRST;
+import static com.defterp.translation.annotations.Countries.Version.SECOND;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;

@@ -1,5 +1,6 @@
 package com.defterp.util;
 
+import com.defterp.translation.annotations.Status;
 import java.util.HashMap;
 import java.util.ResourceBundle;
 import javax.enterprise.inject.Produces;

@@ -1,7 +1,7 @@
 package com.defterp.modules.partners.controllers;
 
-import com.defterp.util.Countries;
-import static com.defterp.util.Countries.Version.SECOND;
+import com.defterp.translation.annotations.Countries;
+import static com.defterp.translation.annotations.Countries.Version.SECOND;
 import com.defterp.util.JsfUtil;
 import com.defterp.modules.accounting.entities.Account;
 import com.defterp.modules.partners.entities.Partner;

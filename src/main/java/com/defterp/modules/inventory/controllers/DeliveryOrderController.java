@@ -1,7 +1,7 @@
 package com.defterp.modules.inventory.controllers;
 
-import com.defterp.util.Countries;
-import static com.defterp.util.Countries.Version.SECOND;
+import com.defterp.translation.annotations.Countries;
+import static com.defterp.translation.annotations.Countries.Version.SECOND;
 import com.defterp.util.JsfUtil;
 import com.casa.erp.dao.DeliveryOrderFacade;
 import com.defterp.modules.inventory.entities.DeliveryOrder;
@@ -50,7 +50,7 @@ public class DeliveryOrderController implements Serializable {
     @Inject
     private DeliveryOrderFacade deliveryOrderFacade;
     @Inject
-    @com.defterp.util.Status
+    @com.defterp.translation.annotations.Status
     private HashMap<String, String> statuses;
     @Inject
     @Countries(version = SECOND)

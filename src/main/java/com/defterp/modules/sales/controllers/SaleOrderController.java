@@ -1,9 +1,9 @@
 package com.defterp.modules.sales.controllers;
 
-import com.defterp.util.Countries;
-import static com.defterp.util.Countries.Version.SECOND;
+import com.defterp.translation.annotations.Countries;
+import static com.defterp.translation.annotations.Countries.Version.SECOND;
 import com.defterp.util.JsfUtil;
-import com.defterp.util.Status;
+import com.defterp.translation.annotations.Status;
 import com.defterp.modules.inventory.entities.DeliveryOrder;
 import com.defterp.modules.inventory.entities.DeliveryOrderLine;
 import com.defterp.modules.accounting.entities.Invoice;
