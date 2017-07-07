@@ -64,7 +64,11 @@ public class InvoiceController extends AbstractController {
     private double differenceAmount;
     private int rowIndex;
     private List<Partner> topNActiveCustomers;
+    private List<Partner> activeCustomers;
+    private List<Partner> filteredActiveCustomers;
     private List<Product> topNActiveSoldProducts;
+    private List<Product> activeSoldProducts;
+    private List<Product> filteredActiveSoldProducts;
     private Partner customer;
     private Product product;
     private QueryWrapper query;
@@ -92,11 +96,13 @@ public class InvoiceController extends AbstractController {
     }
 
     public String getCountry() {
-        return (String) countries.get(invoice.getPartner().getCountry());
+        return countries.get(invoice.getPartner().getCountry());
     }
 
     public void validateInvoice() {
-        invoice = ((Invoice) super.findItemById(invoice.getId(), invoice.getClass()));
+
+        invoice = super.findItemById(invoice.getId(), invoice.getClass());
+
         if (invoice != null) {
             if (invoice.getState().equals(InvoiceStatus.DRAFT.value())) {
                 if (invoice.getAmountTotal() == 0d) {
@@ -107,7 +113,7 @@ public class InvoiceController extends AbstractController {
                 }
                 invoice.setJournalEntry(generateInvoiceJournalEntry());
                 invoice.getPartner().setDebit(invoice.getPartner().getDebit() + invoice.getAmountTotal());
-                invoice = ((Invoice) updateItem(invoice));
+                invoice = super.updateItem(invoice);
                 invoices.set(invoices.indexOf(invoice), invoice);
                 findOutstandingPayments();
             } else {
@@ -207,13 +213,15 @@ public class InvoiceController extends AbstractController {
             }
         }
         journalEntry.setJournalItems(journalItems);
-        journalEntry = (JournalEntry) createItem(journalEntry);
+        journalEntry = super.createItem(journalEntry);
 
         return journalEntry;
     }
 
     public void payInvoice() {
-        invoice = ((Invoice) super.findItemById(invoice.getId(), invoice.getClass()));
+
+        invoice = super.findItemById(invoice.getId(), invoice.getClass());
+
         if (invoice != null) {
             if (invoice.getState().equals(InvoiceStatus.OPEN.value())) {
                 double outstandingPayment = 0d;
@@ -249,20 +257,20 @@ public class InvoiceController extends AbstractController {
                         invoice.setResidual(0d);
                     }
                 } else {
+
                     paidAmount = payment.getAmount();
                     invoice.setResidual(0d);
                     invoice.setState(InvoiceStatus.PAID.value());
                 }
+
                 invoice.getPartner().setDebit(JsfUtil.round(invoice.getPartner().getDebit() - paidAmount));
 
-                payment = new Payment();
-
-                payment.setAccount((Account) super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery(accountName)));
-
+                query = AccountQueryBuilder.getFindByNameQuery(accountName);
+                payment.setAccount((Account) super.findSingleWithQuery(query));
                 payment.setAmount(payment.getAmount());
                 payment.setDate(payment.getDate());
-                payment.setPartner(payment.getPartner());
                 payment.setJournal(payment.getJournal());
+                payment.setPartner(invoice.getPartner());
                 payment.setType("in");
                 payment.setActive(Boolean.TRUE);
                 payment.setJournalEntry(null);
@@ -272,18 +280,23 @@ public class InvoiceController extends AbstractController {
                 payment.setOverpayment(outstandingPayment);
                 payment.setPartnerType("customer");
 
-                payment = createItem(payment);
+                payment = super.createItem(payment);
                 payment.setName(IdGenerator.generateCustomerInPayment(payment.getId()));
-                payment = updateItem(payment);
+                payment = super.updateItem(payment);
 
                 payment.setJournalEntry(generatePaymentJournalEntry(accountName));
+
                 generateInvoicePayment(invoice, payment.getJournalEntry(), netPayment, payment.getName());
+
                 if ((differenceAmount != 0d) && (paymentType.equals("fully paid"))) {
                     generatePaymentWriteOffJournalEntry(accountName);
                 }
-                payment = updateItem(payment);
+
+                payment = super.updateItem(payment);
+
+                System.out.println("JournalEntry:" + payment.getJournalEntry().getName());
                 invoice.getPayments().add(payment);
-                invoice = updateItem(invoice);
+                invoice = super.updateItem(invoice);
                 invoices.set(invoices.indexOf(invoice), invoice);
                 findOutstandingPayments();
                 if (invoice.getState().equals(InvoiceStatus.PAID.value())) {
@@ -298,6 +311,7 @@ public class InvoiceController extends AbstractController {
     }
 
     private void generateInvoicePayment(Invoice invoice, JournalEntry journalEntry, Double netPayment, String paymentName) {
+
         InvoicePayment invoicePayment = new InvoicePayment();
         invoicePayment.setInvoice(invoice);
         invoicePayment.setJournalEntry(journalEntry);
@@ -305,17 +319,19 @@ public class InvoiceController extends AbstractController {
         invoicePayment.setDate(journalEntry.getDate());
         invoicePayment.setName(paymentName);
 
-        invoicePayment = (InvoicePayment) createItem(invoicePayment);
+        invoicePayment = super.createItem(invoicePayment);
         journalEntry.getInvoicePayments().add(invoicePayment);
         invoice.getInvoicePayments().add(invoicePayment);
     }
 
     private JournalEntry generatePaymentJournalEntry(String account) {
+
         List<JournalItem> journalItems = new ArrayList();
         JournalItem journalItem = new JournalItem();
         JournalEntry journalEntry = new JournalEntry();
 
-        journalEntry.setJournal((Journal) super.findSingleWithQuery(JournalQueryBuilder.getFindJournalByCodeQuery(account)));
+        query = JournalQueryBuilder.getFindJournalByCodeQuery(account);
+        journalEntry.setJournal((Journal) super.findSingleWithQuery(query));
 
         journalEntry.setRef(payment.getInvoice().getOrigin());
         journalEntry.setDate(payment.getDate());
@@ -326,7 +342,8 @@ public class InvoiceController extends AbstractController {
         journalEntry.setState("Posted");
         journalEntry.setAmount(payment.getAmount());
 
-        journalItem.setAccount((Account) super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Account Receivable")));
+        query = AccountQueryBuilder.getFindByNameQuery("Account Receivable");
+        journalItem.setAccount((Account) super.findSingleWithQuery(query));
         journalItem.setDebit(0d);
         journalItem.setCredit(payment.getAmount());
         journalItem.setDate(payment.getDate());
@@ -347,7 +364,8 @@ public class InvoiceController extends AbstractController {
 
         journalItem = new JournalItem();
 
-        journalItem.setAccount((Account) super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery(account)));
+        query = AccountQueryBuilder.getFindByNameQuery(account);
+        journalItem.setAccount((Account) super.findSingleWithQuery(query));
         journalItem.setDebit(payment.getAmount());
         journalItem.setCredit(0d);
         journalItem.setDate(payment.getDate());
@@ -367,13 +385,18 @@ public class InvoiceController extends AbstractController {
         journalItems.add(journalItem);
 
         journalEntry.setJournalItems(journalItems);
-        journalEntry = (JournalEntry) createItem(journalEntry);
+
+        journalEntry = super.createItem(journalEntry);
+
         if (account.equals("Cash")) {
             journalEntry.setName(IdGenerator.generatePaymentCashEntryId(journalEntry.getId()));
         } else if (account.equals("Bank")) {
             journalEntry.setName(IdGenerator.generatePaymentBankEntryId(journalEntry.getId()));
         }
-        journalEntry = (JournalEntry) updateItem(journalEntry);
+
+        journalEntry = super.updateItem(journalEntry);
+
+        System.out.println("--------------journalEntry's payment-------------" + journalEntry.getPayment().getName());
 
         return journalEntry;
     }
@@ -400,7 +423,10 @@ public class InvoiceController extends AbstractController {
             receivableCredit = difference;
             receivableDebit = 0d;
         }
-        journalEntry.setJournal((Journal) super.findSingleWithQuery(JournalQueryBuilder.getFindJournalByCodeQuery(account)));
+
+        query = JournalQueryBuilder.getFindJournalByCodeQuery(account);
+        journalEntry.setJournal((Journal) super.findSingleWithQuery(query));
+
         journalEntry.setRef(payment.getInvoice().getOrigin());
         journalEntry.setDate(payment.getDate());
         journalEntry.setActive(Boolean.TRUE);
@@ -410,10 +436,11 @@ public class InvoiceController extends AbstractController {
         journalEntry.setState("Posted");
         journalEntry.setAmount(difference);
 
-        journalItem.setAccount((Account) super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Account Receivable")));
+        query = AccountQueryBuilder.getFindByNameQuery("Account Receivable");
+        journalItem.setAccount((Account) super.findSingleWithQuery(query));
 
-        journalItem.setDebit(Double.valueOf(receivableDebit));
-        journalItem.setCredit(Double.valueOf(receivableCredit));
+        journalItem.setDebit(receivableDebit);
+        journalItem.setCredit(receivableCredit);
         journalItem.setDate(payment.getDate());
         journalItem.setName("Write-Off");
         journalItem.setRef(payment.getInvoice().getOrigin());
@@ -432,8 +459,8 @@ public class InvoiceController extends AbstractController {
         journalItem = new JournalItem();
 
         journalItem.setAccount(writeOffAccount);
-        journalItem.setDebit(Double.valueOf(writeOffDebit));
-        journalItem.setCredit(Double.valueOf(writeOffCredit));
+        journalItem.setDebit(writeOffDebit);
+        journalItem.setCredit(writeOffCredit);
         journalItem.setDate(payment.getDate());
         journalItem.setName("Write-Off");
         journalItem.setRef(payment.getInvoice().getOrigin());
@@ -451,15 +478,19 @@ public class InvoiceController extends AbstractController {
         journalItems.add(journalItem);
 
         journalEntry.setJournalItems(journalItems);
-        journalEntry = (JournalEntry) createItem(journalEntry);
+
+        journalEntry = super.createItem(journalEntry);
+
         if (account.equals("Cash")) {
             journalEntry.setName(IdGenerator.generatePaymentCashEntryId(journalEntry.getId()));
         } else if (account.equals("Bank")) {
             journalEntry.setName(IdGenerator.generatePaymentBankEntryId(journalEntry.getId()));
         }
-        journalEntry = (JournalEntry) updateItem(journalEntry);
+
+        journalEntry = super.updateItem(journalEntry);
+
         if (differenceAmount > 0d) {
-            generateInvoicePayment(invoice, journalEntry, Double.valueOf(difference), "Write-Off");
+            generateInvoicePayment(invoice, journalEntry, difference, "Write-Off");
         }
         return journalEntry;
     }
@@ -470,7 +501,7 @@ public class InvoiceController extends AbstractController {
             boolean saleOrderInvoiced = true;
             boolean invoicesPaid = true;
             for (SaleOrderLine line : this.invoice.getSaleOrder().getSaleOrderLines()) {
-                if (!line.getInvoiced().booleanValue()) {
+                if (!line.getInvoiced()) {
                     saleOrderInvoiced = false;
                 }
             }
@@ -483,21 +514,27 @@ public class InvoiceController extends AbstractController {
             }
             if ((saleOrderInvoiced == true) && (invoicesPaid == true)) {
                 this.invoice.getSaleOrder().setPaid(Boolean.TRUE);
-                if (this.invoice.getSaleOrder().getShipped().booleanValue() == true) {
+                if (this.invoice.getSaleOrder().getShipped() == true) {
                     this.invoice.getSaleOrder().setState("Done");
                 }
-                updateItem(this.invoice.getSaleOrder());
+                super.updateItem(this.invoice.getSaleOrder());
             }
         }
     }
 
     public void payOutstandingPayment(Integer paymentId) {
-        invoice = ((Invoice) super.findItemById(invoice.getId(), invoice.getClass()));
+
+        invoice = super.findItemById(invoice.getId(), Invoice.class);
+
         if (invoice != null) {
-            payment = ((Payment) super.findItemById(paymentId, Payment.class));
+
+            payment = super.findItemById(paymentId, Payment.class);
+
             if ((payment != null) && (payment.getOverpayment() > 0d) && (invoice.getResidual() > 0d)) {
+
                 Double paidAmount;
                 Double newOverPayment;
+
                 if (payment.getOverpayment() >= invoice.getResidual()) {
                     paidAmount = invoice.getResidual();
                     newOverPayment = JsfUtil.round(payment.getOverpayment() - invoice.getResidual());
@@ -506,13 +543,14 @@ public class InvoiceController extends AbstractController {
                     paidAmount = payment.getOverpayment();
                     newOverPayment = 0d;
                 }
+
                 payment.setOverpayment(newOverPayment);
                 invoice.setResidual(JsfUtil.round(invoice.getResidual() - paidAmount));
 
                 generateInvoicePayment(invoice, payment.getJournalEntry(), paidAmount, payment.getName());
 
-                updateItem(payment);
-                invoice = ((Invoice) updateItem(invoice));
+                super.updateItem(payment);
+                invoice = super.updateItem(invoice);
                 invoices.set(invoices.indexOf(invoice), invoice);
                 payment = null;
                 if (invoice.getState().equals(InvoiceStatus.PAID.value())) {
@@ -537,14 +575,15 @@ public class InvoiceController extends AbstractController {
 
         if (JsfUtil.isNumeric(invoiceId)) {
             Integer InvId = Integer.valueOf(invoiceId);
-            invoice = ((Invoice) super.findItemById(InvId, Invoice.class));
+            invoice = super.findItemById(InvId, Invoice.class);
             if (invoice != null) {
                 query = InvoiceQueryBuilder.getFindAllInvoicesQuery();
-                invoices = super.findWithQuery(InvoiceQueryBuilder.getFindAllInvoicesQuery());
+                invoices = super.findWithQuery(query);
                 findOutstandingPayments();
                 return;
             }
         }
+
         if (JsfUtil.isNumeric(saleId)) {
             Integer id = Integer.valueOf(saleId);
             query = InvoiceQueryBuilder.getFindBySaleOrderQuery(id);
@@ -556,9 +595,12 @@ public class InvoiceController extends AbstractController {
                 return;
             }
         }
+
         if (JsfUtil.isNumeric(partnerId)) {
             Integer id = Integer.valueOf(partnerId);
-            invoices = super.findWithQuery(InvoiceQueryBuilder.getFindByCustomerQuery(id));
+
+            query = InvoiceQueryBuilder.getFindByCustomerQuery(id);
+            invoices = super.findWithQuery(query);
             if ((invoices != null) && (!invoices.isEmpty())) {
                 invoice = invoices.get(0);
                 findOutstandingPayments();
@@ -567,14 +609,20 @@ public class InvoiceController extends AbstractController {
             }
         }
 
-        invoices = super.findWithQuery(InvoiceQueryBuilder.getFindAllInvoicesQuery());
-        invoice = invoices.get(0);
-        findOutstandingPayments();
+        query = InvoiceQueryBuilder.getFindAllInvoicesQuery();
+        invoices = super.findWithQuery(query);
+
+        if (invoices != null && !invoices.isEmpty()) {
+            invoice = invoices.get(0);
+            findOutstandingPayments();
+        }
     }
 
     private void findOutstandingPayments() {
+
         outstandingPayments = null;
-        if (invoice.getState().equals(InvoiceStatus.OPEN.value())) {
+
+        if (invoice != null && invoice.getState().equals(InvoiceStatus.OPEN.value())) {
             query = PaymentQueryBuilder.getFindOutstandingByCustomer(invoice.getPartner().getId());
             outstandingPayments = super.findWithQuery(query);
         }
@@ -589,7 +637,10 @@ public class InvoiceController extends AbstractController {
     }
 
     public String getStatus(String status) {
-        return statuses.get(status);
+        if (statuses != null) {
+            return statuses.get(status);
+        }
+        return "";
     }
 
     public String getStatusColor(String status) {
@@ -623,37 +674,43 @@ public class InvoiceController extends AbstractController {
     }
 
     public void updateDifferenceAmount() {
+
         payment.setAmount(JsfUtil.round(payment.getAmount()));
         differenceAmount = JsfUtil.round(invoice.getResidual() - payment.getAmount());
+
         if (differenceAmount != 0d) {
             if ("".equals(paymentType)) {
                 paymentType = "keep open";
             } else if (("fully paid".equals(paymentType)) && (differenceAmount > 0d)) {
-                writeOffAccounts = super.findWithQuery(AccountQueryBuilder.getFindByNameQuery("Expenses"));
-                writeOffAccount = ((Account) writeOffAccounts.get(0));
+                query = AccountQueryBuilder.getFindByNameQuery("Expenses");
+                writeOffAccounts = super.findWithQuery(query);
+                if (writeOffAccounts != null && !writeOffAccounts.isEmpty()) {
+                    writeOffAccount = writeOffAccounts.get(0);
+                }
             } else if (("fully paid".equals(paymentType)) && (differenceAmount < 0d)) {
-                writeOffAccounts = super.findWithQuery(AccountQueryBuilder.getFindByNameQuery("Extra Payment"));
-                writeOffAccount = ((Account) writeOffAccounts.get(0));
+                query = AccountQueryBuilder.getFindByNameQuery("Extra Payment");
+                writeOffAccounts = super.findWithQuery(query);
+                if (writeOffAccounts != null && !writeOffAccounts.isEmpty()) {
+                    writeOffAccount = writeOffAccounts.get(0);
+                }
             }
         }
     }
 
     public void onPaymentDifferenceStrategyChange() {
         if (("fully paid".equals(paymentType)) && (differenceAmount > 0d)) {
-            writeOffAccounts = super.findWithQuery(AccountQueryBuilder.getFindByNameQuery("Expenses"));
-            writeOffAccount = ((Account) writeOffAccounts.get(0));
+            query = AccountQueryBuilder.getFindByNameQuery("Expenses");
+            writeOffAccounts = super.findWithQuery(query);
+            if (writeOffAccounts != null && !writeOffAccounts.isEmpty()) {
+                writeOffAccount = writeOffAccounts.get(0);
+            }
         } else if (("fully paid".equals(paymentType)) && (differenceAmount < 0d)) {
-            writeOffAccounts = super.findWithQuery(AccountQueryBuilder.getFindByNameQuery("Extra Payment"));
-            writeOffAccount = ((Account) writeOffAccounts.get(0));
+            query = AccountQueryBuilder.getFindByNameQuery("Extra Payment");
+            writeOffAccounts = super.findWithQuery(query);
+            if (writeOffAccounts != null && !writeOffAccounts.isEmpty()) {
+                writeOffAccount = writeOffAccounts.get(0);
+            }
         }
-    }
-
-    public String getPaymentType() {
-        return paymentType;
-    }
-
-    public void setPaymentType(String paymentType) {
-        this.paymentType = paymentType;
     }
 
     public void setRowIndex() {
@@ -662,8 +719,11 @@ public class InvoiceController extends AbstractController {
     }
 
     public void updateInvoice() {
-        if (getInvoiceStatus() != null) {
-            if (!getInvoiceStatus().equals(InvoiceStatus.DRAFT.value())) {
+
+        String invoiceStatus = getInvoiceStatus();
+
+        if (invoiceStatus != null) {
+            if (!invoiceStatus.equals(InvoiceStatus.DRAFT.value())) {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorProceedEdit");
                 currentForm = VIEW_URL;
             } else if (invoiceLines.isEmpty()) {
@@ -677,13 +737,16 @@ public class InvoiceController extends AbstractController {
 
                 invoice.setInvoiceLines(invoiceLines);
                 invoice.setInvoiceTaxes(generateInvoiceTaxes());
-                invoice = ((Invoice) updateItem(invoice));
+                invoice = super.updateItem(invoice);
+
                 if ((partialListType == null) && (invoices != null)) {
                     invoices.set(invoices.indexOf(invoice), invoice);
                 } else {
-                    invoices = super.findWithQuery(InvoiceQueryBuilder.getFindAllInvoicesQuery());
+                    query = InvoiceQueryBuilder.getFindAllInvoicesQuery();
+                    invoices = super.findWithQuery(query);
                     partialListType = null;
                 }
+
                 currentForm = VIEW_URL;
             }
         }
@@ -694,7 +757,8 @@ public class InvoiceController extends AbstractController {
             JsfUtil.addWarningMessageDialog("InvalidAction", "AtLeastOneInvoiceLineCreate");
         } else {
             for (InvoiceLine invLine : invoiceLines) {
-                invLine.setAccount((Account) super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Product Sales")));
+                query = AccountQueryBuilder.getFindByNameQuery("Product Sales");
+                invLine.setAccount((Account) super.findSingleWithQuery(query));
                 invLine.setPartner(invoice.getPartner());
                 invLine.setInvoice(invoice);
             }
@@ -705,15 +769,21 @@ public class InvoiceController extends AbstractController {
 
             invoice.setInvoiceLines(invoiceLines);
             invoice.setInvoiceTaxes(generateInvoiceTaxes());
-            invoice = createItem(invoice);
+
+            invoice = super.createItem(invoice);
+
             invoice.setName(IdGenerator.generateInvoiceId(invoice.getId()));
-            invoice = updateItem(invoice);
+
+            invoice = super.updateItem(invoice);
+
             if ((partialListType == null) && (invoices != null)) {
                 invoices.add(invoice);
             } else {
-                invoices = super.findWithQuery(InvoiceQueryBuilder.getFindAllInvoicesQuery());
+                query = InvoiceQueryBuilder.getFindAllInvoicesQuery();
+                invoices = super.findWithQuery(query);
                 partialListType = null;
             }
+
             currentForm = VIEW_URL;
         }
     }
@@ -730,7 +800,8 @@ public class InvoiceController extends AbstractController {
                 invoiceTax = new InvoiceTax();
                 taxAmount = JsfUtil.round(invoiceline.getPriceSubtotal() * invoiceline.getTax().getAmount());
 
-                invoiceTax.setAccount((Account) super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Tax Received")));
+                query = AccountQueryBuilder.getFindByNameQuery("Tax Received");
+                invoiceTax.setAccount((Account) super.findSingleWithQuery(query));
                 invoiceTax.setDate(invoice.getDate());
                 invoiceTax.setActive(true);
                 invoiceTax.setTaxAmount(taxAmount);
@@ -744,18 +815,8 @@ public class InvoiceController extends AbstractController {
         return invoiceTaxes;
     }
 
-    public List<Partner> getTopNActiveCustomers() {
-        query = PartnerQueryBuilder.getFindActiveCustomersQuery();
-        return super.findWithQuery(query, MAX_DROPDOWN_ITEMS);
-    }
-
-    public List<Product> getTopNActiveSoldProducts() {
-        query = ProductQueryBuilder.getFindActiveSoldProductsQuery();
-        return super.findWithQuery(query, MAX_DROPDOWN_ITEMS);
-    }
-
     public void onRowEditInit(InvoiceLine orderLine) {
-        invoiceLine = ((InvoiceLine) SerializationUtils.clone(orderLine));
+        invoiceLine = (InvoiceLine) SerializationUtils.clone(orderLine);
     }
 
     public void onRowEdit(int index) {
@@ -764,7 +825,7 @@ public class InvoiceController extends AbstractController {
             invoiceLines.get(index).setQuantity(JsfUtil.round(invoiceLines.get(index).getQuantity(), invoiceLines.get(index).getProduct().getUom().getDecimals()));
             invoiceLines.get(index).setDiscount(JsfUtil.round(invoiceLines.get(index).getDiscount()));
             if (invoiceLines.get(index).getQuantity() == 0d) {
-                invoiceLines.get(index).setQuantity(1.0d);
+                invoiceLines.get(index).setQuantity(1d);
             }
             if (invoiceLines.get(index).getPrice() == 0d) {
                 invoiceLines.get(index).setDiscount(0d);
@@ -772,7 +833,7 @@ public class InvoiceController extends AbstractController {
             }
             if (invoiceLines.get(index).getDiscount() > 0d) {
                 double total = JsfUtil.round(invoiceLines.get(index).getPrice() * (invoiceLines.get(index)).getQuantity());
-                double discount = JsfUtil.round(invoiceLines.get(index).getPrice() * invoiceLines.get(index).getQuantity() * (invoiceLines.get(index).getDiscount() / 100d));
+                double discount = JsfUtil.round(invoiceLines.get(index).getPrice() * invoiceLines.get(index).getQuantity() * (invoiceLines.get(index).getDiscount() / 100));
 
                 invoiceLines.get(index).setPriceSubtotal(JsfUtil.round(total - discount));
             } else {
@@ -806,7 +867,7 @@ public class InvoiceController extends AbstractController {
             invoiceLines.add(index, invoiceLine);
             invoiceLine = new InvoiceLine();
             if ((topNActiveSoldProducts != null) && (!topNActiveSoldProducts.isEmpty())) {
-                invoiceLine.setProduct((Product) topNActiveSoldProducts.get(0));
+                invoiceLine.setProduct(topNActiveSoldProducts.get(0));
                 invoiceLine.setPrice(invoiceLine.getProduct().getSalePrice());
                 invoiceLine.setUom(invoiceLine.getProduct().getUom().getName());
             }
@@ -816,7 +877,7 @@ public class InvoiceController extends AbstractController {
     public void onRowCancel() {
         invoiceLine = new InvoiceLine();
         if ((topNActiveSoldProducts != null) && (!topNActiveSoldProducts.isEmpty())) {
-            invoiceLine.setProduct((Product) topNActiveSoldProducts.get(0));
+            invoiceLine.setProduct(topNActiveSoldProducts.get(0));
             invoiceLine.setPrice(invoiceLine.getProduct().getSalePrice());
             invoiceLine.setUom(invoiceLine.getProduct().getUom().getName());
         }
@@ -864,6 +925,7 @@ public class InvoiceController extends AbstractController {
 
         invoiceLines.add(invoiceLine);
         sumUpInvoice();
+
         invoiceLine = new InvoiceLine();
 
         if ((topNActiveSoldProducts != null) && (!topNActiveSoldProducts.isEmpty())) {
@@ -874,36 +936,42 @@ public class InvoiceController extends AbstractController {
     }
 
     public void onSelectCustomer() {
-        if ((customer != null) && (!topNActiveCustomers.contains(customer))) {
-            topNActiveCustomers.add(customer);
+
+        if (customer != null) {
+            if (topNActiveCustomers != null && !topNActiveCustomers.contains(customer)) {
+                topNActiveCustomers.add(customer);
+            }
+            invoice.setPartner(customer);
         }
-        invoice.setPartner(customer);
     }
 
     public void onSelectProduct() {
         if (product != null) {
+
             if (!topNActiveSoldProducts.contains(product)) {
                 topNActiveSoldProducts.add(product);
             }
+
             if (rowIndex < 0) {
                 invoiceLine.setProduct(product);
                 invoiceLine.setPrice(product.getSalePrice());
                 invoiceLine.setUom(product.getUom().getName());
 
-                RequestContext.getCurrentInstance().update("invoiceForm:productMenuTwo");
-                RequestContext.getCurrentInstance().update("invoiceForm:price");
+                RequestContext.getCurrentInstance().update("mainForm:productMenuTwo");
+                RequestContext.getCurrentInstance().update("mainForm:price");
             } else {
                 invoiceLines.get(rowIndex).setProduct(product);
                 invoiceLines.get(rowIndex).setPrice(product.getSalePrice());
                 invoiceLines.get(rowIndex).setUom(product.getUom().getName());
 
-                RequestContext.getCurrentInstance().update("invoiceForm:datalist:" + rowIndex + ":productMenu");
-                RequestContext.getCurrentInstance().update("invoiceForm:datalist:" + rowIndex + ":pricee");
+                RequestContext.getCurrentInstance().update("mainForm:datalist:" + rowIndex + ":productMenu");
+                RequestContext.getCurrentInstance().update("mainForm:datalist:" + rowIndex + ":pricee");
             }
         }
     }
 
     public void prepareCreateInvoice() {
+
         invoice = new Invoice();
         invoiceLines = new ArrayList();
         invoiceLine = new InvoiceLine();
@@ -913,8 +981,8 @@ public class InvoiceController extends AbstractController {
         query = JournalQueryBuilder.getFindJournalByCodeQuery("INV");
         invoice.setJournal((Journal) super.findSingleWithQuery(query));
 
-        topNActiveCustomers = getTopNActiveCustomers();
-        topNActiveSoldProducts = getTopNActiveSoldProducts();
+        loadActiveCustomers();
+        loadActiveSoldProducts();
 
         if ((topNActiveSoldProducts != null) && (!topNActiveSoldProducts.isEmpty())) {
             invoiceLine.setProduct(topNActiveSoldProducts.get(0));
@@ -930,20 +998,29 @@ public class InvoiceController extends AbstractController {
             if (invoice.getState().equals(InvoiceStatus.DRAFT.value())) {
                 invoiceLine = new InvoiceLine();
                 invoiceLines = invoice.getInvoiceLines();
-                topNActiveCustomers = getTopNActiveCustomers();
-                topNActiveSoldProducts = getTopNActiveSoldProducts();
+
+                loadActiveCustomers();
+                loadActiveSoldProducts();
+
                 if ((topNActiveSoldProducts != null) && (!topNActiveSoldProducts.isEmpty())) {
-                    invoiceLine.setProduct((Product) topNActiveSoldProducts.get(0));
+                    invoiceLine.setProduct(topNActiveSoldProducts.get(0));
                     invoiceLine.setPrice(invoiceLine.getProduct().getSalePrice());
                     invoiceLine.setUom(invoiceLine.getProduct().getUom().getName());
                 }
+
                 if (!topNActiveCustomers.contains(invoice.getPartner())) {
                     topNActiveCustomers.add(invoice.getPartner());
                 }
-                invoiceLines.stream().filter((orderLine) -> (!topNActiveSoldProducts.contains(orderLine.getProduct()))).forEachOrdered((orderLine) -> {
+
+                invoiceLines.stream().filter((orderLine)
+                        -> (!topNActiveSoldProducts.contains(orderLine.getProduct()))).forEachOrdered((orderLine)
+                        -> {
                     topNActiveSoldProducts.add(orderLine.getProduct());
-                });
+                }
+                );
+
                 currentForm = EDIT_URL;
+
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorEdit");
             }
@@ -953,13 +1030,38 @@ public class InvoiceController extends AbstractController {
     }
 
     public void cancelEditInvoice() {
+
+        invoiceLine = null;
+        invoiceLines = null;
+        topNActiveCustomers = null;
+        topNActiveSoldProducts = null;
+
         invoice = super.findItemById(invoice.getId(), invoice.getClass());
+
         if (invoice != null) {
-            System.out.println("----------found---------------");
             currentForm = VIEW_URL;
         } else {
-            System.out.println("----------found---------------");
             invoiceNotFound();
+        }
+    }
+
+    public void cancelCreateInvoice() {
+
+        invoiceLine = null;
+        invoiceLines = null;
+        topNActiveCustomers = null;
+        topNActiveSoldProducts = null;
+
+        if ((invoices != null) && (!invoices.isEmpty())) {
+            invoice = invoices.get(0);
+            currentForm = VIEW_URL;
+        } else {
+            query = InvoiceQueryBuilder.getFindAllInvoicesQuery();
+            invoices = super.findWithQuery(query);
+            if ((invoices != null) && (!invoices.isEmpty())) {
+                invoice = invoices.get(0);
+                currentForm = VIEW_URL;
+            }
         }
     }
 
@@ -970,11 +1072,20 @@ public class InvoiceController extends AbstractController {
                 cancelRelations();
                 boolean deleted = super.deleteItem(invoice);
                 if (deleted) {
-                    invoices.remove(invoice);
-                    invoice = invoices.get(0);
-                    currentForm = VIEW_URL;
-//                    showInvoiceList();
 
+                    if ((invoices != null) && (invoices.size() > 1)) {
+                        invoices.remove(invoice);
+                        invoice = invoices.get(0);
+                    } else {
+                        partialListType = null;
+                        query = InvoiceQueryBuilder.getFindAllInvoicesQuery();
+                        invoices = super.findWithQuery(query);
+                        if ((invoices != null) && (!invoices.isEmpty())) {
+                            invoice = invoices.get(0);
+                        }
+                    }
+
+                    findOutstandingPayments();
                     JsfUtil.addSuccessMessage("ItemDeleted");
                 } else {
                     JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
@@ -993,21 +1104,21 @@ public class InvoiceController extends AbstractController {
             saleOrder.getInvoices().size();
             saleOrder.getInvoices().remove(invoice);
             invoice.setSaleOrder(null);
-            updateItem(saleOrder);
+            super.updateItem(saleOrder);
         }
     }
 
     private String getInvoiceStatus() {
         if (invoice != null) {
+
             Invoice tempItem = super.findItemById(invoice.getId(), invoice.getClass());
+
             if (tempItem != null) {
                 return tempItem.getState();
+            } else {
+                invoiceNotFound();
+                return null;
             }
-            JsfUtil.addWarningMessage("ItemDoesNotExist");
-            invoices = null;
-            partialListType = null;
-            currentForm = VIEW_URL;
-            return null;
         }
         return null;
     }
@@ -1017,13 +1128,13 @@ public class InvoiceController extends AbstractController {
         if (invoice != null) {
             if (!invoice.getState().equals(InvoiceStatus.CANCELLED.value())) {
                 if ((invoice.getState().equals(InvoiceStatus.OPEN.value())) || (invoice.getState().equals(InvoiceStatus.PAID.value()))) {
-                    cancelPaymentds();
+                    cancelPayments();
                     invoice.getJournalEntry().setState("Unposted");
-                    updateItem(invoice.getJournalEntry());
+                    super.updateItem(invoice.getJournalEntry());
                 }
                 invoice.setState(InvoiceStatus.CANCELLED.value());
                 invoice.setResidual(0d);
-                invoice = updateItem(invoice);
+                invoice = super.updateItem(invoice);
                 invoices.set(invoices.indexOf(invoice), invoice);
                 findOutstandingPayments();
             } else {
@@ -1032,15 +1143,15 @@ public class InvoiceController extends AbstractController {
         }
     }
 
-    private void cancelPaymentds() {
+    private void cancelPayments() {
         if ((invoice.getInvoicePayments() != null) && (!invoice.getInvoicePayments().isEmpty())) {
             JsfUtil.addSuccessMessageDialog("Info", "invoicePaymentToOutstanding");
             for (InvoicePayment invoicePayment : invoice.getInvoicePayments()) {
                 if (invoicePayment.getJournalEntry().getPayment() != null) {
                     invoicePayment.getJournalEntry().getPayment().setOverpayment(invoicePayment.getJournalEntry().getPayment().getOverpayment() + invoicePayment.getPaidAmount());
                     invoicePayment.getJournalEntry().getPayment().setInvoice(null);
-                    updateItem(invoicePayment.getJournalEntry().getPayment());
-                    deleteItem(invoicePayment);
+                    super.updateItem(invoicePayment.getJournalEntry().getPayment());
+                    super.deleteItem(invoicePayment);
                 }
             }
             invoice.setPayments(null);
@@ -1088,11 +1199,12 @@ public class InvoiceController extends AbstractController {
 
             invoiceLine = new InvoiceLine();
             invoiceLines = invoice.getInvoiceLines();
-            topNActiveCustomers = getTopNActiveCustomers();
-            topNActiveSoldProducts = getTopNActiveSoldProducts();
+
+            loadActiveCustomers();
+            loadActiveSoldProducts();
 
             if ((topNActiveSoldProducts != null) && (!topNActiveSoldProducts.isEmpty())) {
-                invoiceLine.setProduct((Product) topNActiveSoldProducts.get(0));
+                invoiceLine.setProduct(topNActiveSoldProducts.get(0));
                 invoiceLine.setPrice(invoiceLine.getProduct().getSalePrice());
                 invoiceLine.setUom(invoiceLine.getProduct().getUom().getName());
             }
@@ -1148,30 +1260,24 @@ public class InvoiceController extends AbstractController {
         FacesContext.getCurrentInstance().responseComplete();
     }
 
-    protected void invoiceNotFound() {
-        JsfUtil.addWarningMessage("ItemDoesNotExist");
-        invoices.remove(invoice);
-        invoice = invoices.get(0);
-        currentForm = VIEW_URL;
-//        showInvoiceList();
-    }
+    private void invoiceNotFound() {
 
-//    public void showInvoiceList() {
-//        invoice = null;
-//        invoiceLines = null;
-//        invoiceLine = null;
-//        topNActiveCustomers = null;
-//        topNActiveSoldProducts = null;
-//        currentForm = VIEW_URL;
-//    }
-    
-    public void showInvoiceForm() {
-        if (!invoices.isEmpty()) {
+        JsfUtil.addWarningMessage("ItemDoesNotExist");
+        currentForm = VIEW_URL;
+
+        if ((invoices != null) && (invoices.size() > 1)) {
+            invoices.remove(invoice);
             invoice = invoices.get(0);
-            findOutstandingPayments();
+        } else {
+            partialListType = null;
+            query = InvoiceQueryBuilder.getFindAllInvoicesQuery();
+            invoices = super.findWithQuery(query);
+            if ((invoices != null) && (invoices.size() > 1)) {
+                invoice = invoices.get(0);
+            }
         }
 
-        currentForm = VIEW_URL;
+        findOutstandingPayments();
     }
 
     public int getInvoiceIndex() {
@@ -1183,20 +1289,42 @@ public class InvoiceController extends AbstractController {
 
     public void nextInvoice() {
         if (invoices.indexOf(invoice) == invoices.size() - 1) {
-            invoice = ((Invoice) invoices.get(0));
+            invoice = invoices.get(0);
         } else {
-            invoice = ((Invoice) invoices.get(invoices.indexOf(invoice) + 1));
+            invoice = invoices.get(invoices.indexOf(invoice) + 1);
         }
         findOutstandingPayments();
     }
 
     public void previousInvoice() {
         if (invoices.indexOf(invoice) == 0) {
-            invoice = ((Invoice) invoices.get(invoices.size() - 1));
+            invoice = invoices.get(invoices.size() - 1);
         } else {
-            invoice = ((Invoice) invoices.get(invoices.indexOf(invoice) - 1));
+            invoice = invoices.get(invoices.indexOf(invoice) - 1);
         }
         findOutstandingPayments();
+    }
+    
+      private void loadActiveCustomers() {
+        query = PartnerQueryBuilder.getFindActiveCustomersQuery();
+        activeCustomers = super.findWithQuery(query);
+
+        if (activeCustomers != null && activeCustomers.size() > MAX_DROPDOWN_ITEMS) {
+            topNActiveCustomers = activeCustomers.subList(0, MAX_DROPDOWN_ITEMS);
+        } else {
+            topNActiveCustomers = activeCustomers;
+        }
+    }
+
+    private void loadActiveSoldProducts() {
+        query = ProductQueryBuilder.getFindActiveSoldProductsQuery();
+        activeSoldProducts = super.findWithQuery(query);
+
+        if (activeSoldProducts != null && activeSoldProducts.size() > MAX_DROPDOWN_ITEMS) {
+            topNActiveSoldProducts = activeSoldProducts.subList(0, MAX_DROPDOWN_ITEMS);
+        } else {
+            topNActiveSoldProducts = activeSoldProducts;
+        }
     }
 
     public List<Invoice> getInvoices() {
@@ -1321,5 +1449,37 @@ public class InvoiceController extends AbstractController {
 
     public void setPaymentWriteOffAccounts(List<Account> writeOffAccounts) {
         this.writeOffAccounts = writeOffAccounts;
+    }
+
+    public String getPaymentType() {
+        return paymentType;
+    }
+
+    public void setPaymentType(String paymentType) {
+        this.paymentType = paymentType;
+    }
+
+    public List<Partner> getActiveCustomers() {
+        return activeCustomers;
+    }
+
+    public List<Partner> getTopNActiveCustomers() {
+        return topNActiveCustomers;
+    }
+
+    public List<Partner> getFilteredActiveCustomers() {
+        return filteredActiveCustomers;
+    }
+
+    public List<Product> getActiveSoldProducts() {
+        return activeSoldProducts;
+    }
+
+    public List<Product> getTopNActiveSoldProducts() {
+        return topNActiveSoldProducts;
+    }
+
+    public List<Product> getFilteredActiveSoldProducts() {
+        return filteredActiveSoldProducts;
     }
 }
