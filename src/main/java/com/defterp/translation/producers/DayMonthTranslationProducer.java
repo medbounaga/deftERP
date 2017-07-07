@@ -15,7 +15,7 @@ import javax.enterprise.inject.Produces;
 
 
 
-public class DayMonthProducer{
+public class DayMonthTranslationProducer{
 
     @Produces
     @DayMonth

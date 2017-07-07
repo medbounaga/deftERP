@@ -15,7 +15,7 @@ import javax.enterprise.inject.Produces;
 
 
 
-public class StatusProducer {
+public class StatusTranslationProducer {
 
     @Produces
     @Status

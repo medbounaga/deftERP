@@ -22,7 +22,7 @@ import org.primefaces.json.JSONObject;
  */
 
 
-public class CountriesProducer {
+public class CountriesTranslationProducer {
 
     @Inject
     @UserLocale
