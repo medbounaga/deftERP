@@ -623,7 +623,7 @@ public class InvoiceController extends AbstractController {
         outstandingPayments = null;
 
         if (invoice != null && invoice.getState().equals(InvoiceStatus.OPEN.value())) {
-            query = PaymentQueryBuilder.getFindOutstandingByCustomerQuery(invoice.getPartner().getId());
+            query = PaymentQueryBuilder.getFindOutstandingByCustomer(invoice.getPartner().getId());
             outstandingPayments = super.findWithQuery(query);
         }
     }
