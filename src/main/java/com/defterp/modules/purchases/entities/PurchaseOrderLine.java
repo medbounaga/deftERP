@@ -5,7 +5,7 @@ package com.defterp.modules.purchases.entities;
 import com.defterp.modules.inventory.entities.Product;
 import com.defterp.modules.accounting.entities.Tax;
 import com.defterp.modules.commonClasses.BaseEntity;
-import com.defterp.validators.StrictlyPositiveNumber;
+import com.defterp.validators.annotations.StrictlyPositiveNumber;
 import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;

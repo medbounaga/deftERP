@@ -13,7 +13,7 @@ import com.defterp.modules.accounting.entities.InvoiceLine;
 import com.defterp.modules.commonClasses.BaseEntity;
 import com.defterp.modules.purchases.entities.PurchaseOrder;
 import com.defterp.modules.sales.entities.SaleOrder;
-import com.defterp.validators.InDateRange;
+import com.defterp.validators.annotations.InDateRange;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.Basic;

@@ -3,8 +3,8 @@ package com.defterp.modules.accounting.entities;
 
 import com.defterp.modules.commonClasses.BaseEntity;
 import com.defterp.modules.partners.entities.Partner;
-import com.defterp.validators.InDateRange;
-import com.defterp.validators.StrictlyPositiveNumber;
+import com.defterp.validators.annotations.InDateRange;
+import com.defterp.validators.annotations.StrictlyPositiveNumber;
 import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;

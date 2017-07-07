@@ -3,7 +3,7 @@ package com.defterp.modules.inventory.controllers;
 import com.defterp.util.JsfUtil;
 import com.defterp.modules.inventory.entities.Inventory;
 import com.casa.erp.dao.InventoryFacade;
-import com.defterp.validators.StrictlyPositiveNumber;
+import com.defterp.validators.annotations.StrictlyPositiveNumber;
 import java.io.Serializable;
 import java.util.List;
 import javax.faces.context.FacesContext;

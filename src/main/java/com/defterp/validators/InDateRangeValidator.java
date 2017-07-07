@@ -1,5 +1,6 @@
 package com.defterp.validators;
 
+import com.defterp.validators.annotations.InDateRange;
 import java.util.Date;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;

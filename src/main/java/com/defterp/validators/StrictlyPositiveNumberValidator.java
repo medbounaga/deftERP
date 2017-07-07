@@ -1,6 +1,7 @@
 
 package com.defterp.validators;
 
+import com.defterp.validators.annotations.StrictlyPositiveNumber;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 

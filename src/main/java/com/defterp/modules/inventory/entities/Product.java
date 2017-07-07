@@ -6,7 +6,7 @@ import com.defterp.modules.purchases.entities.PurchaseOrderLine;
 import com.defterp.modules.sales.entities.SaleOrderLine;
 import com.defterp.modules.accounting.entities.JournalItem;
 import com.defterp.modules.accounting.entities.InvoiceLine;
-import com.defterp.validators.StrictlyPositiveNumber;
+import com.defterp.validators.annotations.StrictlyPositiveNumber;
 import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;

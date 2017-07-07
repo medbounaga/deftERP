@@ -5,7 +5,7 @@ import com.defterp.modules.inventory.entities.Product;
 import com.defterp.modules.inventory.entities.ProductCategory;
 import com.defterp.modules.inventory.entities.ProductUom;
 import com.casa.erp.dao.ProductFacade;
-import com.defterp.validators.StrictlyPositiveNumber;
+import com.defterp.validators.annotations.StrictlyPositiveNumber;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;

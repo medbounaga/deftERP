@@ -3,7 +3,7 @@ package com.defterp.modules.inventory.entities;
 
 import com.defterp.modules.commonClasses.BaseEntity;
 import com.defterp.modules.partners.entities.Partner;
-import com.defterp.validators.StrictlyPositiveNumber;
+import com.defterp.validators.annotations.StrictlyPositiveNumber;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
