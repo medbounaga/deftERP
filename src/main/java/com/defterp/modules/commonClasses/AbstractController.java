@@ -3,7 +3,6 @@ package com.defterp.modules.commonClasses;
 
 import com.defterp.dataAccess.GenericDAO;
 import com.defterp.util.JsfUtil;
-import com.defterp.util.QueryWrapper;
 import java.io.Serializable;
 import java.util.List;
 import java.util.ResourceBundle;

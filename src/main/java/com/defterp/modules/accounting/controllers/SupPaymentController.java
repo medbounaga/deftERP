@@ -1,6 +1,6 @@
 package com.defterp.modules.accounting.controllers;
 
-import com.defterp.util.IdGenerator;
+import com.defterp.modules.commonClasses.IdGenerator;
 import com.defterp.util.JsfUtil;
 import com.defterp.util.Status;
 import com.defterp.modules.accounting.entities.JournalEntry;

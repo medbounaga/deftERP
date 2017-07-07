@@ -5,7 +5,7 @@ import com.defterp.modules.accounting.queryBuilders.AccountQueryBuilder;
 import com.defterp.modules.accounting.queryBuilders.JournalItemQueryBuilder;
 import com.defterp.modules.commonClasses.AbstractController;
 import com.defterp.util.JsfUtil;
-import com.defterp.util.QueryWrapper;
+import com.defterp.modules.commonClasses.QueryWrapper;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;

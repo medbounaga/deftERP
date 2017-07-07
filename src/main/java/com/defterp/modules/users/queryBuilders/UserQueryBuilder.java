@@ -1,6 +1,6 @@
 package com.defterp.modules.users.queryBuilders;
 
-import com.defterp.util.QueryWrapper;
+import com.defterp.modules.commonClasses.QueryWrapper;
 
 public class UserQueryBuilder {
 

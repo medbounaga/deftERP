@@ -1,4 +1,4 @@
-package com.defterp.util;
+package com.defterp.modules.commonClasses;
 
 import java.util.Calendar;
 

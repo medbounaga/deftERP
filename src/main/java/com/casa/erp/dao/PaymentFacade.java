@@ -1,6 +1,6 @@
 package com.casa.erp.dao;
 
-import com.defterp.util.IdGenerator;
+import com.defterp.modules.commonClasses.IdGenerator;
 import com.defterp.modules.accounting.entities.Account;
 import com.defterp.modules.accounting.entities.Journal;
 import com.defterp.modules.accounting.entities.JournalEntry;
