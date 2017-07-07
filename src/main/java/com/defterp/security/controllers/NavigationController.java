@@ -1,5 +1,5 @@
 
-package com.defterp.security;
+package com.defterp.security.controllers;
 
 import java.io.Serializable;
 import javax.enterprise.context.SessionScoped;

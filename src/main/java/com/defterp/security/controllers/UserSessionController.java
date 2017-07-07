@@ -1,4 +1,4 @@
-package com.defterp.security;
+package com.defterp.security.controllers;
 
 import com.defterp.modules.users.entities.User;
 import com.defterp.util.JsfUtil;
