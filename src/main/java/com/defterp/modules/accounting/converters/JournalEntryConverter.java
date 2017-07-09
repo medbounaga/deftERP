@@ -1,7 +1,7 @@
 package com.defterp.modules.accounting.converters;
 
 import com.defterp.modules.accounting.entities.JournalEntry;
-import com.casa.erp.dao.JournalEntryFacade;
+import com.defterp.dataAccess.GenericDAO;
 import com.defterp.util.JsfUtil;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,9 +12,9 @@ import javax.faces.convert.Converter;
 import javax.faces.convert.FacesConverter;
 
 /**
- * 
+ *
  * @author MOHAMMED BOUNAGA
- * 
+ *
  * github.com/medbounaga
  */
 
@@ -22,23 +22,23 @@ import javax.faces.convert.FacesConverter;
 public class JournalEntryConverter implements Converter {
 
     @Inject
-    private JournalEntryFacade ejbFacade;
+    private GenericDAO dataAccess;
 
     @Override
     public Object getAsObject(FacesContext facesContext, UIComponent component, String value) {
         if (value == null || value.length() == 0 || JsfUtil.isDummySelectItem(component, value)) {
             return null;
         }
-        return this.ejbFacade.find(getKey(value));
+        return dataAccess.findById(getKey(value), JournalEntry.class);
     }
 
-    java.lang.Integer getKey(String value) {
-        java.lang.Integer key;
+    private Integer getKey(String value) {
+        Integer key;
         key = Integer.valueOf(value);
         return key;
     }
 
-    String getStringKey(java.lang.Integer value) {
+    private String getStringKey(Integer value) {
         StringBuffer sb = new StringBuffer();
         sb.append(value);
         return sb.toString();
