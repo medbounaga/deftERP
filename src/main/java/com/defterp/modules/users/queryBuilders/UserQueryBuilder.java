@@ -7,19 +7,15 @@ public class UserQueryBuilder {
     private static final String FIND_ALL = "SELECT u FROM User u";
     private static final String FIND_BY_LOGIN = "SELECT u FROM User u WHERE u.login = :login AND u.password = :password AND u.active = true";
 
-    private static QueryWrapper query;
-
     public static QueryWrapper getFindAllQuery() {
-        query = new QueryWrapper(FIND_ALL);
 
-        return query;
+        return new QueryWrapper(FIND_ALL);
     }
 
-    public static QueryWrapper getFindByLoginQuery(String userName, String password) {
-        query = new QueryWrapper(FIND_BY_LOGIN)
+    public static QueryWrapper getUserExistQuery(String userName, String password) {
+
+        return new QueryWrapper(FIND_BY_LOGIN)
                 .setParameter("login", userName)
                 .setParameter("password", password);
-
-        return query;
     }
 }
