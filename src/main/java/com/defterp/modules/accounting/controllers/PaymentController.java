@@ -1,16 +1,18 @@
 package com.defterp.modules.accounting.controllers;
 
-import com.casa.erp.dao.PaymentFacade;
 import com.defterp.modules.accounting.entities.Account;
+import com.defterp.modules.accounting.entities.Journal;
 import com.defterp.modules.accounting.entities.JournalEntry;
 import com.defterp.modules.accounting.entities.JournalItem;
 import com.defterp.modules.accounting.entities.Payment;
 import com.defterp.modules.accounting.queryBuilders.AccountQueryBuilder;
+import com.defterp.modules.accounting.queryBuilders.PaymentQueryBuilder;
 import com.defterp.modules.commonClasses.AbstractController;
 import com.defterp.modules.partners.entities.Partner;
 import com.defterp.modules.commonClasses.IdGenerator;
 import com.defterp.util.JsfUtil;
 import com.defterp.modules.commonClasses.QueryWrapper;
+import com.defterp.modules.partners.queryBuilders.PartnerQueryBuilder;
 import com.defterp.translation.annotations.Status;
 import java.util.ArrayList;
 import java.util.Date;
@@ -23,11 +25,8 @@ import org.apache.commons.lang.SerializationUtils;
 
 @Named("paymentController")
 @ViewScoped
-public class PaymentController
-        extends AbstractController {
+public class PaymentController extends AbstractController {
 
-    @Inject
-    private PaymentFacade paymentFacade;
     @Inject
     @Status
     private HashMap<String, String> statuses;
@@ -39,7 +38,6 @@ public class PaymentController
     private Partner customer;
     private List<Partner> topNCustomers;
     private String partialListType;
-    private String paymentType = "";
     private QueryWrapper query;
 
     public PaymentController() {
@@ -54,14 +52,6 @@ public class PaymentController
         this.customer = customer;
     }
 
-    public String getPaymentType() {
-        return paymentType;
-    }
-
-    public void setPaymentType(String paymentType) {
-        this.paymentType = paymentType;
-    }
-
     public List<Partner> getTopNCustomers() {
         return topNCustomers;
     }
@@ -72,7 +62,7 @@ public class PaymentController
 
     private boolean paymentExist(Integer id) {
         if (id != null) {
-            payment = paymentFacade.find(id);
+            payment = super.findItemById(id, Payment.class);
             if (payment == null) {
                 JsfUtil.addWarningMessage("ItemDoesNotExist");
 
@@ -80,7 +70,8 @@ public class PaymentController
                     payments.remove(payment);
                     payment = payments.get(0);
                 } else {
-                    payments = paymentFacade.findCustomerPayment();
+                    query = PaymentQueryBuilder.getFindAllCustomerPaymentsQuery();
+                    payments = super.findWithQuery(query);
                     if ((payments != null) && (!payments.isEmpty())) {
                         payment = payments.get(0);
                         partialListType = null;
@@ -96,7 +87,7 @@ public class PaymentController
 
     private String getPaymentStatus(Integer id) {
         if (id != null) {
-            Payment paym = paymentFacade.find(id);
+            Payment paym = super.findItemById(id, Payment.class);
             if (paym != null) {
                 return paym.getState();
             }
@@ -105,7 +96,8 @@ public class PaymentController
                 payments.remove(payment);
                 payment = payments.get(0);
             } else {
-                payments = paymentFacade.findCustomerPayment();
+                query = PaymentQueryBuilder.getFindAllCustomerPaymentsQuery();
+                payments = super.findWithQuery(query);
                 if ((payments != null) && (!payments.isEmpty())) {
                     payment = payments.get(0);
                     partialListType = null;
@@ -119,25 +111,34 @@ public class PaymentController
 
     public void deletePayment() {
         if (paymentExist(payment.getId())) {
+            
             if (payment.getState().equals("Draft")) {
-                try {
-                    paymentFacade.remove(payment);
-                } catch (Exception e) {
-                    JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
-                    return;
-                }
-                if ((payments != null) && (payments.size() > 1)) {
-                    payments.remove(payment);
-                    payment = payments.get(0);
-                } else {
-                    payments = paymentFacade.findCustomerPayment();
-                    if ((payments != null) && (!payments.isEmpty())) {
+
+                boolean deleted = super.deleteItem(payment);
+
+                if (deleted) {
+
+                    JsfUtil.addSuccessMessage("ItemDeleted");
+                    currentForm = VIEW_URL;
+
+                    if ((payments != null) && (payments.size() > 1)) {
+                        payments.remove(payment);
                         payment = payments.get(0);
-                        partialListType = null;
+                    } else {
+                        
+                        query = PaymentQueryBuilder.getFindAllCustomerPaymentsQuery();
+                        payments = super.findWithQuery(query);
+                        
+                        if ((payments != null) && (!payments.isEmpty())) {
+                            payment = payments.get(0);
+                            partialListType = null;
+                        }
                     }
+
+                } else {
+                    JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
                 }
-                JsfUtil.addSuccessMessage("ItemDeleted");
-                currentForm = VIEW_URL;
+
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete2");
             }
@@ -154,12 +155,15 @@ public class PaymentController
 
     public void validatePayment() {
         if (paymentExist(payment.getId())) {
+            
             if (payment.getState().equals("Draft")) {
+                
                 payment.setState("Posted");
                 payment.setJournalEntry(generatePaymentJournalEntry());
-                payment = paymentFacade.update(payment);
+                payment = super.updateItem(payment);
                 payments.set(payments.indexOf(payment), payment);
             } else {
+                
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorValidate");
             }
         }
@@ -178,31 +182,34 @@ public class PaymentController
                 currentForm = VIEW_URL;
             } else {
                 payment.setAmount(JsfUtil.round(payment.getAmount()));
+                
                 if (payment.getAmount() == 0d) {
                     JsfUtil.addWarningMessage("PositivePayment");
                     return;
                 }
-                if (paymentType.equals("receive money")) {
-                    payment.setType("in");
+                
+                if (payment.getType().equals("in")) {
                     payment.setOverpayment(payment.getAmount());
                     payment.setName(IdGenerator.generateCustomerInPayment(payment.getId()));
                 } else {
-                    payment.setType("out");
                     payment.setOverpayment(0d);
                     payment.setName(IdGenerator.generateCustomerOutPayment(payment.getId()));
                 }
                 if (payment.getJournal().getName().equals("Cash")) {
-                    payment.setAccount(paymentFacade.findAccount("Cash"));
+                    query = AccountQueryBuilder.getFindByNameQuery("Cash");
+                    payment.setAccount((Account)super.findSingleWithQuery(query));
                 } else {
-                    payment.setAccount(paymentFacade.findAccount("Bank"));
+                    query = AccountQueryBuilder.getFindByNameQuery("Bank");
+                    payment.setAccount((Account)super.findSingleWithQuery(query));
                 }
 
-                payment = paymentFacade.update(payment);
+                payment = super.updateItem(payment);
 
                 if ((payments != null) && (!payments.isEmpty())) {
                     payments.set(payments.indexOf(payment), payment);
                 } else {
-                    payments = paymentFacade.findCustomerPayment();
+                    query = PaymentQueryBuilder.getFindAllCustomerPaymentsQuery();
+                    payments = super.findWithQuery(query);
                     if ((payments != null) && (!payments.isEmpty())) {
                         payment = payments.get(0);
                         partialListType = null;
@@ -216,16 +223,14 @@ public class PaymentController
     public void prepareEdit() {
         if (paymentExist(payment.getId())) {
             if (payment.getState().equals("Draft")) {
-                topNCustomers = paymentFacade.findTopNCustomers(4);
 
-                if (payment.getType().equals("in")) {
-                    paymentType = "receive money";
-                } else {
-                    paymentType = "send money";
-                }
+                query = PartnerQueryBuilder.getFindActiveCustomersQuery();
+                topNCustomers = super.findWithQuery(query, 4);
+
                 if (!topNCustomers.contains(payment.getPartner())) {
                     topNCustomers.add(payment.getPartner());
                 }
+
                 currentForm = EDIT_URL;
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorEdit");
@@ -238,16 +243,17 @@ public class PaymentController
         payment.setState("Draft");
         payment.setPartnerType("customer");
         payment.setAmount(0d);
-        paymentType = "receive money";
-        topNCustomers = paymentFacade.findTopNCustomers(4);
+        payment.setType("in");
+        query = PartnerQueryBuilder.getFindActiveCustomersQuery();
+        topNCustomers = super.findWithQuery(query, 4);
         currentForm = CREATE_URL;
     }
 
     public void createPayment() {
 
         Double outstandingPayment;
-        String paymentInOut;
-        String account;
+        String accountName;
+        
         payment.setAmount(JsfUtil.round(payment.getAmount()));
 
         if (payment.getAmount() == 0d) {
@@ -255,41 +261,61 @@ public class PaymentController
             return;
         }
 
-        if (paymentType.equals("receive money")) {
-            paymentInOut = "in";
+        if (payment.getType().equals("in")) {
             outstandingPayment = payment.getAmount();
         } else {
-            paymentInOut = "out";
             outstandingPayment = 0.0d;
         }
 
         if (payment.getJournal().getName().equals("Cash")) {
-            account = "Cash";
+            accountName = "Cash";
         } else {
-            account = "Bank";
+            accountName = "Bank";
+        }      
+        
+        query = AccountQueryBuilder.getFindByNameQuery(accountName);
+        payment.setAccount((Account)super.findSingleWithQuery(query));
+        
+        payment.setActive(Boolean.TRUE);
+        payment.setState("Draft");
+        payment.setOverpayment(outstandingPayment);
+        payment.setPartnerType("customer");  
+        payment.setJournalEntry(null);
+        payment.setInvoice(null);
+
+        payment = super.createItem(payment);
+        
+        if (payment.getType().equals("in")) {
+            payment.setName(IdGenerator.generateCustomerInPayment(payment.getId()));
+        } else {
+            payment.setName(IdGenerator.generateCustomerOutPayment(payment.getId()));
         }
-        payment.setAmount(JsfUtil.round(payment.getAmount()));
-        payment = new Payment(payment.getAmount(), payment.getDate(), payment.getPartner(), payment.getJournal(), paymentInOut, Boolean.TRUE, paymentFacade.findAccount(account), null, null, payment.getState(), outstandingPayment, "customer");
-        payment = paymentFacade.create(payment, "Customer", paymentInOut);
+        
+        payment =  super.createItem(payment);
 
         if ((payments != null) && (!payments.isEmpty())) {
             payments.add(payment);
         } else {
-            payments = paymentFacade.findCustomerPayment();
+            query = PaymentQueryBuilder.getFindAllCustomerPaymentsQuery();
+            payments = super.findWithQuery(query);
             partialListType = null;
         }
+        
         currentForm = VIEW_URL;
     }
 
     private JournalEntry generatePaymentJournalEntry() {
+        
         JournalEntry journalEntry = new JournalEntry();
         JournalItem journalItem = new JournalItem();
         List<JournalItem> journalItems = new ArrayList();
+        
         String paymentType;
         double CashBankCredit;
         double CashBankDebit;
         double receivableCredit;
         double receivableDebit;
+        
         if (payment.getType().equals("in")) {
             paymentType = "Customer Payment";
             CashBankCredit = 0.0d;
@@ -303,6 +329,7 @@ public class PaymentController
             receivableCredit = 0d;
             receivableDebit = payment.getAmount();
         }
+        
         journalEntry.setJournal(payment.getJournal());
         journalEntry.setRef(null);
         journalEntry.setDate(payment.getDate());
@@ -315,6 +342,7 @@ public class PaymentController
 
         query = AccountQueryBuilder.getFindByNameQuery("Account Receivable");
         journalItem.setAccount((Account) super.findSingleWithQuery(query));
+        
         journalItem.setDebit(receivableDebit);
         journalItem.setCredit(receivableCredit);
         journalItem.setDate(payment.getDate());
@@ -354,13 +382,16 @@ public class PaymentController
         journalItems.add(journalItem);
 
         journalEntry.setJournalItems(journalItems);
-        journalEntry = createItem(journalEntry);
+        
+        journalEntry = super.createItem(journalEntry);
+        
         if (payment.getAccount().getName().equals("Cash")) {
             journalEntry.setName(IdGenerator.generatePaymentCashEntryId(journalEntry.getId()));
         } else if (payment.getAccount().getName().equals("Bank")) {
             journalEntry.setName(IdGenerator.generatePaymentBankEntryId(journalEntry.getId()));
         }
-        journalEntry = updateItem(journalEntry);
+        
+        journalEntry = super.updateItem(journalEntry);
 
         return journalEntry;
     }
@@ -379,12 +410,9 @@ public class PaymentController
             payment.setReference(null);
             payment.setState("Draft");
 
-            topNCustomers = paymentFacade.findTopNCustomers(4);
-            if (payment.getType().equals("in")) {
-                paymentType = "receive money";
-            } else {
-                paymentType = "send money";
-            }
+            query = PartnerQueryBuilder.getFindActiveCustomersQuery();
+            topNCustomers = super.findWithQuery(query, 4);
+
             if (!topNCustomers.contains(payment.getPartner())) {
                 topNCustomers.add(payment.getPartner());
             }
@@ -407,27 +435,30 @@ public class PaymentController
 
         if (JsfUtil.isNumeric(paymentId)) {
             Integer id = Integer.valueOf(paymentId);
-            payment = paymentFacade.find(id);
+            payment = super.findItemById(id, Payment.class);
             if (payment != null) {
-                payments = paymentFacade.findCustomerPayment();
+                query = PaymentQueryBuilder.getFindAllCustomerPaymentsQuery();
+                payments = super.findWithQuery(query);
                 return;
             }
         }
         if (JsfUtil.isNumeric(partnerId)) {
             Integer id = Integer.valueOf(partnerId);
-            payments = paymentFacade.findByPartner(id, "customer");
+            query = PaymentQueryBuilder.getFindByCustomerQuery(id);
+            payments = super.findWithQuery(query);
             if ((payments != null) && (!payments.isEmpty())) {
                 payment = payments.get(0);
                 partialListType = "partner";
                 return;
             }
         }
-        payments = paymentFacade.findCustomerPayment();
+        query = PaymentQueryBuilder.getFindAllCustomerPaymentsQuery();
+        payments = super.findWithQuery(query);
         payment = payments.get(0);
     }
 
     public void prepareViewPayment() {
-        
+
         if (payment != null && paymentExist(payment.getId())) {
             currentForm = VIEW_URL;
         }
@@ -467,9 +498,6 @@ public class PaymentController
     }
 
     public List<Payment> getPayments() {
-        if (payments == null) {
-            payments = paymentFacade.findCustomerPayment();
-        }
         return payments;
     }
 
@@ -502,14 +530,6 @@ public class PaymentController
 
     public void setPaymentId(String paymentId) {
         this.paymentId = paymentId;
-    }
-
-    public String getPage() {
-        return currentForm;
-    }
-
-    public void setPage(String page) {
-        currentForm = page;
     }
 
     public String getPartnerId() {
