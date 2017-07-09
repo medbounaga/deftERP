@@ -1,5 +1,6 @@
 package com.defterp.modules.accounting.controllers;
 
+import com.defterp.modules.accounting.entities.Account;
 import com.defterp.modules.commonClasses.IdGenerator;
 import com.defterp.util.JsfUtil;
 import com.defterp.translation.annotations.Status;
@@ -7,8 +8,11 @@ import com.defterp.modules.accounting.entities.JournalEntry;
 import com.defterp.modules.accounting.entities.JournalItem;
 import com.defterp.modules.partners.entities.Partner;
 import com.defterp.modules.accounting.entities.Payment;
-import com.casa.erp.dao.PaymentFacade;
-import java.io.Serializable;
+import com.defterp.modules.accounting.queryBuilders.AccountQueryBuilder;
+import com.defterp.modules.accounting.queryBuilders.PaymentQueryBuilder;
+import com.defterp.modules.commonClasses.AbstractController;
+import com.defterp.modules.commonClasses.QueryWrapper;
+import com.defterp.modules.partners.queryBuilders.PartnerQueryBuilder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -24,12 +28,11 @@ import org.apache.commons.lang.SerializationUtils;
  *
  * github.com/medbounaga
  */
+
 @Named(value = "supPaymentController")
 @ViewScoped
-public class SupPaymentController implements Serializable {
+public class SupPaymentController extends AbstractController {
 
-    @Inject
-    private PaymentFacade paymentFacade;
     @Inject
     @Status
     private HashMap<String, String> statuses;
@@ -41,8 +44,11 @@ public class SupPaymentController implements Serializable {
     private Partner supplier;
     private List<Partner> topNSuppliers;
     private String partialListType;
-    private String paymentType = "";
-    String currentForm = "/sc/supPayment/View.xhtml";
+    private QueryWrapper query;
+
+    public SupPaymentController() {
+        super("/sc/supPayment/");
+    }
 
     public Partner getSupplier() {
         return supplier;
@@ -60,17 +66,9 @@ public class SupPaymentController implements Serializable {
         this.topNSuppliers = topNSuppliers;
     }
 
-    public String getPaymentType() {
-        return paymentType;
-    }
-
-    public void setPaymentType(String paymentType) {
-        this.paymentType = paymentType;
-    }
-
     private boolean supPaymentExist(Integer id) {
         if (id != null) {
-            payment = paymentFacade.find(id);
+            payment = super.findItemById(id, Payment.class);
             if (payment == null) {
                 JsfUtil.addWarningMessage("ItemDoesNotExist");
 
@@ -78,13 +76,14 @@ public class SupPaymentController implements Serializable {
                     payments.remove(payment);
                     payment = payments.get(0);
                 } else {
-                    payments = paymentFacade.findSupplierPayment();
+                    query = PaymentQueryBuilder.getFindAllVendorPaymentsQuery();
+                    payments = super.findWithQuery(query);
                     if ((payments != null) && (!payments.isEmpty())) {
                         payment = payments.get(0);
                         partialListType = null;
                     }
                 }
-                currentForm = "/sc/supPayment/View.xhtml";
+                currentForm = VIEW_URL;
                 return false;
             }
             return true;
@@ -94,7 +93,7 @@ public class SupPaymentController implements Serializable {
 
     private String getPaymentStatus(Integer id) {
         if (id != null) {
-            Payment paym = paymentFacade.find(id);
+            Payment paym = super.findItemById(id, Payment.class);
             if (paym != null) {
                 return paym.getState();
             }
@@ -103,13 +102,14 @@ public class SupPaymentController implements Serializable {
                 payments.remove(payment);
                 payment = payments.get(0);
             } else {
-                payments = paymentFacade.findSupplierPayment();
+                query = PaymentQueryBuilder.getFindAllVendorPaymentsQuery();
+                payments = super.findWithQuery(query);
                 if ((payments != null) && (!payments.isEmpty())) {
                     payment = payments.get(0);
                     partialListType = null;
                 }
             }
-            currentForm = "/sc/supPayment/View.xhtml";
+            currentForm = VIEW_URL;
             return null;
         }
         return null;
@@ -118,24 +118,32 @@ public class SupPaymentController implements Serializable {
     public void deleteSupPayment() {
         if (supPaymentExist(payment.getId())) {
             if (payment.getState().equals("Draft")) {
-                try {
-                    paymentFacade.remove(payment);
-                } catch (Exception e) {
-                    JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
-                    return;
-                }
-                if ((payments != null) && (payments.size() > 1)) {
-                    payments.remove(payment);
-                    payment = payments.get(0);
-                } else {
-                    payments = paymentFacade.findSupplierPayment();
-                    if ((payments != null) && (!payments.isEmpty())) {
+
+                boolean deleted = super.deleteItem(payment);
+
+                if (deleted) {
+                    
+                    JsfUtil.addSuccessMessage("ItemDeleted");
+                    currentForm = VIEW_URL;
+
+                    if ((payments != null) && (payments.size() > 1)) {
+                        payments.remove(payment);
                         payment = payments.get(0);
-                        partialListType = null;
+                    } else {
+                        query = PaymentQueryBuilder.getFindAllVendorPaymentsQuery();
+                        payments = super.findWithQuery(query);
+                        if ((payments != null) && (!payments.isEmpty())) {
+                            payment = payments.get(0);
+                            partialListType = null;
+                        }
                     }
+                    
+
+                }else{
+                    
+                    JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
+                
                 }
-                JsfUtil.addSuccessMessage("ItemDeleted");
-                currentForm = "/sc/supPayment/View.xhtml";
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete2");
             }
@@ -145,10 +153,12 @@ public class SupPaymentController implements Serializable {
     public void validateSupPayment() {
         if (supPaymentExist(payment.getId())) {
             if (payment.getState().equals("Draft")) {
+                
                 payment.setState("Posted");
                 generateSupPaymentJournalEntry();
-                payment = paymentFacade.update(payment);
+                payment = super.updateItem(payment);
                 payments.set(payments.indexOf(payment), payment);
+                
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorValidate");
             }
@@ -157,7 +167,7 @@ public class SupPaymentController implements Serializable {
 
     public void cancelSupPaymentEdit() {
         if (supPaymentExist(payment.getId())) {
-            currentForm = "/sc/supPayment/View.xhtml";
+            currentForm = VIEW_URL;
         }
     }
 
@@ -165,7 +175,7 @@ public class SupPaymentController implements Serializable {
 
         if ((payments != null) && (!payments.isEmpty())) {
             payment = payments.get(0);
-            currentForm = "/sc/supPayment/View.xhtml";
+            currentForm = VIEW_URL;
         }
     }
 
@@ -173,7 +183,7 @@ public class SupPaymentController implements Serializable {
         if (getPaymentStatus(payment.getId()) != null) {
             if (!getPaymentStatus(payment.getId()).equals("Draft")) {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorProceedEdit");
-                currentForm = "/sc/supPayment/View.xhtml";
+                currentForm = VIEW_URL;
             } else {
                 payment.setAmount(JsfUtil.round(payment.getAmount()));
 
@@ -182,34 +192,35 @@ public class SupPaymentController implements Serializable {
                     return;
                 }
 
-                if (paymentType.equals("receive money")) {
-                    payment.setType("in");
+                if (payment.getType().equals("in")) {
                     payment.setOverpayment(0d);
                     payment.setName(IdGenerator.generateSupplierInPayment(payment.getId()));
                 } else {
-                    payment.setType("out");
                     payment.setOverpayment(payment.getAmount());
                     payment.setName(IdGenerator.generateSupplierOutPayment(payment.getId()));
                 }
 
                 if (payment.getJournal().getName().equals("Cash")) {
-                    payment.setAccount(paymentFacade.findAccount("Cash"));
+                    query = AccountQueryBuilder.getFindByNameQuery("Cash");
+                    payment.setAccount((Account)super.findSingleWithQuery(query));
                 } else {
-                    payment.setAccount(paymentFacade.findAccount("Bank"));
+                    query = AccountQueryBuilder.getFindByNameQuery("Bank");
+                    payment.setAccount((Account)super.findSingleWithQuery(query));
                 }
 
-                payment = paymentFacade.update(payment);
+                payment = super.updateItem(payment);
 
                 if ((payments != null) && (!payments.isEmpty())) {
                     payments.set(payments.indexOf(payment), payment);
                 } else {
-                    payments = paymentFacade.findSupplierPayment();
+                    query = PaymentQueryBuilder.getFindAllVendorPaymentsQuery();
+                    payments = super.findWithQuery(query);
                     if ((payments != null) && (!payments.isEmpty())) {
                         payment = payments.get(0);
                         partialListType = null;
                     }
                 }
-                currentForm = "/sc/supPayment/View.xhtml";
+                currentForm = VIEW_URL;
             }
         }
     }
@@ -217,18 +228,15 @@ public class SupPaymentController implements Serializable {
     public void prepareSupPaymentEdit() {
         if (supPaymentExist(payment.getId())) {
             if (payment.getState().equals("Draft")) {
-                topNSuppliers = paymentFacade.findTopNSuppliers(4);
-
-                if (payment.getType().equals("in")) {
-                    paymentType = "receive money";
-                } else {
-                    paymentType = "send money";
-                }
+                             
+                query = PartnerQueryBuilder.getFindActiveVendorsQuery();
+                topNSuppliers = super.findWithQuery(query, 4);
 
                 if (!topNSuppliers.contains(payment.getPartner())) {
                     topNSuppliers.add(payment.getPartner());
                 }
-                currentForm = "/sc/supPayment/Edit.xhtml";
+                
+                currentForm = EDIT_URL;
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorEdit");
             }
@@ -240,17 +248,20 @@ public class SupPaymentController implements Serializable {
         payment = new Payment();
         payment.setState("Draft");
         payment.setPartnerType("supplier");
+        payment.setType("out");
         payment.setAmount(0d);
-        paymentType = "send money";
-        topNSuppliers = paymentFacade.findTopNSuppliers(4);
-        currentForm = "/sc/supPayment/Create.xhtml";
+
+        query = PartnerQueryBuilder.getFindActiveVendorsQuery();
+        topNSuppliers = super.findWithQuery(query, 4);
+        
+        currentForm = CREATE_URL;
     }
 
     public void createSupPayment() {
 
-        String paymentInOut;
-        String account;
+        String accountName;
         Double outstandingPayment;
+        
         payment.setAmount(JsfUtil.round(payment.getAmount()));
 
         if (payment.getAmount() == 0d) {
@@ -258,33 +269,48 @@ public class SupPaymentController implements Serializable {
             return;
         }
 
-        if (paymentType.equals("receive money")) {
-            paymentInOut = "in";
+        if (payment.getType().equals("in")) {
             outstandingPayment = 0d;
 
         } else {
-            paymentInOut = "out";
             outstandingPayment = payment.getAmount();
         }
 
         if (payment.getJournal().getName().equals("Cash")) {
-            account = "Cash";
+            accountName = "Cash";
         } else {
-            account = "Bank";
+            accountName = "Bank";
         }
-
-        payment.setAmount(JsfUtil.round(payment.getAmount()));
-        payment = new Payment(payment.getAmount(), payment.getDate(), payment.getPartner(), payment.getJournal(), paymentInOut, Boolean.TRUE, paymentFacade.findAccount(account), null, null, payment.getState(), outstandingPayment, "supplier");
-        payment = paymentFacade.create(payment, "Supplier", paymentInOut);
+        
+        query = AccountQueryBuilder.getFindByNameQuery(accountName);
+        payment.setAccount((Account)super.findSingleWithQuery(query));
+        
+        payment.setActive(Boolean.TRUE);
+        payment.setState("Draft");
+        payment.setOverpayment(outstandingPayment);
+        payment.setPartnerType("supplier");  
+        payment.setJournalEntry(null);
+        payment.setInvoice(null);
+        
+        payment = super.createItem(payment);
+        
+        if (payment.getType().equals("out")) {
+            payment.setName(IdGenerator.generateSupplierOutPayment(payment.getId()));
+        } else {
+            payment.setName(IdGenerator.generateSupplierInPayment(payment.getId()));
+        }
+        
+        payment =  super.createItem(payment);
 
         if ((payments != null) && (!payments.isEmpty())) {
             payments.add(payment);
         } else {
-            payments = paymentFacade.findSupplierPayment();
+            query = PaymentQueryBuilder.getFindAllVendorPaymentsQuery();
+            payments = super.findWithQuery(query);
             partialListType = null;
         }
 
-        currentForm = "/sc/supPayment/View.xhtml";
+        currentForm = VIEW_URL;
     }
 
     private void generateSupPaymentJournalEntry() {
@@ -332,7 +358,7 @@ public class SupPaymentController implements Serializable {
                 0d,
                 0d,
                 Boolean.TRUE,
-                paymentFacade.findAccount("Account Payable"),
+                (Account)super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Account Payable")),
                 journalEntry,
                 journalEntry.getJournal(),
                 payment.getPartner(),
@@ -360,7 +386,17 @@ public class SupPaymentController implements Serializable {
                 null));
 
         journalEntry.setJournalItems(journalItems);
-        journalEntry = paymentFacade.create(journalEntry, payment.getAccount().getName());
+        
+        journalEntry = super.createItem(journalEntry);
+        
+        if (payment.getAccount().getName().equals("Cash")) {
+            journalEntry.setName(IdGenerator.generatePaymentCashEntryId(journalEntry.getId()));
+        } else if (payment.getAccount().getName().equals("Bank")) {
+            journalEntry.setName(IdGenerator.generatePaymentBankEntryId(journalEntry.getId()));
+        }
+        
+        journalEntry = super.updateItem(journalEntry);
+        
         payment.setJournalEntry(journalEntry);
 
     }
@@ -379,18 +415,13 @@ public class SupPaymentController implements Serializable {
             payment.setReference(null);
             payment.setState("Draft");
 
-            topNSuppliers = paymentFacade.findTopNSuppliers(4);
-
-            if (payment.getType().equals("in")) {
-                paymentType = "receive money";
-            } else {
-                paymentType = "send money";
-            }
+            query = PartnerQueryBuilder.getFindActiveVendorsQuery();
+            topNSuppliers = super.findWithQuery(query, 4);
 
             if (!topNSuppliers.contains(payment.getPartner())) {
                 topNSuppliers.add(payment.getPartner());
             }
-            currentForm = "/sc/supPayment/Create.xhtml";
+            currentForm = CREATE_URL;
         }
     }
 
@@ -403,32 +434,36 @@ public class SupPaymentController implements Serializable {
 
     public void resolveRequestParams() {
 
-        currentForm = "/sc/supPayment/View.xhtml";
+        currentForm = VIEW_URL;
 
         if (JsfUtil.isNumeric(paymentId)) {
             Integer id = Integer.valueOf(paymentId);
-            payment = paymentFacade.find(id);
+            payment = super.findItemById(id, Payment.class);
             if (payment != null) {
-                payments = paymentFacade.findSupplierPayment();
+                query = PaymentQueryBuilder.getFindAllVendorPaymentsQuery();
+                payments = super.findWithQuery(query);
                 return;
             }
         }
         if (JsfUtil.isNumeric(partnerId)) {
             Integer id = Integer.valueOf(partnerId);
-            payments = paymentFacade.findByPartner(id, "supplier");
+            query = PaymentQueryBuilder.getFindByVendorQuery(id);
+            payments = super.findWithQuery(query);
             if ((payments != null) && (!payments.isEmpty())) {
                 payment = payments.get(0);
                 partialListType = "partner";
                 return;
             }
         }
-        payments = paymentFacade.findSupplierPayment();
+
+        query = PaymentQueryBuilder.getFindAllVendorPaymentsQuery();
+        payments = super.findWithQuery(query);
         payment = payments.get(0);
     }
 
     public void prepareViewSupplierPayment() {
         if ((payment != null) && (supPaymentExist(payment.getId()))) {
-            currentForm = "/sc/supPayment/View.xhtml";
+            currentForm = VIEW_URL;
         }
     }
 
@@ -466,9 +501,6 @@ public class SupPaymentController implements Serializable {
     }
 
     public List<Payment> getPayments() {
-        if (payments == null) {
-            payments = paymentFacade.findSupplierPayment();
-        }
         return payments;
     }
 
@@ -485,9 +517,6 @@ public class SupPaymentController implements Serializable {
     }
 
     public Payment getPayment() {
-        if (payment == null) {
-            payment = new Payment();
-        }
         return payment;
     }
 
@@ -501,14 +530,6 @@ public class SupPaymentController implements Serializable {
 
     public void setPaymentId(String paymentId) {
         this.paymentId = paymentId;
-    }
-
-    public String getCurrentForm() {
-        return currentForm;
-    }
-
-    public void setCurrentForm(String currentForm) {
-        this.currentForm = currentForm;
     }
 
     public String getPartnerId() {
