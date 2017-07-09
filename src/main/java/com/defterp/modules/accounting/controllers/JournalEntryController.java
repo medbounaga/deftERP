@@ -3,8 +3,9 @@ package com.defterp.modules.accounting.controllers;
 import com.defterp.util.JsfUtil;
 import com.defterp.translation.annotations.Status;
 import com.defterp.modules.accounting.entities.JournalEntry;
-import com.casa.erp.dao.JournalEntryFacade;
-import java.io.Serializable;
+import com.defterp.modules.accounting.queryBuilders.JournalEntryQueryBuilder;
+import com.defterp.modules.commonClasses.AbstractController;
+import com.defterp.modules.commonClasses.QueryWrapper;
 import java.util.HashMap;
 import java.util.List;
 import javax.inject.Named;
@@ -19,10 +20,8 @@ import javax.inject.Inject;
  */
 @Named(value = "journalEntryController")
 @ViewScoped
-public class JournalEntryController implements Serializable {
+public class JournalEntryController extends AbstractController {
 
-    @Inject
-    private JournalEntryFacade journalEntryFacade;
     @Inject
     @Status
     private HashMap<String, String> statuses;
@@ -31,63 +30,60 @@ public class JournalEntryController implements Serializable {
     private JournalEntry journalEntry;
     private String journalEntryId;
     private String partnerId;
-    String currentForm = "/sc/journalEntry/View.xhtml";
-    
+    private QueryWrapper query;
+
+    public JournalEntryController() {
+        super("/sc/journalEntry/");
+    }
 
     public void resolveRequestParams() {
 
         if (JsfUtil.isNumeric(journalEntryId)) {
             Integer id = Integer.valueOf(journalEntryId);
-            journalEntry = journalEntryFacade.find(id);
+            journalEntry = super.findItemById(id, JournalEntry.class);
             if (journalEntry != null) {
-                journalEntries = journalEntryFacade.findAll();
-                currentForm = "/sc/journalEntry/View.xhtml";
+                query = JournalEntryQueryBuilder.getFindAllQuery();
+                journalEntries = super.findWithQuery(query);
+                currentForm = VIEW_URL;
                 return;
             }
         }
 
-//        if (JsfUtil.isNumeric(partnerId)) {
-//            Integer id = Integer.valueOf(partnerId);
-//            journalEntries = journalEntryFacade.findByPartner(id);
-//            if ((journalEntries != null) && (!journalEntries.isEmpty())) {
-//                journalEntry = journalEntries.get(0);
-//                currentForm = "/sc/journalEntry/ViewByPartner.xhtml";
-//                currentList = "/sc/journalEntry/ListByPartner.xhtml";
-//                return;
-//            }
-//        }
+        query = JournalEntryQueryBuilder.getFindAllQuery();
+        journalEntries = super.findWithQuery(query);
 
-        journalEntries = journalEntryFacade.findAll();
         if ((journalEntries != null) && (!journalEntries.isEmpty())) {
             journalEntry = journalEntries.get(0);
-
         }
-        currentForm = "/sc/journalEntry/View.xhtml";
+        currentForm = VIEW_URL;
     }
 
     public void prepareView() {
 
         if ((journalEntry != null) && (journalEntryExist(journalEntry.getId()))) {
-            currentForm = "/sc/journalEntry/View.xhtml";
+            currentForm = VIEW_URL;
         }
     }
 
     private boolean journalEntryExist(Integer id) {
         if (id != null) {
-            journalEntry = journalEntryFacade.find(id);
+            journalEntry = super.findItemById(id, JournalEntry.class);
             if (journalEntry == null) {
+                
                 JsfUtil.addWarningMessage("ItemDoesNotExist");
+                currentForm = VIEW_URL;
 
                 if ((journalEntries != null) && (journalEntries.size() > 1)) {
                     journalEntries.remove(journalEntry);
                     journalEntry = journalEntries.get(0);
                 } else {
-                    journalEntries = journalEntryFacade.findAll();
+                    query = JournalEntryQueryBuilder.getFindAllQuery();
+                    journalEntries = super.findWithQuery(query);
                     if ((journalEntries != null) && (!journalEntries.isEmpty())) {
                         journalEntry = journalEntries.get(0);
                     }
                 }
-                currentForm = "/sc/journalEntry/View.xhtml";
+                
                 return false;
             }
             return true;
@@ -129,9 +125,6 @@ public class JournalEntryController implements Serializable {
     }
 
     public List<JournalEntry> getJournalEntries() {
-        if (journalEntries == null) {
-            journalEntries = journalEntryFacade.findAll();
-        }
         return journalEntries;
     }
 
@@ -154,15 +147,6 @@ public class JournalEntryController implements Serializable {
     public void setJournalEntry(JournalEntry journalEntry) {
         this.journalEntry = journalEntry;
     }
-
-    public String getCurrentForm() {
-        return currentForm;
-    }
-
-    public void setCurrentForm(String currentForm) {
-        this.currentForm = currentForm;
-    }
-
 
     public String getJournalEntryId() {
         return journalEntryId;

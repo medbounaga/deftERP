@@ -6,7 +6,7 @@ public class JournalEntryQueryBuilder {
 
     private static final String FIND_ALL = "SELECT j FROM JournalEntry j";
 
-    public static QueryWrapper getFindAllJournalEntriesQuery() {
+    public static QueryWrapper getFindAllQuery() {
 
         return new QueryWrapper(FIND_ALL);
     }
