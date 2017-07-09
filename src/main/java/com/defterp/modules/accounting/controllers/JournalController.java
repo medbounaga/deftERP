@@ -2,14 +2,14 @@ package com.defterp.modules.accounting.controllers;
 
 import com.defterp.util.JsfUtil;
 import com.defterp.modules.accounting.entities.Journal;
-import com.casa.erp.dao.JournalFacade;
-import java.io.Serializable;
+import com.defterp.modules.accounting.queryBuilders.JournalQueryBuilder;
+import com.defterp.modules.commonClasses.AbstractController;
+import com.defterp.modules.commonClasses.QueryWrapper;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.inject.Named;
 import javax.faces.view.ViewScoped;
-import javax.inject.Inject;
 
 /**
  *
@@ -17,22 +17,26 @@ import javax.inject.Inject;
  *
  * github.com/medbounaga
  */
+
 @Named(value = "journalController")
 @ViewScoped
-public class JournalController implements Serializable {
+public class JournalController extends AbstractController {
 
-    @Inject
-    private JournalFacade journalFacade;
     private List<Journal> paymentJournals;
     private List<Journal> journals;
     private List<Journal> filteredJournals;
     private Journal journal;
     private String journalId;
     private List<String> journalTypes;
-    private String currentForm = "/sc/journal/View.xhtml";
+    private QueryWrapper query;
+
+    public JournalController() {
+        super("/sc/journal/");
+    }
 
     @PostConstruct
     public void init() {
+
         journalTypes = new ArrayList<>();
         journalTypes.add("Sale");
         journalTypes.add("Purchase");
@@ -42,20 +46,23 @@ public class JournalController implements Serializable {
 
     public void resolveRequestParams() {
 
-        currentForm = "/sc/journal/View.xhtml";
+        currentForm = VIEW_URL;
 
         if (JsfUtil.isNumeric(journalId)) {
 
             Integer id = Integer.valueOf(journalId);
-            journal = journalFacade.find(id);
+            journal = super.findItemById(id, Journal.class);
 
             if (journal != null) {
-                journals = journalFacade.findAll();
+                query = JournalQueryBuilder.getFindAllQuery();
+                journals = super.findWithQuery(query);
                 return;
             }
         }
-
-        journals = journalFacade.findAll();
+        
+        query = JournalQueryBuilder.getFindAllQuery();
+        journals = super.findWithQuery(query);
+        
         if (journals != null && !journals.isEmpty()) {
             journal = journals.get(0);
         }
@@ -64,139 +71,128 @@ public class JournalController implements Serializable {
     public void prepareCreateJournal() {
         journal = new Journal();
         journal.setActive(Boolean.TRUE);
-        currentForm = "/sc/journal/Create.xhtml";
+        currentForm = CREATE_URL;
     }
 
     public void deleteJournal() {
-        if (journalExist(journal.getId())) {
-            try {
-                journalFacade.remove(journal);
-            } catch (Exception e) {
-                JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
-                return;
-            }
 
-            JsfUtil.addSuccessMessage("ItemDeleted");
-            currentForm = "/sc/journal/View.xhtml";
+        journal = super.findItemById(journal.getId(), journal.getClass());
 
-            if ((journals != null) && (journals.size() > 1)) {
-                journals.remove(journal);
-                journal = journals.get(0);
-            } else {
-                journals = journalFacade.findAll();
-                if ((journals != null) && (!journals.isEmpty())) {
+        if (journal != null) {
+
+            boolean deleted = super.deleteItem(journal);
+
+            if (deleted) {
+                if ((journals != null) && (journals.size() > 1)) {
+                    journals.remove(journal);
                     journal = journals.get(0);
+                } else {
+                    query = JournalQueryBuilder.getFindAllQuery();
+                    journals = super.findWithQuery(query);
+                    if ((journals != null) && (!journals.isEmpty())) {
+                        journal = journals.get(0);
+                    }
                 }
+                JsfUtil.addSuccessMessage("ItemDeleted");
+            } else {
+                JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
             }
-
         } else {
-            JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete");
+            journalNotFound();
         }
     }
 
     public void cancelEditJournal() {
-        if (journalExist(journal.getId())) {
-            currentForm = "/sc/journal/View.xhtml";
+
+        journal = super.findItemById(journal.getId(), journal.getClass());
+        if (journal != null) {
+            currentForm = VIEW_URL;
+        } else {
+            journalNotFound();
         }
     }
 
     public void cancelCreateJournal() {
-        currentForm = "/sc/journal/View.xhtml";
 
         if ((journals != null) && (!journals.isEmpty())) {
             journal = journals.get(0);
+            currentForm = VIEW_URL;
         } else {
-            journals = journalFacade.findAll();
+            query = JournalQueryBuilder.getFindAllQuery();
+            journals = super.findWithQuery(query);
             if ((journals != null) && (!journals.isEmpty())) {
                 journal = journals.get(0);
+                currentForm = VIEW_URL;
             }
         }
     }
 
     public void updateJournal() {
-        if (journalExistTwo(journal.getId())) {
-            journal = journalFacade.update(journal);
+
+        Journal journ = super.findItemById(journal.getId(), journal.getClass());
+        if (journ != null) {
+            journal = super.updateItem(journal);
             journals.set(journals.indexOf(journal), journal);
-            currentForm = "/sc/journal/View.xhtml";
-        }
-    }
-
-    private boolean journalExistTwo(Integer id) {
-        if (id != null) {
-            Journal journ = journalFacade.find(id);
-            if (journ == null) {
-                JsfUtil.addWarningMessage("ItemDoesNotExist");
-                if ((journals != null) && (journals.size() > 1)) {
-                    journals.remove(journal);
-                    journal = journals.get(0);
-                } else {
-                    journals = journalFacade.findAll();
-                    if ((journals != null) && (!journals.isEmpty())) {
-                        journal = journals.get(0);
-                    }
-                }
-                currentForm = "/sc/journal/View.xhtml";
-                return false;
-            } else {
-                return true;
-            }
-
+            currentForm = VIEW_URL;
         } else {
-            return false;
+            journalNotFound();
         }
     }
 
     public void createJournal() {
+        
         if (journal != null) {
-            journal = journalFacade.create(journal);
-
-            if ((journals != null) && (!journals.isEmpty())) {
+            journal = super.createItem(journal);
+            if (journals != null) {
                 journals.add(journal);
-            } else {
-                journals = journalFacade.findAll();
+            }else{
+                journals = super.findWithQuery(JournalQueryBuilder.getFindAllQuery());
             }
-            currentForm = "/sc/journal/View.xhtml";
+            currentForm = VIEW_URL;
         }
     }
 
     public void prepareEditJournal() {
-        if (journalExist(journal.getId())) {
-            currentForm = "/sc/journal/Edit.xhtml";
-        }
-    }
 
-    private boolean journalExist(Integer id) {
-        if (id != null) {
-            journal = journalFacade.find(id);
-            if (journal == null) {
-                JsfUtil.addWarningMessage("ItemDoesNotExist");
-
-                if ((journals != null) && (journals.size() > 1)) {
-                    journals.remove(journal);
-                    journal = journals.get(0);
-                } else {
-                    journals = journalFacade.findAll();
-                    if ((journals != null) && (!journals.isEmpty())) {
-                        journal = journals.get(0);
-                    }
-                }
-                currentForm = "/sc/journal/View.xhtml";
-                return false;
-            }
-            return true;
+        journal = super.findItemById(journal.getId(), journal.getClass());
+        if (journal != null) {
+            currentForm = EDIT_URL;
+        } else {
+            journalNotFound();
         }
-        return false;
     }
 
     public void prepareViewJournal() {
 
-        if (journal != null && journalExist(journal.getId())) {
-            currentForm = "/sc/journal/View.xhtml";
+        if (journal != null) {
+            journal = super.findItemById(journal.getId(), journal.getClass());
+            if (journal != null) {
+                currentForm = VIEW_URL;
+            } else {
+                journalNotFound();
+            }
+        }
+    }
+
+    protected void journalNotFound() {
+
+        JsfUtil.addWarningMessage("ItemDoesNotExist");
+        currentForm = VIEW_URL;
+
+        if ((journals != null) && (journals.size() > 1)) {
+            journals.remove(journal);
+            journal = journals.get(0);
+        } else {
+            query = JournalQueryBuilder.getFindAllQuery();
+            journals = super.findWithQuery(query);
+            if ((journals != null) && (journals.size() > 1)) {
+                journal = journals.get(0);
+            }
         }
     }
 
     public int getJournalIndex() {
-        
+
         if (journals != null && journal != null) {
             return journals.indexOf(journal) + 1;
         }
@@ -221,33 +217,32 @@ public class JournalController implements Serializable {
 
     public List<Journal> getPaymentJournals() {
 
-        paymentJournals = journalFacade.findJournalByType("Cash");
+        query = JournalQueryBuilder.getFindByTypeQuery("Cash");
+        paymentJournals = super.findWithQuery(query);
+
+        query = JournalQueryBuilder.getFindByTypeQuery("Bank");
+
         if (paymentJournals != null) {
-            paymentJournals.addAll(journalFacade.findJournalByType("Bank"));
+            paymentJournals.addAll((List<Journal>)(Journal)super.findWithQuery(query));
         }
 
         return paymentJournals;
-
     }
 
     public List<Journal> getInvoiceJournals() {
 
-        paymentJournals = journalFacade.findByName("Customer Invoices");
-        return paymentJournals;
-
+        query = JournalQueryBuilder.getFindByNameQuery("Customer Invoices");
+        return super.findWithQuery(query);
     }
 
     public List<Journal> getBillJournals() {
 
-        paymentJournals = journalFacade.findByName("Vendor Bills");
-        return paymentJournals;
+        query = JournalQueryBuilder.getFindByNameQuery("Vendor Bills");
+        return super.findWithQuery(query);
 
     }
 
     public List<Journal> getJournals() {
-        if (journals == null) {
-            journals = journalFacade.findAll();
-        }
         return journals;
     }
 
@@ -277,14 +272,6 @@ public class JournalController implements Serializable {
 
     public void setJournalId(String journalId) {
         this.journalId = journalId;
-    }
-
-    public String getCurrentForm() {
-        return currentForm;
-    }
-
-    public void setCurrentForm(String currentForm) {
-        this.currentForm = currentForm;
     }
 
     public List<String> getJournalTypes() {
