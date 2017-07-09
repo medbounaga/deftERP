@@ -5,20 +5,21 @@ import com.defterp.modules.purchases.entities.PurchaseOrderLine;
 import com.defterp.modules.inventory.entities.Product;
 import com.defterp.modules.partners.entities.Partner;
 import com.defterp.modules.accounting.entities.Payment;
-import com.defterp.modules.accounting.entities.JournalEntry;
-import com.defterp.modules.accounting.entities.JournalItem;
-import com.defterp.modules.accounting.entities.Invoice;
-import com.defterp.modules.accounting.entities.InvoiceTax;
-import com.defterp.modules.accounting.entities.Account;
-import com.defterp.modules.accounting.entities.InvoicePayment;
-import com.defterp.modules.accounting.entities.InvoiceLine;
+import com.defterp.modules.accounting.entities.*;
+import com.defterp.modules.accounting.queryBuilders.AccountQueryBuilder;
+import com.defterp.modules.accounting.queryBuilders.InvoiceQueryBuilder;
+import com.defterp.modules.accounting.queryBuilders.JournalQueryBuilder;
+import com.defterp.modules.accounting.queryBuilders.PaymentQueryBuilder;
+import com.defterp.modules.commonClasses.AbstractController;
+import com.defterp.modules.commonClasses.QueryWrapper;
+import com.defterp.modules.inventory.queryBuilders.ProductQueryBuilder;
+import com.defterp.modules.partners.queryBuilders.PartnerQueryBuilder;
 import com.defterp.util.JsfUtil;
 import com.defterp.translation.annotations.Status;
-import com.casa.erp.dao.InvoiceFacade;
+import com.defterp.modules.commonClasses.IdGenerator;
 import net.sf.jasperreports.engine.*;
 import org.apache.commons.lang.SerializationUtils;
 import org.primefaces.context.RequestContext;
-
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
 import javax.faces.view.ViewScoped;
@@ -27,16 +28,13 @@ import javax.inject.Named;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.*;
 
 @Named(value = "supInvoiceController")
 @ViewScoped
-public class SupInvoiceController implements Serializable {
+public class SupInvoiceController extends AbstractController {
 
-    @Inject
-    private InvoiceFacade invoiceFacade;
     @Inject
     @Status
     private HashMap<String, String> statuses;
@@ -49,7 +47,6 @@ public class SupInvoiceController implements Serializable {
     private List<JournalItem> journalItems;
     private Payment payment;
     private List<Payment> outstandingPayments;
-    private String currentForm = "/sc/supInvoice/List.xhtml";
     private String partialListType;
     private String purchaseId;
     private String partnerId;
@@ -63,23 +60,29 @@ public class SupInvoiceController implements Serializable {
     private List<Product> topPurchasedNProducts;
     private Partner supplier;
     private Product product;
+    private QueryWrapper query;
+
+    public SupInvoiceController() {
+        super("/sc/supInvoice/");
+    }
 
     public void validateInvoice() {
         if (invoiceExist(invoice.getId())) {
             if (invoice.getState().equals("Draft")) {
-                
-                 if(invoice.getAmountTotal() == 0d){
+
+                if (invoice.getAmountTotal() == 0d) {
                     invoice.setState("Paid");
                     setPurchaseOrderStatus();
-                }else{
+                } else {
                     invoice.setState("Open");
                 }
-                 
+
                 generateInvoiceJournalEntry();
                 invoice.getPartner().setCredit(invoice.getPartner().getCredit() + invoice.getAmountTotal());
-                invoice = invoiceFacade.update(invoice);
+                invoice = super.updateItem(invoice);
                 invoices.set(invoices.indexOf(invoice), invoice);
                 findOutstandingPayments();
+
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorValidate");
             }
@@ -97,7 +100,7 @@ public class SupInvoiceController implements Serializable {
                 journalEntryReference,
                 invoice.getDate(),
                 Boolean.TRUE,
-                invoiceFacade.findJournal("BILL"),
+                (Journal) super.findSingleWithQuery(JournalQueryBuilder.getFindByCodeQuery("BILL")),
                 invoice.getPartner(),
                 null,
                 invoice,
@@ -113,7 +116,7 @@ public class SupInvoiceController implements Serializable {
                 0d,
                 0d,
                 Boolean.TRUE,
-                invoiceFacade.findAccount("Account Payable"),
+                (Account)super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Account Payable")),
                 journalEntry,
                 journalEntry.getJournal(),
                 invoice.getPartner(),
@@ -136,7 +139,7 @@ public class SupInvoiceController implements Serializable {
                             taxAmount,
                             0d,
                             Boolean.TRUE,
-                            invoiceFacade.findAccount("Tax Paid"),
+                            (Account)super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Tax Paid")),
                             journalEntry,
                             journalEntry.getJournal(),
                             invoice.getPartner(),
@@ -160,7 +163,7 @@ public class SupInvoiceController implements Serializable {
                     invoiceline.getPriceSubtotal(),
                     invoiceline.getQuantity(),
                     Boolean.TRUE,
-                    invoiceFacade.findAccount("Product Purchases"),
+                    (Account)super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Product Purchases")),
                     journalEntry,
                     journalEntry.getJournal(),
                     invoice.getPartner(),
@@ -171,23 +174,25 @@ public class SupInvoiceController implements Serializable {
 
         }
         journalEntry.setJournalItems(journalItems);
-        journalEntry = invoiceFacade.create(journalEntry);
+        journalEntry = super.createItem(journalEntry);
         invoice.setJournalEntry(journalEntry);
         journalItems = null;
         journalEntry = null;
     }
 
     private void findOutstandingPayments() {
-        if (invoice.getState().equals("Open")) {
-            outstandingPayments = invoiceFacade.findSupplierOutstandingPayments(invoice.getPartner().getId());
-        } else {
-            outstandingPayments = null;
+
+        outstandingPayments = null;
+
+        if (invoice != null && invoice.getState().equals("Open")) {
+            outstandingPayments = super.findWithQuery(PaymentQueryBuilder.getFindOutstandingByVendorQuery(invoice.getPartner().getId()));
         }
     }
 
     public void payInvoice(Integer id) {
         if (invoiceExist(id)) {
             if (invoice.getState().equals("Open")) {
+
                 double paidAmount;
                 double outstandingPayment = 0d;
                 String account;
@@ -230,8 +235,22 @@ public class SupInvoiceController implements Serializable {
                 }
 
                 invoice.getPartner().setCredit(JsfUtil.round(invoice.getPartner().getCredit() - paidAmount));
-                payment = new Payment(payment.getAmount(), payment.getDate(), payment.getPartner(), payment.getJournal(), "out", Boolean.TRUE, invoiceFacade.findAccount(account), null, invoice, "Posted", null, outstandingPayment, "supplier");
-                payment = invoiceFacade.create(payment, "Supplier", "out");
+                payment = new Payment(payment.getAmount(),
+                        payment.getDate(),
+                        payment.getPartner(),
+                        payment.getJournal(),
+                        "out", Boolean.TRUE,
+                        (Account)super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery(account)),
+                        null,
+                        invoice,
+                        "Posted",
+                        null,
+                        outstandingPayment,
+                        "supplier");
+
+                payment = super.createItem(payment);
+                payment.setName(IdGenerator.generateSupplierOutPayment(payment.getId()));
+                payment = super.updateItem(payment);
 
                 generatePaymentJournalEntry(account);
                 generateInvoicePayment(invoice, payment.getJournalEntry(), netPayment, payment.getName());
@@ -239,11 +258,13 @@ public class SupInvoiceController implements Serializable {
                     generatePaymentWriteOffJournalEntry(account);
                 }
 
-                payment = invoiceFacade.update(payment);
+                payment = super.updateItem(payment);
                 invoice.getPayments().add(payment);
-                invoice = invoiceFacade.update(invoice);
+                invoice = super.updateItem(invoice);
                 invoices.set(invoices.indexOf(invoice), invoice);
+
                 findOutstandingPayments();
+
                 if (invoice.getState().equals("Paid")) {
                     setPurchaseOrderStatus();
                 }
@@ -257,7 +278,7 @@ public class SupInvoiceController implements Serializable {
     private void generateInvoicePayment(Invoice invoice, JournalEntry journalEntry, Double netPayment, String paymentName) {
 
         InvoicePayment invoicePayment = new InvoicePayment(invoice, journalEntry, netPayment, journalEntry.getDate(), paymentName);
-        invoiceFacade.create(invoicePayment);
+        invoicePayment = super.createItem(invoicePayment);
         journalEntry.getInvoicePayments().add(invoicePayment);
         invoice.getInvoicePayments().add(invoicePayment);
     }
@@ -271,7 +292,7 @@ public class SupInvoiceController implements Serializable {
                 journalEntryReference,
                 payment.getDate(),
                 Boolean.TRUE,
-                invoiceFacade.findJournal(account),
+                (Journal)super.findSingleWithQuery(JournalQueryBuilder.getFindByCodeQuery(account)),
                 payment.getPartner(),
                 payment,
                 null,
@@ -287,7 +308,7 @@ public class SupInvoiceController implements Serializable {
                 0d,
                 0d,
                 Boolean.TRUE,
-                invoiceFacade.findAccount("Account Payable"),
+                (Account)super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Account Payable")),
                 journalEntry,
                 journalEntry.getJournal(),
                 payment.getPartner(),
@@ -305,7 +326,7 @@ public class SupInvoiceController implements Serializable {
                 0d,
                 0d,
                 Boolean.TRUE,
-                invoiceFacade.findAccount(account),
+                (Account)super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery(account)),
                 journalEntry,
                 journalEntry.getJournal(),
                 payment.getPartner(),
@@ -315,7 +336,17 @@ public class SupInvoiceController implements Serializable {
                 null));
 
         journalEntry.setJournalItems(journalItems);
-        journalEntry = invoiceFacade.create(journalEntry, account);
+
+        journalEntry = super.createItem(journalEntry);
+
+        if (account.equals("Cash")) {
+            journalEntry.setName(IdGenerator.generatePaymentCashEntryId(journalEntry.getId()));
+        } else if (account.equals("Bank")) {
+            journalEntry.setName(IdGenerator.generatePaymentBankEntryId(journalEntry.getId()));
+        }
+
+        journalEntry = super.updateItem(journalEntry);
+
         payment.setJournalEntry(journalEntry);
         journalItems = null;
         journalEntry = null;
@@ -349,7 +380,7 @@ public class SupInvoiceController implements Serializable {
                 payment.getInvoice().getOrigin(),
                 payment.getDate(),
                 Boolean.TRUE,
-                invoiceFacade.findJournal(account),
+                (Journal)super.findSingleWithQuery(JournalQueryBuilder.getFindByCodeQuery(account)),
                 payment.getPartner(),
                 null,
                 null,
@@ -365,7 +396,7 @@ public class SupInvoiceController implements Serializable {
                 0d,
                 0d,
                 Boolean.TRUE,
-                invoiceFacade.findAccount("Account Payable"),
+                (Account)super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Account Payable")),
                 journalEntry,
                 journalEntry.getJournal(),
                 payment.getPartner(),
@@ -393,7 +424,17 @@ public class SupInvoiceController implements Serializable {
                 null));
 
         journalEntry.setJournalItems(journalItems);
-        journalEntry = invoiceFacade.create(journalEntry, account);
+
+        journalEntry = super.createItem(journalEntry);
+
+        if (account.equals("Cash")) {
+            journalEntry.setName(IdGenerator.generatePaymentCashEntryId(journalEntry.getId()));
+        } else if (account.equals("Bank")) {
+            journalEntry.setName(IdGenerator.generatePaymentBankEntryId(journalEntry.getId()));
+        }
+
+        journalEntry = super.updateItem(journalEntry);
+
         if (differenceAmount > 0d) {
             generateInvoicePayment(invoice, journalEntry, difference, "Write-Off");
         }
@@ -401,8 +442,8 @@ public class SupInvoiceController implements Serializable {
 
     public void payOutstandingPayment(Integer paymentId) {
 
-        payment = invoiceFacade.findPayment(paymentId);
-        invoice = invoiceFacade.find(invoiceId);
+        payment = super.findItemById(paymentId, Payment.class);
+        invoice = super.findItemById(invoice.getId(), Invoice.class);
         Double paidAmount;
         Double newOverPayment;
 
@@ -424,8 +465,8 @@ public class SupInvoiceController implements Serializable {
 
                 generateInvoicePayment(invoice, payment.getJournalEntry(), paidAmount, payment.getName());
 
-                invoiceFacade.update(payment);
-                invoice = invoiceFacade.update(invoice);
+                super.updateItem(payment);
+                invoice = super.updateItem(invoice);
                 invoices.set(invoices.indexOf(invoice), invoice);
                 payment = null;
 
@@ -462,7 +503,7 @@ public class SupInvoiceController implements Serializable {
                 if (invoice.getPurchaseOrder().getShipped() == true) {
                     invoice.getPurchaseOrder().setState("Done");
                 }
-                invoiceFacade.update(invoice.getPurchaseOrder());
+                super.updateItem(invoice.getPurchaseOrder());
             }
         }
     }
@@ -474,14 +515,15 @@ public class SupInvoiceController implements Serializable {
     }
 
     public void resolveRequestParams() {
-        
-        currentForm = "/sc/supInvoice/View.xhtml";
-        
+
+        currentForm = VIEW_URL;
+
         if (JsfUtil.isNumeric(invoiceId)) {
             Integer id = Integer.valueOf(invoiceId);
-            invoice = invoiceFacade.find(id);
+            invoice = super.findItemById(id, Invoice.class);
             if (invoice != null) {
-                invoices = invoiceFacade.findInInvoices();
+                query = InvoiceQueryBuilder.getFindAllBillsQuery();
+                invoices = super.findWithQuery(query);
                 findOutstandingPayments();
                 return;
             }
@@ -489,7 +531,8 @@ public class SupInvoiceController implements Serializable {
 
         if (JsfUtil.isNumeric(purchaseId)) {
             Integer id = Integer.valueOf(purchaseId);
-            invoices = invoiceFacade.findByPurchaseId(id);
+            query = InvoiceQueryBuilder.getFindByPurchaseOrderQuery(id);
+            invoices = super.findWithQuery(query);
             if ((invoices != null) && (!invoices.isEmpty())) {
                 invoice = invoices.get(0);
                 findOutstandingPayments();
@@ -500,7 +543,8 @@ public class SupInvoiceController implements Serializable {
 
         if (JsfUtil.isNumeric(partnerId)) {
             Integer id = Integer.valueOf(partnerId);
-            invoices = invoiceFacade.findByPartner(id, "Purchase");
+            query = InvoiceQueryBuilder.getFindByVendorQuery(id);
+            invoices = super.findWithQuery(query);
             if (invoices != null && !invoices.isEmpty()) {
                 invoice = invoices.get(0);
                 findOutstandingPayments();
@@ -509,9 +553,13 @@ public class SupInvoiceController implements Serializable {
             }
         }
 
-        invoices = invoiceFacade.findInInvoices();
-        invoice = invoices.get(0);
-        findOutstandingPayments();
+        query = InvoiceQueryBuilder.getFindAllBillsQuery();
+        invoices = super.findWithQuery(query);
+
+        if (invoices != null && !invoices.isEmpty()) {
+            invoice = invoices.get(0);
+            findOutstandingPayments();
+        }
     }
 
     public void prepareView() {
@@ -519,26 +567,8 @@ public class SupInvoiceController implements Serializable {
         if (invoice != null) {
             if (invoiceExist(invoice.getId())) {
                 findOutstandingPayments();
-                currentForm = "/sc/supInvoice/View.xhtml";
+                currentForm = VIEW_URL;
             }
-        }
-    }
-
-    public void showInvoiceList() {
-        invoice = null;
-        invoiceLines = null;
-        invoiceLine = null;
-        topNSuppliers = null;
-        topPurchasedNProducts = null;
-        currentForm = "/sc/supInvoice/List.xhtml";
-    }
-
-    public void showInvoiceForm() {
-
-        if (invoices.size() > 0) {
-            invoice = invoices.get(0);
-            findOutstandingPayments();
-            currentForm = "/sc/supInvoice/View.xhtml";
         }
     }
 
@@ -591,12 +621,25 @@ public class SupInvoiceController implements Serializable {
 
     private boolean invoiceExist(Integer id) {
         if (id != null) {
-            invoice = invoiceFacade.find(id);
+            invoice = super.findItemById(id, Invoice.class);
             if (invoice == null) {
+
+                if ((invoices != null) && (invoices.size() > 1)) {
+                    invoices.remove(invoice);
+                    invoice = invoices.get(0);
+                } else {
+                    partialListType = null;
+                    query = InvoiceQueryBuilder.getFindAllBillsQuery();
+                    invoices = super.findWithQuery(query);
+
+                    if ((invoices != null) && (!invoices.isEmpty())) {
+                        invoice = invoices.get(0);
+                    }
+                }
+
+                currentForm = VIEW_URL;
                 JsfUtil.addWarningMessage("ItemDoesNotExist");
-                invoices = null;
-                partialListType = null;
-                currentForm = "/sc/supInvoice/List.xhtml";
+
                 return false;
             } else {
                 return true;
@@ -635,10 +678,10 @@ public class SupInvoiceController implements Serializable {
             if ("".equals(paymentType)) {
                 paymentType = "keep open";
             } else if ("fully paid".equals(paymentType) && differenceAmount > 0d) {
-                writeOffAccounts = invoiceFacade.findAccountByName("Expenses");
+                writeOffAccounts = super.findWithQuery(AccountQueryBuilder.getFindByNameQuery("Expenses"));
                 writeOffAccount = writeOffAccounts.get(0);
             } else if ("fully paid".equals(paymentType) && differenceAmount < 0d) {
-                writeOffAccounts = invoiceFacade.findAccountByName("Extra Payment");
+                writeOffAccounts = super.findWithQuery(AccountQueryBuilder.getFindByNameQuery("Extra Payment"));
                 writeOffAccount = writeOffAccounts.get(0);
             }
         }
@@ -647,10 +690,10 @@ public class SupInvoiceController implements Serializable {
     public void onPaymentDifferenceStrategyChange() {
 
         if ("fully paid".equals(paymentType) && differenceAmount > 0d) {
-            writeOffAccounts = invoiceFacade.findAccountByName("Expenses");
+            writeOffAccounts = super.findWithQuery(AccountQueryBuilder.getFindByNameQuery("Expenses"));
             writeOffAccount = writeOffAccounts.get(0);
         } else if ("fully paid".equals(paymentType) && differenceAmount < 0d) {
-            writeOffAccounts = invoiceFacade.findAccountByName("Extra Payment");
+            writeOffAccounts = super.findWithQuery(AccountQueryBuilder.getFindByNameQuery("Extra Payment"));
             writeOffAccount = writeOffAccounts.get(0);
         }
     }
@@ -661,16 +704,19 @@ public class SupInvoiceController implements Serializable {
     }
 
     public void updateOrder(Integer id) {
-        if (getInvoiceStatus(id) != null) {
-            if (!getInvoiceStatus(id).equals("Draft")) {
+
+        String invoiceStatus = getInvoiceStatus();
+
+        if (invoiceStatus != null) {
+            if (!invoiceStatus.equals("Draft")) {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorProceedEdit");
-                currentForm = "/sc/supInvoice/View.xhtml";
+                currentForm = VIEW_URL;
             } else if (invoiceLines.isEmpty()) {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "AtLeastOneInvoiceLineUpdate");
             } else {
 
                 for (InvoiceLine invLine : invoiceLines) {
-//                    invLine.setAccount(invoiceFacade.findAccount("Expenses"));
+//                    invLine.setAccount((Account)super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Expenses")));
                     invLine.setPartner(invoice.getPartner());
                     invLine.setInvoice(invoice);
                 }
@@ -679,16 +725,17 @@ public class SupInvoiceController implements Serializable {
 
                 invoice.setInvoiceLines(invoiceLines);
                 generateInvoiceTaxes();
-                invoice = invoiceFacade.update(invoice);
+                invoice = super.updateItem(invoice);
 
                 if (partialListType == null && invoices != null) {
                     invoices.set(invoices.indexOf(invoice), invoice);
                 } else {
-                    invoices = invoiceFacade.findInInvoices();
+                    query = InvoiceQueryBuilder.getFindAllBillsQuery();
+                    invoices = super.findWithQuery(query);
                     partialListType = null;
                 }
 
-                currentForm = "/sc/supInvoice/View.xhtml";
+                currentForm = VIEW_URL;
             }
         }
     }
@@ -700,7 +747,7 @@ public class SupInvoiceController implements Serializable {
         } else {
 
             for (InvoiceLine invLine : invoiceLines) {
-                invLine.setAccount(invoiceFacade.findAccount("Product Purchases"));
+                invLine.setAccount((Account)super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Product Purchases")));
                 invLine.setPartner(invoice.getPartner());
                 invLine.setInvoice(invoice);
             }
@@ -711,16 +758,22 @@ public class SupInvoiceController implements Serializable {
             invoice.setResidual(invoice.getAmountTotal());
             invoice.setInvoiceLines(invoiceLines);
             generateInvoiceTaxes();
-            invoice = invoiceFacade.create(invoice, "bill");
+
+            invoice = super.createItem(invoice);
+
+            invoice.setName(IdGenerator.generateBillId(invoice.getId()));
+
+            invoice = super.updateItem(invoice);
 
             if (partialListType == null && invoices != null) {
                 invoices.add(invoice);
             } else {
-                invoices = invoiceFacade.findInInvoices();
+                query = InvoiceQueryBuilder.getFindAllBillsQuery();
+                invoices = super.findWithQuery(query);
                 partialListType = null;
             }
 
-            currentForm = "/sc/supInvoice/View.xhtml";
+            currentForm = VIEW_URL;
         }
     }
 
@@ -737,13 +790,23 @@ public class SupInvoiceController implements Serializable {
 //                        taxAmount,
 //                        invoiceline.getPriceSubtotal(),
 //                        Boolean.TRUE,
-//                        invoiceFacade.findAccount("Tax Paid"),
+//                        (Account)super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Tax Paid")),
 //                        invoice,
 //                        invoiceline.getTax()));
             }
         }
 
         invoice.setInvoiceTaxes(invoiceTaxes);
+    }
+
+    public List<Partner> getTopNActiveVendors() {
+        query = PartnerQueryBuilder.getFindActiveVendorsQuery();
+        return super.findWithQuery(query, MAX_DROPDOWN_ITEMS);
+    }
+
+    public List<Product> getTopNActivePurchasedProducts() {
+        query = ProductQueryBuilder.getFindActivePurchasedProductsQuery();
+        return super.findWithQuery(query, MAX_DROPDOWN_ITEMS);
     }
 
     public void onRowEditInit(InvoiceLine orderLine) {
@@ -897,16 +960,18 @@ public class SupInvoiceController implements Serializable {
         invoice = new Invoice();
         invoiceLines = new ArrayList<>();
         invoiceLine = new InvoiceLine();
-        invoice.setAccount(invoiceFacade.findAccount("Account Payable"));
-        invoice.setJournal(invoiceFacade.findJournal("BILL"));
-        topNSuppliers = invoiceFacade.findTopNSuppliers(4);
-        topPurchasedNProducts = invoiceFacade.findTopNPurchasedProducts(4);
+        invoice.setAccount((Account)super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Account Payable")));
+        invoice.setJournal((Journal)super.findSingleWithQuery(JournalQueryBuilder.getFindByCodeQuery("BILL")));
+
+        topNSuppliers = getTopNActiveVendors();
+
+        topPurchasedNProducts = getTopNActivePurchasedProducts();
         if (topPurchasedNProducts != null && !topPurchasedNProducts.isEmpty()) {
             invoiceLine.setProduct(topPurchasedNProducts.get(0));
             invoiceLine.setPrice(invoiceLine.getProduct().getPurchasePrice());
             invoiceLine.setUom(invoiceLine.getProduct().getUom().getName());
         }
-        currentForm = "/sc/supInvoice/Create.xhtml";
+        currentForm = CREATE_URL;
     }
 
     public void prepareEdit() {
@@ -915,8 +980,8 @@ public class SupInvoiceController implements Serializable {
             if (invoice.getState().equals("Draft")) {
                 invoiceLine = new InvoiceLine();
                 invoiceLines = invoice.getInvoiceLines();
-                topNSuppliers = invoiceFacade.findTopNSuppliers(4);
-                topPurchasedNProducts = invoiceFacade.findTopNPurchasedProducts(4);
+                topNSuppliers = getTopNActiveVendors();
+                topPurchasedNProducts = getTopNActivePurchasedProducts();
                 if (topPurchasedNProducts != null && !topPurchasedNProducts.isEmpty()) {
                     invoiceLine.setProduct(topPurchasedNProducts.get(0));
                     invoiceLine.setPrice(invoiceLine.getProduct().getPurchasePrice());
@@ -932,7 +997,7 @@ public class SupInvoiceController implements Serializable {
                         topPurchasedNProducts.add(orderLine.getProduct());
                     }
                 }
-                currentForm = "/sc/supInvoice/Edit.xhtml";
+                currentForm = EDIT_URL;
 
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorEdit");
@@ -940,9 +1005,35 @@ public class SupInvoiceController implements Serializable {
         }
     }
 
-    public void cancelEdit(Integer id) {
-        if (invoiceExist(id)) {
-            currentForm = "/sc/supInvoice/View.xhtml";
+    public void cancelEditInvoice() {
+        
+        invoiceLine = null;
+        invoiceLines = null;
+        topNSuppliers = null;
+        topPurchasedNProducts = null; 
+        
+        if (invoiceExist(invoice.getId())) {
+            currentForm = VIEW_URL;
+        }
+    }
+
+    public void cancelCreateInvoice() {
+        
+        invoiceLine = null;
+        invoiceLines = null;
+        topNSuppliers = null;
+        topPurchasedNProducts = null; 
+
+        if ((invoices != null) && (!invoices.isEmpty())) {
+            invoice = invoices.get(0);
+            currentForm = VIEW_URL;
+        } else {
+            query = InvoiceQueryBuilder.getFindAllBillsQuery();
+            invoices = super.findWithQuery(query);
+            if ((invoices != null) && (!invoices.isEmpty())) {
+                invoice = invoices.get(0);
+                currentForm = VIEW_URL;
+            }
         }
     }
 
@@ -950,24 +1041,30 @@ public class SupInvoiceController implements Serializable {
         if (invoiceExist(invoice.getId())) {
             if (invoice.getState().equals("Cancelled")) {
                 cancelRelations();
-                try {
-                    invoiceFacade.remove(invoice);
-                } catch (Exception e) {
-                    System.out.println("Error Delete: " + e.getMessage());
-                    JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
-                    return;
-                }
 
-                if (invoices.size() > 1) {
-                    invoices.remove(invoice);
+                boolean deleted = super.deleteItem(invoice);
+
+                if (deleted) {
+
+                    if ((invoices != null) && (invoices.size() > 1)) {
+                        invoices.remove(invoice);
+                        invoice = invoices.get(0);
+                    } else {
+                        partialListType = null;
+                        query = InvoiceQueryBuilder.getFindAllBillsQuery();
+                        invoices = super.findWithQuery(query);
+                        if ((invoices != null) && (!invoices.isEmpty())) {
+                            invoice = invoices.get(0);
+                        }
+                    }
+
+                    findOutstandingPayments();
+                    JsfUtil.addSuccessMessage("ItemDeleted");
+
                 } else {
-                    partialListType = null;
-                    invoices = invoiceFacade.findOutInvoices();
+                    JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
                 }
 
-                invoice = invoices.get(0);
-                JsfUtil.addSuccessMessage("ItemDeleted");
-                currentForm = "/sc/supInvoice/View.xhtml";
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete");
             }
@@ -977,26 +1074,39 @@ public class SupInvoiceController implements Serializable {
     private void cancelRelations() {
 
         if (invoice.getPurchaseOrder() != null) {
-            PurchaseOrder purchaseOrder = invoiceFacade.findPurchaseOrder(invoice.getPurchaseOrder().getId());
+            PurchaseOrder purchaseOrder = super.findItemById(invoice.getPurchaseOrder().getId(), PurchaseOrder.class);
             purchaseOrder.getInvoices().size();
             purchaseOrder.getInvoices().remove(invoice);
             invoice.setPurchaseOrder(null);
-            invoiceFacade.update(purchaseOrder);
+            super.updateItem(purchaseOrder);
         }
     }
 
-    private String getInvoiceStatus(Integer id) {
-        if (id != null) {
-            Invoice invoice = invoiceFacade.find(id);
-            if (invoice != null) {
-                return invoice.getState();
-            } else {
-                JsfUtil.addWarningMessage("ItemDoesNotExist");
-                invoices = null;
-                partialListType = null;
-                currentForm = "/sc/supInvoice/List.xhtml";
-                return null;
+    private String getInvoiceStatus() {
+
+        if (invoice != null) {
+            Invoice tempItem = super.findItemById(invoice.getId(), invoice.getClass());
+            if (tempItem != null) {
+                return tempItem.getState();
             }
+
+            if ((invoices != null) && (invoices.size() > 1)) {
+                invoices.remove(invoice);
+                invoice = invoices.get(0);
+            } else {
+                partialListType = null;
+                query = InvoiceQueryBuilder.getFindAllBillsQuery();
+                invoices = super.findWithQuery(query);
+
+                if ((invoices != null) && (!invoices.isEmpty())) {
+                    invoice = invoices.get(0);
+                }
+            }
+
+            JsfUtil.addWarningMessage("ItemDoesNotExist");
+            currentForm = VIEW_URL;
+
+            return null;
         }
         return null;
     }
@@ -1008,11 +1118,11 @@ public class SupInvoiceController implements Serializable {
                 if (invoice.getState().equals("Open") || invoice.getState().equals("Paid")) {
                     cancelPaymentds();
                     invoice.getJournalEntry().setState("Unposted");
-                    invoiceFacade.update(invoice.getJournalEntry());
+                    super.updateItem(invoice.getJournalEntry());
                 }
                 invoice.setState("Cancelled");
                 invoice.setResidual(0d);
-                invoice = invoiceFacade.update(invoice);
+                invoice = super.updateItem(invoice);
                 invoices.set(invoices.indexOf(invoice), invoice);
                 findOutstandingPayments();
 
@@ -1029,8 +1139,8 @@ public class SupInvoiceController implements Serializable {
                 if (invoicePayment.getJournalEntry().getPayment() != null) {
                     invoicePayment.getJournalEntry().getPayment().setOverpayment(invoicePayment.getJournalEntry().getPayment().getOverpayment() + invoicePayment.getPaidAmount());
                     invoicePayment.getJournalEntry().getPayment().setInvoice(null);
-                    invoiceFacade.update(invoicePayment.getJournalEntry().getPayment());
-                    invoiceFacade.remove(invoicePayment);
+                    super.updateItem(invoicePayment.getJournalEntry().getPayment());
+                    super.deleteItem(invoicePayment);
                 }
             }
             invoice.setPayments(null);
@@ -1074,8 +1184,8 @@ public class SupInvoiceController implements Serializable {
             invoice = newInvoice;
             invoiceLine = new InvoiceLine();
             invoiceLines = invoice.getInvoiceLines();
-            topNSuppliers = invoiceFacade.findTopNSuppliers(4);
-            topPurchasedNProducts = invoiceFacade.findTopNPurchasedProducts(4);
+            topNSuppliers = getTopNActiveVendors();
+            topPurchasedNProducts = getTopNActivePurchasedProducts();
             if (topPurchasedNProducts != null && !topPurchasedNProducts.isEmpty()) {
                 invoiceLine.setProduct(topPurchasedNProducts.get(0));
                 invoiceLine.setPrice(invoiceLine.getProduct().getPurchasePrice());
@@ -1092,7 +1202,7 @@ public class SupInvoiceController implements Serializable {
                 }
             }
 
-            currentForm = "/sc/supInvoice/Create.xhtml";
+            currentForm = CREATE_URL;
         }
     }
 
@@ -1119,7 +1229,7 @@ public class SupInvoiceController implements Serializable {
         params.put("partner", invoice.getPartner());
         params.put("orderLines", invoice.getInvoiceLines());
         params.put("currency", currency);
-        params.put("SUBREPORT_DIR", FacesContext.getCurrentInstance().getExternalContext().getRealPath("/reports/")+"/");
+        params.put("SUBREPORT_DIR", FacesContext.getCurrentInstance().getExternalContext().getRealPath("/reports/") + "/");
 
         JasperPrint jasperPrint = JasperFillManager.fillReport(reportPath, params, new JREmptyDataSource());
 //      JasperPrint jasperPrint = JasperFillManager.fillReport(reportPath, new HashMap<String,Object>(), new JRBeanArrayDataSource(new SaleOrder[]{saleOrder}));  
@@ -1133,7 +1243,7 @@ public class SupInvoiceController implements Serializable {
 
     public List<Partner> getTopNSuppliers() {
         if (topNSuppliers == null) {
-            topNSuppliers = invoiceFacade.findTopNSuppliers(4);
+            topNSuppliers = getTopNActiveVendors();
         }
         return topNSuppliers;
 
@@ -1141,17 +1251,9 @@ public class SupInvoiceController implements Serializable {
 
     public List<Product> getTopPurchasedNProducts() {
         if (topPurchasedNProducts == null) {
-            topPurchasedNProducts = invoiceFacade.findTopNPurchasedProducts(4);
+            topPurchasedNProducts = getTopNActivePurchasedProducts();
         }
         return topPurchasedNProducts;
-    }
-
-    public String getPage() {
-        return currentForm;
-    }
-
-    public void setPage(String page) {
-        this.currentForm = page;
     }
 
     public Invoice getInvoice() {
@@ -1177,9 +1279,6 @@ public class SupInvoiceController implements Serializable {
     }
 
     public List<Invoice> getInvoices() {
-        if (invoices == null) {
-            invoices = invoiceFacade.findInInvoices();
-        }
         return invoices;
     }
 
@@ -1196,14 +1295,6 @@ public class SupInvoiceController implements Serializable {
 
     public void setInvoiceLines(List<InvoiceLine> invoiceLines) {
         this.invoiceLines = invoiceLines;
-    }
-
-    public String getCurrentForm() {
-        return currentForm;
-    }
-
-    public void setCurrentForm(String currentForm) {
-        this.currentForm = currentForm;
     }
 
     public Payment getPayment() {
