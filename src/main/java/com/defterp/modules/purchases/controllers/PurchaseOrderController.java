@@ -1,5 +1,6 @@
 package com.defterp.modules.purchases.controllers;
 
+import com.defterp.modules.accounting.entities.Account;
 import com.defterp.util.JsfUtil;
 import com.defterp.translation.annotations.Status;
 import com.defterp.modules.inventory.entities.DeliveryOrder;
@@ -7,13 +8,21 @@ import com.defterp.modules.inventory.entities.DeliveryOrderLine;
 import com.defterp.modules.accounting.entities.Invoice;
 import com.defterp.modules.accounting.entities.InvoiceLine;
 import com.defterp.modules.accounting.entities.InvoiceTax;
+import com.defterp.modules.accounting.entities.Journal;
+import com.defterp.modules.accounting.queryBuilders.AccountQueryBuilder;
+import com.defterp.modules.accounting.queryBuilders.JournalQueryBuilder;
 import com.defterp.modules.partners.entities.Partner;
 import com.defterp.modules.inventory.entities.Product;
 import com.defterp.modules.purchases.entities.PurchaseOrder;
 import com.defterp.modules.purchases.entities.PurchaseOrderLine;
-import com.casa.erp.dao.PurchaseOrderFacade;
+import com.defterp.modules.commonClasses.AbstractController;
+import com.defterp.modules.commonClasses.QueryWrapper;
+import com.defterp.modules.inventory.queryBuilders.ProductQueryBuilder;
+import com.defterp.modules.partners.queryBuilders.PartnerQueryBuilder;
+import com.defterp.modules.purchases.queryBuilders.PurchaseOrderLineQueryBuilder;
+import com.defterp.modules.purchases.queryBuilders.PurchaseOrderQueryBuilder;
+import com.defterp.modules.commonClasses.IdGenerator;
 import java.io.IOException;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
@@ -46,10 +55,8 @@ import org.primefaces.context.RequestContext;
  */
 @Named(value = "purchaseOrderController")
 @ViewScoped
-public class PurchaseOrderController implements Serializable {
+public class PurchaseOrderController extends AbstractController {
 
-    @Inject
-    private PurchaseOrderFacade purchaseOrderFacade;
     @Inject
     @Status
     private HashMap<String, String> statuses;
@@ -71,35 +78,44 @@ public class PurchaseOrderController implements Serializable {
     private String partialListType;
     private int uninvoicedlines;
     private int rowIndex;
-    private List<Partner> topNSuppliers;
-    private Partner supplier;
-    private List<Product> topPurchasedNProducts;
+    private List<Partner> topNActiveVendors;
+    private List<Partner> activeVendors;
+    private List<Partner> filteredActiveVendors;
+    private List<Product> topNActivePurchasedProducts;
+    private List<Product> activePurchasedProducts;
+    private List<Product> filteredActivePurchasedProducts;
     private Product product;
-    private String currentForm = "/sc/purchaseOrder/View.xhtml";
-    private String currentList = "/sc/purchaseOrder/List.xhtml";
+    private Partner supplier;
+    private String currentForm;
+    private String currentList;
+    private QueryWrapper query;
+
+    public PurchaseOrderController() {
+        super("/sc/purchaseOrder/");
+    }
 
     public void setRowIndex() {
         Map<String, String> params = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap();
         rowIndex = Integer.valueOf(params.get("rowIndex"));
     }
 
-    public List<Product> getTopPurchasedNProducts() {
-        if (topPurchasedNProducts == null) {
-            topPurchasedNProducts = purchaseOrderFacade.findTopNPurchasedProducts(4);
-        }
-        return topPurchasedNProducts;
-    }
-
-    public List<Partner> getTopNSuppliers() {
-        if (topNSuppliers == null) {
-            topNSuppliers = purchaseOrderFacade.findTopNSuppliers(4);
-        }
-        return topNSuppliers;
-    }
-
+//    public List<Product> getTopPurchasedNProducts() {
+//        if (topNActivePurchasedProducts == null) {
+//            topNActivePurchasedProducts = purchaseOrderFacade.findTopNPurchasedProducts(4);
+//        }
+//        return topNActivePurchasedProducts;
+//    }
+//
+//    public List<Partner> getTopNSuppliers() {
+//        if (topNActiveVendors == null) {
+//            topNActiveVendors = purchaseOrderFacade.findTopNSuppliers(4);
+//        }
+//        return topNActiveVendors;
+//    }
+    
     public void onSelectSupplier() {
-        if ((supplier != null) && (!topNSuppliers.contains(supplier))) {
-            topNSuppliers.add(supplier);
+        if ((supplier != null) && (!topNActiveVendors.contains(supplier))) {
+            topNActiveVendors.add(supplier);
         }
         purchaseOrder.setPartner(supplier);
     }
@@ -107,8 +123,8 @@ public class PurchaseOrderController implements Serializable {
     public void onSelectProduct() {
 
         if ((product != null)) {
-            if (!topPurchasedNProducts.contains(product)) {
-                topPurchasedNProducts.add(product);
+            if (!topNActivePurchasedProducts.contains(product)) {
+                topNActivePurchasedProducts.add(product);
             }
 
             if (rowIndex < 0) {
@@ -147,12 +163,13 @@ public class PurchaseOrderController implements Serializable {
                     OrderLine.setPurchaseOrder(purchaseOrder);
                 }
                 purchaseOrder.setPurchaseOrderLines(purchaseOrderLines);
-                purchaseOrder = purchaseOrderFacade.update(purchaseOrder);
+                purchaseOrder = super.updateItem(purchaseOrder);
 
                 if (partialListType == null && purchaseOrders != null) {
                     purchaseOrders.set(purchaseOrders.indexOf(purchaseOrder), purchaseOrder);
                 } else {
-                    purchaseOrders = purchaseOrderFacade.findAll();
+                    query = PurchaseOrderQueryBuilder.getFindAllQuery();
+                    purchaseOrders = super.findWithQuery(query);
                     partialListType = null;
                 }
 
@@ -171,12 +188,16 @@ public class PurchaseOrderController implements Serializable {
             }
             purchaseOrder.setState("Quotation");
             purchaseOrder.setPurchaseOrderLines(purchaseOrderLines);
-            purchaseOrder = purchaseOrderFacade.create(purchaseOrder);
+
+            purchaseOrder = super.createItem(purchaseOrder);
+            purchaseOrder.setName(IdGenerator.generatePurchaseId(purchaseOrder.getId()));
+            purchaseOrder = super.updateItem(purchaseOrder);
 
             if (partialListType == null && purchaseOrders != null) {
                 purchaseOrders.add(purchaseOrder);
             } else {
-                purchaseOrders = purchaseOrderFacade.findAll();
+                query = PurchaseOrderQueryBuilder.getFindAllQuery();
+                purchaseOrders = super.findWithQuery(query);
                 partialListType = null;
             }
 
@@ -188,24 +209,30 @@ public class PurchaseOrderController implements Serializable {
         if (purchaseOrderExist(purchaseOrder.getId())) {
             if (purchaseOrder.getState().equals("Cancelled")) {
                 cancelRelations();
-                try {
-                    purchaseOrderFacade.remove(purchaseOrder);
-                } catch (Exception e) {
-                    System.out.println("Error Delete: " + e.getMessage());
-                    JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
-                    return;
-                }
 
-                if (purchaseOrders.size() > 1) {
-                    purchaseOrders.remove(purchaseOrder);
+                boolean deleted = super.deleteItem(purchaseOrder);
+
+                if (deleted) {
+
+                    JsfUtil.addSuccessMessage("ItemDeleted");
+                    currentForm = VIEW_URL;
+
+                    if (purchaseOrders != null && purchaseOrders.size() > 1) {
+                        purchaseOrders.remove(purchaseOrder);
+                        purchaseOrder = purchaseOrders.get(0);
+                    } else {
+                        partialListType = null;
+                        query = PurchaseOrderQueryBuilder.getFindAllQuery();
+                        purchaseOrders = super.findWithQuery(query);
+
+                        if (purchaseOrders != null && !purchaseOrders.isEmpty()) {
+                            purchaseOrder = purchaseOrders.get(0);
+                        }
+                    }
                 } else {
-                    purchaseOrders = purchaseOrderFacade.findAll();
-                    partialListType = null;
+                    JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
                 }
 
-                purchaseOrder = purchaseOrders.get(0);
-                JsfUtil.addSuccessMessage("ItemDeleted");
-                currentForm = "/sc/purchaseOrder/View.xhtml";
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete");
             }
@@ -216,7 +243,7 @@ public class PurchaseOrderController implements Serializable {
         if (!purchaseOrder.getInvoices().isEmpty()) {
             for (Invoice invoice : purchaseOrder.getInvoices()) {
                 invoice.setPurchaseOrder(null);
-                purchaseOrderFacade.update(invoice);
+                super.updateItem(invoice);
             }
             purchaseOrder.getInvoices().clear();
         }
@@ -224,7 +251,7 @@ public class PurchaseOrderController implements Serializable {
         if (!purchaseOrder.getDeliveryOrders().isEmpty()) {
             for (DeliveryOrder deliveryOrder : purchaseOrder.getDeliveryOrders()) {
                 deliveryOrder.setPurchaseOrder(null);
-                purchaseOrderFacade.update(deliveryOrder);
+                super.updateItem(deliveryOrder);
             }
             purchaseOrder.getDeliveryOrders().clear();
         }
@@ -251,12 +278,18 @@ public class PurchaseOrderController implements Serializable {
                             purchaseLine.getPrice(),
                             deliveryOrder));
                 }
+                
                 deliveryOrder.setDeliveryOrderLines(deliverOrderLines);
                 purchaseOrder.getDeliveryOrders().add(deliveryOrder);
                 purchaseOrder.setDeliveryCreated(true);
-                purchaseOrderFacade.create(deliveryOrder);
-                purchaseOrder = purchaseOrderFacade.update(purchaseOrder);
+
+                deliveryOrder = super.createItem(deliveryOrder);
+                deliveryOrder.setName(IdGenerator.generateDeliveryInId(deliveryOrder.getId()));
+                super.updateItem(deliveryOrder);
+
+                purchaseOrder = super.updateItem(purchaseOrder);
                 purchaseOrders.set(purchaseOrders.indexOf(purchaseOrder), purchaseOrder);
+
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorAlreadyModified");
             }
@@ -298,8 +331,20 @@ public class PurchaseOrderController implements Serializable {
                 refreshLinesToInvoice();
                 if (purchaseOrderLines != null && !purchaseOrderLines.isEmpty()) {
                     String invoiceReference = ((purchaseOrder.getReference() == null) || (purchaseOrder.getReference().isEmpty())) ? purchaseOrder.getName() : purchaseOrder.getReference();
-                    invoice = new Invoice(new Date(), "Purchase", purchaseOrder.getName(), "Draft", Boolean.TRUE, purchaseOrder.getPartner(), purchaseOrder, purchaseOrderFacade.findAccount("Account Payable"), purchaseOrderFacade.findJournal("BILL"), invoiceReference);
+                    invoice = new Invoice(
+                            new Date(),
+                            "Purchase",
+                            purchaseOrder.getName(),
+                            "Draft",
+                            Boolean.TRUE,
+                            purchaseOrder.getPartner(),
+                            purchaseOrder,
+                            (Account) super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Account Payable")),
+                            (Journal) super.findSingleWithQuery(JournalQueryBuilder.getFindByCodeQuery("BILL")),
+                            invoiceReference);
+
                     SumUpInvoice();
+
                     invoiceLines = new ArrayList<>();
                     for (PurchaseOrderLine lineToInvoice : purchaseOrderLines) {
 
@@ -321,7 +366,7 @@ public class PurchaseOrderController implements Serializable {
                                         purchaseOrder.getPartner(),
                                         purchaseLine.getProduct(),
                                         purchaseLine.getTax(),
-                                        purchaseOrderFacade.findAccount("Product Purchases")));
+                                        (Account) super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Product Purchases"))));
                             }
                         }
                     }
@@ -334,13 +379,17 @@ public class PurchaseOrderController implements Serializable {
                     invoice.setInvoiceLines(invoiceLines);
                     generateInvoiceTaxes();
                     purchaseOrder.getInvoices().add(invoice);
-                    Integer InvId = purchaseOrderFacade.create(invoice).getId();
-                    purchaseOrder = purchaseOrderFacade.update(purchaseOrder);
+
+                    invoice = super.createItem(invoice);
+                    invoice.setName(IdGenerator.generateBillId(invoice.getId()));
+                    invoice = super.updateItem(invoice);
+
+                    purchaseOrder = super.updateItem(purchaseOrder);
                     purchaseOrders.set(purchaseOrders.indexOf(purchaseOrder), purchaseOrder);
 
                     if (redirect) {
                         ExternalContext context = FacesContext.getCurrentInstance().getExternalContext();
-                        context.redirect(context.getRequestContextPath() + "/sc/supInvoice/index.xhtml?id=" + InvId);
+                        context.redirect(context.getRequestContextPath() + "/sc/supInvoice/index.xhtml?id=" + invoice.getId());
                     }
                 }
             } else {
@@ -443,7 +492,7 @@ public class PurchaseOrderController implements Serializable {
         if (purchaseOrderExist(purchaseOrder.getId())) {
             if (purchaseOrder.getState().equals("Quotation")) {
                 purchaseOrder.setState("Purchase Order");
-                purchaseOrder = purchaseOrderFacade.update(purchaseOrder);
+                purchaseOrder = super.updateItem(purchaseOrder);
                 purchaseOrders.set(purchaseOrders.indexOf(purchaseOrder), purchaseOrder);
 
             } else {
@@ -478,7 +527,7 @@ public class PurchaseOrderController implements Serializable {
 
                 if (canBeCancelled == true) {
                     purchaseOrder.setState("Cancelled");
-                    purchaseOrder = purchaseOrderFacade.update(purchaseOrder);
+                    purchaseOrder = super.updateItem(purchaseOrder);
                     purchaseOrders.set(purchaseOrders.indexOf(purchaseOrder), purchaseOrder);
                 }
             } else if (purchaseOrder.getState().equals("Done")) {
@@ -519,12 +568,13 @@ public class PurchaseOrderController implements Serializable {
 
     public void showForm(Integer id) {
         if (id != null) {
-            purchaseOrder = purchaseOrderFacade.find(id);
+            purchaseOrder = super.findItemById(id, PurchaseOrder.class);
             if (purchaseOrder != null) {
                 partialListType = null;
                 purchaseOrderLines = null;
                 purchaseOrderLine = null;
-                purchaseOrders = purchaseOrderFacade.findAll();
+                query = PurchaseOrderQueryBuilder.getFindAllQuery();
+                purchaseOrders = super.findWithQuery(query);
                 currentForm = "/sc/purchaseOrder/View.xhtml";
                 currentList = "/sc/purchaseOrder/List.xhtml";
             } else {
@@ -546,8 +596,8 @@ public class PurchaseOrderController implements Serializable {
         purchaseOrder = null;
         purchaseOrderLine = null;
         purchaseOrderLines = null;
-        topNSuppliers = null;
-        topPurchasedNProducts = null;
+        topNActiveVendors = null;
+        topNActivePurchasedProducts = null;
         currentList = "/sc/purchaseOrder/List.xhtml";
     }
 
@@ -556,10 +606,12 @@ public class PurchaseOrderController implements Serializable {
         purchaseOrder.setDate(new Date());
         purchaseOrderLines = new ArrayList<>();
         purchaseOrderLine = new PurchaseOrderLine();
-        topNSuppliers = purchaseOrderFacade.findTopNSuppliers(4);
-        topPurchasedNProducts = purchaseOrderFacade.findTopNPurchasedProducts(4);
-        if (topPurchasedNProducts != null && !topPurchasedNProducts.isEmpty()) {
-            purchaseOrderLine.setProduct(topPurchasedNProducts.get(0));
+
+        loadActiveVendors();
+        loadActivePurchasedProducts();
+
+        if (topNActivePurchasedProducts != null && !topNActivePurchasedProducts.isEmpty()) {
+            purchaseOrderLine.setProduct(topNActivePurchasedProducts.get(0));
             purchaseOrderLine.setPrice(purchaseOrderLine.getProduct().getPurchasePrice());
             purchaseOrderLine.setUom(purchaseOrderLine.getProduct().getUom().getName());
         }
@@ -571,21 +623,23 @@ public class PurchaseOrderController implements Serializable {
             if (purchaseOrder.getState().equals("Quotation")) {
                 purchaseOrderLine = new PurchaseOrderLine();
                 purchaseOrderLines = purchaseOrder.getPurchaseOrderLines();
-                topNSuppliers = purchaseOrderFacade.findTopNSuppliers(4);
-                topPurchasedNProducts = purchaseOrderFacade.findTopNPurchasedProducts(4);
-                if (topPurchasedNProducts != null && !topPurchasedNProducts.isEmpty()) {
-                    purchaseOrderLine.setProduct(topPurchasedNProducts.get(0));
+
+                loadActiveVendors();
+                loadActivePurchasedProducts();
+
+                if (topNActivePurchasedProducts != null && !topNActivePurchasedProducts.isEmpty()) {
+                    purchaseOrderLine.setProduct(topNActivePurchasedProducts.get(0));
                     purchaseOrderLine.setPrice(purchaseOrderLine.getProduct().getPurchasePrice());
                     purchaseOrderLine.setUom(purchaseOrderLine.getProduct().getUom().getName());
                 }
 
-                if (!topNSuppliers.contains(purchaseOrder.getPartner())) {
-                    topNSuppliers.add(purchaseOrder.getPartner());
+                if (!topNActiveVendors.contains(purchaseOrder.getPartner())) {
+                    topNActiveVendors.add(purchaseOrder.getPartner());
                 }
 
                 for (PurchaseOrderLine orderLine : purchaseOrderLines) {
-                    if (!topPurchasedNProducts.contains(orderLine.getProduct())) {
-                        topPurchasedNProducts.add(orderLine.getProduct());
+                    if (!topNActivePurchasedProducts.contains(orderLine.getProduct())) {
+                        topNActivePurchasedProducts.add(orderLine.getProduct());
                     }
                 }
 
@@ -608,8 +662,8 @@ public class PurchaseOrderController implements Serializable {
 
         purchaseOrderLine = null;
         purchaseOrderLines = null;
-        topNSuppliers = null;
-        topPurchasedNProducts = null;
+        topNActiveVendors = null;
+        topNActivePurchasedProducts = null;
 
         if (purchaseOrders != null && !purchaseOrders.isEmpty()) {
             purchaseOrder = purchaseOrders.get(0);
@@ -621,8 +675,8 @@ public class PurchaseOrderController implements Serializable {
 
         purchaseOrderLine = null;
         purchaseOrderLines = null;
-        topNSuppliers = null;
-        topPurchasedNProducts = null;
+        topNActiveVendors = null;
+        topNActivePurchasedProducts = null;
 
         if (purchaseOrderExist(purchaseOrder.getId())) {
             currentForm = "/sc/purchaseOrder/View.xhtml";
@@ -633,9 +687,10 @@ public class PurchaseOrderController implements Serializable {
 
         if (JsfUtil.isNumeric(purchaseId)) {
             Integer id = Integer.valueOf(purchaseId);
-            purchaseOrder = purchaseOrderFacade.find(id);
+            purchaseOrder = super.findItemById(id, PurchaseOrder.class);
             if (purchaseOrder != null) {
-                purchaseOrders = purchaseOrderFacade.findAll();
+                query = PurchaseOrderQueryBuilder.getFindAllQuery();
+                purchaseOrders = super.findWithQuery(query);
                 currentList = "/sc/purchaseOrder/List.xhtml";
                 currentForm = "/sc/purchaseOrder/View.xhtml";
                 return;
@@ -644,7 +699,8 @@ public class PurchaseOrderController implements Serializable {
 
         if (JsfUtil.isNumeric(partnerId)) {
             Integer id = Integer.valueOf(partnerId);
-            purchaseOrders = purchaseOrderFacade.findByPartner(id);
+            query = PurchaseOrderQueryBuilder.getFindByVendorQuery(id);
+            purchaseOrders = super.findWithQuery(query);
             if (purchaseOrders != null && !purchaseOrders.isEmpty()) {
                 purchaseOrder = purchaseOrders.get(0);
                 currentList = "/sc/purchaseOrder/List.xhtml";
@@ -656,8 +712,9 @@ public class PurchaseOrderController implements Serializable {
 
         if (JsfUtil.isNumeric(productId)) {
             Integer id = Integer.valueOf(productId);
-            purchaseOrderLines = purchaseOrderFacade.findByProduct(id);
-            if (!purchaseOrderLines.isEmpty()) {
+            query = PurchaseOrderLineQueryBuilder.getFindByProductQuery(id);
+            purchaseOrderLines = super.findWithQuery(query);
+            if (purchaseOrderLines != null && !purchaseOrderLines.isEmpty()) {
                 purchaseOrderLine = purchaseOrderLines.get(0);
                 currentList = "/sc/purchaseOrder/ListByProduct.xhtml";
                 currentForm = "/sc/purchaseOrder/ViewByProduct.xhtml";
@@ -667,24 +724,29 @@ public class PurchaseOrderController implements Serializable {
 
         if (JsfUtil.isNumeric(purchaseLineId)) {
             Integer id = Integer.valueOf(purchaseLineId);
-            purchaseOrderLine = purchaseOrderFacade.findOrderLine(id);
+            purchaseOrderLine = super.findItemById(id, PurchaseOrderLine.class);
             if (purchaseOrderLine != null) {
-                purchaseOrderLines = purchaseOrderFacade.findByProduct(purchaseOrderLine.getProduct().getId());
+                query = PurchaseOrderLineQueryBuilder.getFindByProductQuery(purchaseOrderLine.getProduct().getId());
+                purchaseOrderLines = super.findWithQuery(query);
                 productId = Integer.toString(purchaseOrderLine.getProduct().getId());
                 currentList = "/sc/purchaseOrder/ListByProduct.xhtml";
                 currentForm = "/sc/purchaseOrder/ViewByProduct.xhtml";
                 return;
             }
         }
-
-        purchaseOrders = purchaseOrderFacade.findAll();
-        purchaseOrder = purchaseOrders.get(0);
+        
         currentList = "/sc/purchaseOrder/List.xhtml";
         currentForm = "/sc/purchaseOrder/View.xhtml";
+        
+        query = PurchaseOrderQueryBuilder.getFindAllQuery();
+        purchaseOrders = super.findWithQuery(query);
+        if (purchaseOrders != null && !purchaseOrders.isEmpty()) {
+            purchaseOrder = purchaseOrders.get(0);
+        }
     }
 
     public void duplicatePurchaseOrder() {
-        
+
         if (purchaseOrderExist(purchaseOrder.getId())) {
 
             purchaseOrder.getPurchaseOrderLines().size();
@@ -715,21 +777,23 @@ public class PurchaseOrderController implements Serializable {
             purchaseOrder = newPurchaseOrder;
             purchaseOrderLine = new PurchaseOrderLine();
             purchaseOrderLines = purchaseOrder.getPurchaseOrderLines();
-            topNSuppliers = purchaseOrderFacade.findTopNSuppliers(4);
-            topPurchasedNProducts = purchaseOrderFacade.findTopNPurchasedProducts(4);
-            if (topPurchasedNProducts != null && !topPurchasedNProducts.isEmpty()) {
-                purchaseOrderLine.setProduct(topPurchasedNProducts.get(0));
+
+            loadActiveVendors();
+            loadActivePurchasedProducts();
+
+            if (topNActivePurchasedProducts != null && !topNActivePurchasedProducts.isEmpty()) {
+                purchaseOrderLine.setProduct(topNActivePurchasedProducts.get(0));
                 purchaseOrderLine.setPrice(purchaseOrderLine.getProduct().getPurchasePrice());
                 purchaseOrderLine.setUom(purchaseOrderLine.getProduct().getUom().getName());
             }
 
-            if (!topNSuppliers.contains(purchaseOrder.getPartner())) {
-                topNSuppliers.add(purchaseOrder.getPartner());
+            if (!topNActiveVendors.contains(purchaseOrder.getPartner())) {
+                topNActiveVendors.add(purchaseOrder.getPartner());
             }
 
             for (PurchaseOrderLine orderLine : purchaseOrderLines) {
-                if (!topPurchasedNProducts.contains(orderLine.getProduct())) {
-                    topPurchasedNProducts.add(orderLine.getProduct());
+                if (!topNActivePurchasedProducts.contains(orderLine.getProduct())) {
+                    topNActivePurchasedProducts.add(orderLine.getProduct());
                 }
             }
 
@@ -789,10 +853,10 @@ public class PurchaseOrderController implements Serializable {
         purchaseOrderLines.add(purchaseOrderLine);
         SumUpOrder();
         purchaseOrderLine = new PurchaseOrderLine();
-        if (topPurchasedNProducts != null && !topPurchasedNProducts.isEmpty()) {
-            purchaseOrderLine.setProduct(topPurchasedNProducts.get(0));
-            purchaseOrderLine.setPrice(topPurchasedNProducts.get(0).getPurchasePrice());
-            purchaseOrderLine.setUom(topPurchasedNProducts.get(0).getUom().getName());
+        if (topNActivePurchasedProducts != null && !topNActivePurchasedProducts.isEmpty()) {
+            purchaseOrderLine.setProduct(topNActivePurchasedProducts.get(0));
+            purchaseOrderLine.setPrice(topNActivePurchasedProducts.get(0).getPurchasePrice());
+            purchaseOrderLine.setUom(topNActivePurchasedProducts.get(0).getUom().getName());
         }
     }
 
@@ -825,8 +889,8 @@ public class PurchaseOrderController implements Serializable {
         purchaseOrderLines.remove(index);
         purchaseOrderLines.add(index, purchaseOrderLine);
         purchaseOrderLine = new PurchaseOrderLine();
-        if (topPurchasedNProducts != null && !topPurchasedNProducts.isEmpty()) {
-            purchaseOrderLine.setProduct(topPurchasedNProducts.get(0));
+        if (topNActivePurchasedProducts != null && !topNActivePurchasedProducts.isEmpty()) {
+            purchaseOrderLine.setProduct(topNActivePurchasedProducts.get(0));
             purchaseOrderLine.setPrice(purchaseOrderLine.getProduct().getPurchasePrice());
             purchaseOrderLine.setUom(purchaseOrderLine.getProduct().getUom().getName());
         }
@@ -834,8 +898,8 @@ public class PurchaseOrderController implements Serializable {
 
     public void onRowCancel() {
         purchaseOrderLine = new PurchaseOrderLine();
-        if (topPurchasedNProducts != null && !topPurchasedNProducts.isEmpty()) {
-            purchaseOrderLine.setProduct(topPurchasedNProducts.get(0));
+        if (topNActivePurchasedProducts != null && !topNActivePurchasedProducts.isEmpty()) {
+            purchaseOrderLine.setProduct(topNActivePurchasedProducts.get(0));
             purchaseOrderLine.setPrice(purchaseOrderLine.getProduct().getPurchasePrice());
             purchaseOrderLine.setUom(purchaseOrderLine.getProduct().getUom().getName());
         }
@@ -891,7 +955,7 @@ public class PurchaseOrderController implements Serializable {
 
     private boolean purchaseOrderExist(Integer id) {
         if (id != null) {
-            purchaseOrder = purchaseOrderFacade.find(id);
+            purchaseOrder = super.findItemById(id, PurchaseOrder.class);
             if (purchaseOrder == null) {
                 JsfUtil.addWarningMessage("ItemDoesNotExist");
                 purchaseOrders.remove(purchaseOrder);
@@ -911,7 +975,7 @@ public class PurchaseOrderController implements Serializable {
 
     private String getOrderStatus(Integer id) {
         if (id != null) {
-            PurchaseOrder purchaseOrder = purchaseOrderFacade.find(id);
+            PurchaseOrder purchaseOrder = super.findItemById(id, PurchaseOrder.class);
             if (purchaseOrder != null) {
                 return purchaseOrder.getState();
             } else {
@@ -939,20 +1003,26 @@ public class PurchaseOrderController implements Serializable {
         return getLineTax() + purchaseOrderLine.getSubTotal();
     }
 
-    public String getCurrentForm() {
-        return currentForm;
+    private void loadActiveVendors() {
+        query = PartnerQueryBuilder.getFindActiveVendorsQuery();
+        activeVendors = super.findWithQuery(query);
+
+        if (activeVendors != null && activeVendors.size() > MAX_DROPDOWN_ITEMS) {
+            topNActiveVendors = activeVendors.subList(0, MAX_DROPDOWN_ITEMS);
+        } else {
+            topNActiveVendors = activeVendors;
+        }
     }
 
-    public void setCurrentForm(String currentForm) {
-        this.currentForm = currentForm;
-    }
+    private void loadActivePurchasedProducts() {
+        query = ProductQueryBuilder.getFindActivePurchasedProductsQuery();
+        activePurchasedProducts = super.findWithQuery(query);
 
-    public String getCurrentList() {
-        return currentList;
-    }
-
-    public void setCurrentList(String currentList) {
-        this.currentList = currentList;
+        if (activePurchasedProducts != null && activePurchasedProducts.size() > MAX_DROPDOWN_ITEMS) {
+            topNActivePurchasedProducts = activePurchasedProducts.subList(0, MAX_DROPDOWN_ITEMS);
+        } else {
+            topNActivePurchasedProducts = activePurchasedProducts;
+        }
     }
 
     public PurchaseOrder getPurchaseOrder() {
@@ -979,7 +1049,8 @@ public class PurchaseOrderController implements Serializable {
 
     public List<PurchaseOrder> getPurchaseOrders() {
         if (purchaseOrders == null) {
-            purchaseOrders = purchaseOrderFacade.findAll();
+            query = PurchaseOrderQueryBuilder.getFindAllQuery();
+            purchaseOrders = super.findWithQuery(query);
         }
         return purchaseOrders;
     }
@@ -1055,24 +1126,24 @@ public class PurchaseOrderController implements Serializable {
         this.partialListType = partialListType;
     }
 
+    public String getCurrentForm() {
+        return currentForm;
+    }
+
+    public void setCurrentForm(String currentForm) {
+        this.currentForm = currentForm;
+    }
+
+    public String getCurrentList() {
+        return currentList;
+    }
+
+    public void setCurrentList(String currentList) {
+        this.currentList = currentList;
+    }
+
     public String getInvoiceMethod() {
         return invoiceMethod;
-    }
-
-    public Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
-    }
-
-    public Partner getSupplier() {
-        return supplier;
-    }
-
-    public void setSupplier(Partner supplier) {
-        this.supplier = supplier;
     }
 
     public void setInvoiceMethod(String invoiceMethod) {
@@ -1102,11 +1173,10 @@ public class PurchaseOrderController implements Serializable {
         }
     }
 
-    public void showOrderLineList() {
-        purchaseOrderLine = null;
-        currentList = "/sc/purchaseOrder/ListByProduct.xhtml";
-    }
-
+//    public void showOrderLineList() {
+//        purchaseOrderLine = null;
+//        currentList = "/sc/purchaseOrder/ListByProduct.xhtml";
+//    }
     public void prepareViewOrderByProduct() {
         if (purchaseOrderLine != null) {
             currentForm = "/sc/purchaseOrder/ViewByProduct.xhtml";
@@ -1136,6 +1206,46 @@ public class PurchaseOrderController implements Serializable {
         } else {
             purchaseOrderLine = purchaseOrderLines.get(purchaseOrderLines.indexOf(purchaseOrderLine) - 1);
         }
+    }
+
+    public List<Partner> getTopNActiveVendors() {
+        return topNActiveVendors;
+    }
+
+    public List<Partner> getActiveVendors() {
+        return activeVendors;
+    }
+
+    public List<Partner> getFilteredActiveVendors() {
+        return filteredActiveVendors;
+    }
+
+    public List<Product> getTopNActivePurchasedProducts() {
+        return topNActivePurchasedProducts;
+    }
+
+    public List<Product> getActivePurchasedProducts() {
+        return activePurchasedProducts;
+    }
+
+    public List<Product> getFilteredActivePurchasedProducts() {
+        return filteredActivePurchasedProducts;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+
+    public Partner getSupplier() {
+        return supplier;
+    }
+
+    public void setSupplier(Partner supplier) {
+        this.supplier = supplier;
     }
 
 }
