@@ -5,10 +5,17 @@ import static com.defterp.translation.annotations.Countries.Version.SECOND;
 import com.defterp.util.JsfUtil;
 import com.defterp.modules.accounting.entities.Account;
 import com.defterp.modules.partners.entities.Partner;
-import com.casa.erp.dao.PartnerFacade;
+import com.defterp.modules.accounting.queryBuilders.AccountQueryBuilder;
+import com.defterp.modules.accounting.queryBuilders.InvoiceQueryBuilder;
+import com.defterp.modules.accounting.queryBuilders.PaymentQueryBuilder;
+import com.defterp.modules.inventory.queryBuilders.DeliveryOrderQueryBuilder;
+import com.defterp.modules.partners.queryBuilders.PartnerQueryBuilder;
+import com.defterp.modules.purchases.queryBuilders.PurchaseOrderQueryBuilder;
+import com.defterp.modules.sales.queryBuilders.SaleOrderQueryBuilder;
+import com.defterp.modules.commonClasses.AbstractController;
+import com.defterp.modules.commonClasses.QueryWrapper;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,12 +37,11 @@ import org.apache.commons.lang.StringUtils;
  *
  * github.com/medbounaga
  */
+
 @Named(value = "customerController")
 @ViewScoped
-public class CustomerController implements Serializable {
+public class CustomerController extends AbstractController {
 
-    @Inject
-    private PartnerFacade partnerFacade;
     @Inject
     @Countries(version = SECOND)
     private HashMap<String, String> countries;
@@ -43,13 +49,27 @@ public class CustomerController implements Serializable {
     private List<Partner> partners;
     private List<Partner> filteredPartners;
     private String partnerId;
-    private String partnerType = "Customer";
+    private String partnerType;
     private String searchKey;
-    boolean isGridView = true;
-    private String currentForm = "/sc/customer/View.xhtml";
-    private String currentList = "/sc/customer/Grid.xhtml";
+    boolean isGridView;
+    private String currentForm;
+    private String currentList;
     private Part image;
     private boolean imageModified;
+    private QueryWrapper query;
+
+    
+    public CustomerController() {
+        
+        super("/sc/customer/");
+        
+        currentList = super.GRID_URL;
+        currentForm = super.VIEW_URL;
+        
+        isGridView = true;
+        
+        partnerType = "Customer";
+    }
 
     public void setImage(Part image) {
         if (image != null) {
@@ -71,16 +91,18 @@ public class CustomerController implements Serializable {
     public void deleteCustomer() {
 
         if (customerExist(partner.getId())) {
-            try {
-                partnerFacade.remove(partner);
-            } catch (Exception e) {
+            
+            boolean deleted = super.deleteItem(partner);
+            
+            if (deleted) {
+                JsfUtil.addSuccessMessage("ItemDeleted");
+                currentForm = VIEW_URL;
+                showCustomers();
+                
+            } else {
                 partner.setCountry(countries.get(partner.getCountry()));
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
-                return;
             }
-
-            JsfUtil.addSuccessMessage("ItemDeleted");
-            showCustomers();
         }
     }
 
@@ -91,22 +113,27 @@ public class CustomerController implements Serializable {
         partner.setCustomer(Boolean.TRUE);
         partner.setCreateDate(new Date());
         partner.setActive(Boolean.TRUE);
-        currentForm = "/sc/customer/Create.xhtml";
+        currentForm = CREATE_URL;
+        
+        query = AccountQueryBuilder.getFindByTypeQuery("Receivable");
+        accounts = super.findWithQuery(query);
 
-        accounts = partnerFacade.findByType("Receivable");
         if (accounts != null && !accounts.isEmpty()) {
             partner.setAccountReceivable(accounts.get(0));
         }
-        accounts = partnerFacade.findByType("Payable");
+        
+        query = AccountQueryBuilder.getFindByTypeQuery("Payable");
+        accounts = super.findWithQuery(query);
+        
         if (accounts != null && !accounts.isEmpty()) {
             partner.setAccountPayable(accounts.get(0));
         }
     }
 
     public void prepareEditCustomer() {
-        if(customerExist(partner.getId())) {
+        if (customerExist(partner.getId())) {
             imageModified = false;
-            currentForm = "/sc/customer/Edit.xhtml";
+            currentForm = EDIT_URL;
         }
     }
 
@@ -128,7 +155,7 @@ public class CustomerController implements Serializable {
             }
 
             if (partners != null && !partners.isEmpty()) {
-                currentForm = "/sc/customer/View.xhtml";
+                currentForm = VIEW_URL;
             }
         }
     }
@@ -137,114 +164,122 @@ public class CustomerController implements Serializable {
         if (!customerExistTwo(partner.getId())) {
             JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorProceedEdit");
         } else if (partner != null) {
-            partner = partnerFacade.update(partner);
+            partner = super.updateItem(partner);
             partner.setCountry(countries.get(partner.getCountry()));
             partners.set(partners.indexOf(partner), partner);
         }
-        currentForm = "/sc/customer/View.xhtml";
+        currentForm = VIEW_URL;
     }
 
     public Long countSaleOrders() {
         if (partner != null) {
-            return partnerFacade.countSalesOrders(partner.getId());
+            query = SaleOrderQueryBuilder.getCountByCustomerQuery(partner.getId());
+            return (Long) super.findSingleWithQuery(query);
         }
         return 0L;
     }
-
+    
     public Long countSaleOrders(Integer partnerId) {
         if (partnerId != null) {
-            return partnerFacade.countSalesOrders(partnerId);
+            query = SaleOrderQueryBuilder.getCountByCustomerQuery(partnerId);
+            return (Long) super.findSingleWithQuery(query);
         }
         return 0L;
     }
 
     public Long countPurchaseOrders() {
         if (partner != null) {
-            return partnerFacade.countPurchaseOrders(partner.getId());
+            query = PurchaseOrderQueryBuilder.getCountByVendorQuery(partner.getId());
+            return (Long) super.findSingleWithQuery(query);
         }
         return 0L;
     }
 
     public Long countPurchaseOrders(Integer partnerId) {
         if (partnerId != null) {
-            return partnerFacade.countPurchaseOrders(partnerId);
+            query = PurchaseOrderQueryBuilder.getCountByVendorQuery(partnerId);
+            return (Long) super.findSingleWithQuery(query);
         }
         return 0L;
     }
 
     public Long countCustomerInvoices() {
         if (partner != null) {
-            return partnerFacade.countInvoices(partner.getId(), "Sale");
+            query = InvoiceQueryBuilder.getCountByCustomerQuery(partner.getId());
+            return (Long) super.findSingleWithQuery(query);
         }
         return 0L;
     }
 
     public Long countSupplierInvoices() {
         if (partner != null) {
-            return partnerFacade.countInvoices(partner.getId(), "Purchase");
+            query = InvoiceQueryBuilder.getCountByVendorQuery(partner.getId());
+            return (Long) super.findSingleWithQuery(query);
         }
         return 0L;
     }
 
-    public Long countJournalEntries() {
-        if (partner != null) {
-            return partnerFacade.countJournalEntries(partner.getId());
-        }
-        return 0L;
-    }
 
     public Long countInShipments() {
         if (partner != null) {
-            return partnerFacade.countShipments(partner.getId(), "Purchase");
+            query = DeliveryOrderQueryBuilder.getCountByVendorQuery(partner.getId());
+            return (Long) super.findSingleWithQuery(query);
         }
         return 0L;
     }
 
     public Long countOutShipments() {
         if (partner != null) {
-            return partnerFacade.countShipments(partner.getId(), "Sale");
+            query = DeliveryOrderQueryBuilder.getCountByCustomerQuery(partner.getId());
+            return (Long) super.findSingleWithQuery(query);
         }
         return 0L;
     }
 
     public Long countCustomerPayments() {
         if (partner != null) {
-            return partnerFacade.countPayments(partner.getId(), "customer");
+            query = PaymentQueryBuilder.getCountByCustomerQuery(partner.getId());
+            return (Long) super.findSingleWithQuery(query);
         }
         return 0L;
     }
 
     public Long countSupplierPayments() {
         if (partner != null) {
-            return partnerFacade.countPayments(partner.getId(), "supplier");
+            query = PaymentQueryBuilder.getCountByVendorQuery(partner.getId());
+            return (Long) super.findSingleWithQuery(query);
         }
         return 0L;
     }
 
     public Double getTotalPayables(Integer partnerId) {
         if (partnerId != null) {
-            return partnerFacade.getTotalDueAmount(partnerId, "Purchase");
+            query = InvoiceQueryBuilder.getTotalDueAmountByVendorQuery(partnerId);
+            return (Double) super.findSingleWithQuery(query);
         }
         return 0d;
     }
 
     public Double getTotalReceivales(Integer partnerId) {
         if (partnerId != null) {
-            return partnerFacade.getTotalDueAmount(partnerId, "Sale");
+            query = InvoiceQueryBuilder.getTotalDueAmountByCustomerQuery(partnerId);
+            return (Double) super.findSingleWithQuery(query);
         }
         return 0d;
     }
 
     public Double getTotalPayables() {
         if (partner != null) {
-            return partnerFacade.getTotalDueAmount(partner.getId(), "Purchase");
+            query = InvoiceQueryBuilder.getTotalDueAmountByVendorQuery(partner.getId());
+            return (Double) super.findSingleWithQuery(query);
         }
         return 0d;
     }
 
     public Double getTotalReceivales() {
         if (partner != null) {
-            return partnerFacade.getTotalDueAmount(partner.getId(), "Sale");
+            query = InvoiceQueryBuilder.getTotalDueAmountByCustomerQuery(partner.getId());
+            return (Double) super.findSingleWithQuery(query);
         }
         return 0d;
     }
@@ -262,6 +297,7 @@ public class CustomerController implements Serializable {
 //        }
 //        return 0d;
 //    }
+    
     public HashMap<String, String> getCountries() {
         return countries;
     }
@@ -285,7 +321,7 @@ public class CustomerController implements Serializable {
             }
 
             if (partners != null && !partners.isEmpty()) {
-                currentForm = "/sc/customer/View.xhtml";
+                currentForm = VIEW_URL;
             }
         }
     }
@@ -309,7 +345,7 @@ public class CustomerController implements Serializable {
             }
 
             if (partners != null && !partners.isEmpty()) {
-                currentForm = "/sc/customer/View.xhtml";
+                currentForm = VIEW_URL;
             }
         }
     }
@@ -318,16 +354,17 @@ public class CustomerController implements Serializable {
 //        if (customerExist(id)) {
 //            if ((partners != null) && (index < partners.size()) && (index >= 0) && (partners.get(index).getId() == id)) {
 //                partner = partners.get(index);
-//                currentForm = "/sc/customer/View.xhtml";
+//                currentForm = VIEW_URL;
 //                searchKey = null;
 //            }
 //        }
 //    }
+    
     public void resolveRequestParams() {
 
         if (JsfUtil.isNumeric(partnerId)) {
             Integer id = Integer.valueOf(partnerId);
-            partner = partnerFacade.find(id);
+            partner = super.findItemById(id, Partner.class);
             if (partner != null) {
                 partner.setCountry(countries.get(partner.getCountry()));
                 partners = getCustomers();
@@ -335,8 +372,8 @@ public class CustomerController implements Serializable {
                 if (!partners.contains(partner)) {
                     partners.add(partner);
                 }
-                currentForm = "/sc/customer/View.xhtml";
-                currentList = "/sc/customer/Grid.xhtml";
+                currentForm = VIEW_URL;
+                currentList = GRID_URL;
                 return;
             }
         }
@@ -346,8 +383,8 @@ public class CustomerController implements Serializable {
         if (!partners.isEmpty()) {
             partner = partners.get(0);
         }
-        currentForm = "/sc/customer/View.xhtml";
-        currentList = "/sc/customer/Grid.xhtml";
+        currentForm = VIEW_URL;
+        currentList = GRID_URL;
     }
 
     private void replaceCountryCodeWithName() {
@@ -360,13 +397,13 @@ public class CustomerController implements Serializable {
 
     public void createCustomer() {
         if (partner != null) {
-            
+
             partner.setCredit(0d);
             partner.setDebit(0d);
-            partner = partnerFacade.create(partner);
+            partner = super.createItem(partner);
             partner.setCountry(countries.get(partner.getCountry()));
             partners.add(partner);
-            currentForm = "/sc/customer/View.xhtml";
+            currentForm = VIEW_URL;
         }
     }
 
@@ -419,7 +456,7 @@ public class CustomerController implements Serializable {
 
         if (partners != null && !partners.isEmpty()) {
             partner = partners.get(0);
-            currentForm = "/sc/customer/View.xhtml";
+            currentForm = VIEW_URL;
         }
     }
 
@@ -430,12 +467,11 @@ public class CustomerController implements Serializable {
         updatePartnerType();
 
         if (isGridView) {
-            currentList = "/sc/customer/Grid.xhtml";
+            currentList = GRID_URL;
         } else {
-            currentList = "/sc/customer/List.xhtml";
+            currentList = LIST_URL;
         }
     }
-
 
     public int getPartnerIndex() {
         if (partner != null && partners != null && !partners.isEmpty()) {
@@ -548,7 +584,7 @@ public class CustomerController implements Serializable {
 
     private boolean customerExist(Integer id) {
         if (id != null) {
-            partner = partnerFacade.find(id);
+            partner = super.findItemById(id, Partner.class);
             if (partner == null) {
                 JsfUtil.addWarningMessage("ItemDoesNotExist");
                 showCustomers();
@@ -565,7 +601,7 @@ public class CustomerController implements Serializable {
 
     private boolean customerExistTwo(Integer id) {
         if (id != null) {
-            Partner partner = partnerFacade.find(id);
+            Partner partner = super.findItemById(id, Partner.class);
             return partner != null;
         }
         return false;
@@ -573,10 +609,15 @@ public class CustomerController implements Serializable {
 
     public List<Partner> getSuppliers() {
         if (partners == null) {
-            partners = partnerFacade.findSuppliers();
+            
+            query = PartnerQueryBuilder.getFindVendorsQuery();
+            partners = super.findWithQuery(query);
+            
             replaceCountryCodeWithName();
+            
             filteredPartners = new ArrayList<>();
             filteredPartners.addAll(partners);
+            
             partnerType = "Vendor";
         }
         return partners;
@@ -585,10 +626,15 @@ public class CustomerController implements Serializable {
     public List<Partner> getCustomers() {
 
         if (partners == null) {
-            partners = partnerFacade.findCustomers();
+            
+            query = PartnerQueryBuilder.getFindCustomersQuery();
+            partners = super.findWithQuery(query);
+            
             replaceCountryCodeWithName();
+            
             filteredPartners = new ArrayList<>();
             filteredPartners.addAll(partners);
+            
             partnerType = "Customer";
         }
         return partners;
@@ -596,10 +642,15 @@ public class CustomerController implements Serializable {
 
     public List<Partner> getPartners() {
         if (partners == null) {
-            partners = partnerFacade.findAll();
+            
+            query = PartnerQueryBuilder.getFindPartnersQuery();
+            partners = super.findWithQuery(query);
+            
             replaceCountryCodeWithName();
+            
             filteredPartners = new ArrayList<>();
             filteredPartners.addAll(partners);
+            
             partnerType = "Partner";
         }
         return partners;
@@ -619,22 +670,6 @@ public class CustomerController implements Serializable {
 
     public void setPartner(Partner partner) {
         this.partner = partner;
-    }
-
-    public String getCurrentForm() {
-        return currentForm;
-    }
-
-    public void setCurrentForm(String currentForm) {
-        this.currentForm = currentForm;
-    }
-
-    public String getCurrentList() {
-        return currentList;
-    }
-
-    public void setCurrentList(String currentList) {
-        this.currentList = currentList;
     }
 
     public String getPartnerId() {
@@ -668,4 +703,21 @@ public class CustomerController implements Serializable {
     public void setImageModified(boolean imageModified) {
         this.imageModified = imageModified;
     }
+
+    public String getCurrentForm() {
+        return currentForm;
+    }
+
+    public void setCurrentForm(String currentForm) {
+        this.currentForm = currentForm;
+    }
+
+    public String getCurrentList() {
+        return currentList;
+    }
+
+    public void setCurrentList(String currentList) {
+        this.currentList = currentList;
+    }
+    
 }
