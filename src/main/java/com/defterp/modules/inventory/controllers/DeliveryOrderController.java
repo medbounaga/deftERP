@@ -651,7 +651,7 @@ public class DeliveryOrderController extends AbstractController {
                         deliveryOrder = deliveryOrders.get(0);
                     } else {
                         listType = null;
-                        query = DeliveryOrderQueryBuilder.getFindAllDeliveryOrdersQuery();
+                        query = DeliveryOrderQueryBuilder.getFindDeliveryOrdersQuery();
                         deliveryOrders = super.findWithQuery(query);
 
                         if (deliveryOrders != null && !deliveryOrders.isEmpty()) {
@@ -671,7 +671,7 @@ public class DeliveryOrderController extends AbstractController {
 
     private void cancelRelations() {
 
-        query = DeliveryOrderQueryBuilder.getFindAllByBackOrderQuery(deliveryOrder.getId());
+        query = DeliveryOrderQueryBuilder.getFindByBackOrderQuery(deliveryOrder.getId());
         deliveryOrder.setChildren((List<DeliveryOrder>) (DeliveryOrder) super.findWithQuery(query));
 
         if (deliveryOrder.getChildren() != null && !deliveryOrder.getChildren().isEmpty()) {
@@ -701,7 +701,7 @@ public class DeliveryOrderController extends AbstractController {
             Integer id = Integer.valueOf(deliveryId);
             deliveryOrder = super.findItemById(id, DeliveryOrder.class);
             if (deliveryOrder != null) {
-                query = DeliveryOrderQueryBuilder.getFindAllDeliveryOrdersQuery();
+                query = DeliveryOrderQueryBuilder.getFindDeliveryOrdersQuery();
                 deliveryOrders = super.findWithQuery(query);
                 return;
             }
@@ -709,7 +709,7 @@ public class DeliveryOrderController extends AbstractController {
 
         if (JsfUtil.isNumeric(partnerId)) {
             Integer id = Integer.valueOf(partnerId);
-            query = DeliveryOrderQueryBuilder.getFindAllByCustomerQuery(id);
+            query = DeliveryOrderQueryBuilder.getFindByCustomerQuery(id);
             deliveryOrders = super.findWithQuery(query);
             if (deliveryOrders != null && !deliveryOrders.isEmpty()) {
                 deliveryOrder = deliveryOrders.get(0);
@@ -720,7 +720,7 @@ public class DeliveryOrderController extends AbstractController {
 
         if (saleId != null && JsfUtil.isNumeric(saleId)) {
             Integer id = Integer.valueOf(saleId);
-            query = DeliveryOrderQueryBuilder.getFindAllBySaleOrderQuery(id);
+            query = DeliveryOrderQueryBuilder.getFindBySaleOrderQuery(id);
             deliveryOrders = super.findWithQuery(query);
             if (deliveryOrders != null && !deliveryOrders.isEmpty()) {
                 deliveryOrder = deliveryOrders.get(0);
@@ -729,7 +729,7 @@ public class DeliveryOrderController extends AbstractController {
             }
         }
 
-        query = DeliveryOrderQueryBuilder.getFindAllDeliveryOrdersQuery();
+        query = DeliveryOrderQueryBuilder.getFindDeliveryOrdersQuery();
         deliveryOrders = super.findWithQuery(query);
 
         if (deliveryOrders != null && !deliveryOrders.isEmpty()) {
@@ -750,7 +750,7 @@ public class DeliveryOrderController extends AbstractController {
     public void showBackOrder(Integer id) {
         if (deliveryExist(id)) {
             listType = null;
-            query = DeliveryOrderQueryBuilder.getFindAllDeliveryOrdersQuery();
+            query = DeliveryOrderQueryBuilder.getFindDeliveryOrdersQuery();
             deliveryOrders = super.findWithQuery(query);
             currentForm = VIEW_URL;
 
@@ -759,7 +759,7 @@ public class DeliveryOrderController extends AbstractController {
 
     public void viewPartialDelivries() {
         if (deliveryExist(deliveryOrder.getId())) {
-            query = DeliveryOrderQueryBuilder.getFindAllByBackOrderQuery(deliveryOrder.getId());
+            query = DeliveryOrderQueryBuilder.getFindByBackOrderQuery(deliveryOrder.getId());
             deliveryOrders = super.findWithQuery(query);
             deliveryOrder = deliveryOrders.get(0);
             currentForm = VIEW_URL;
@@ -901,7 +901,7 @@ public class DeliveryOrderController extends AbstractController {
                 if (listType == null && deliveryOrders != null) {
                     deliveryOrders.set(deliveryOrders.indexOf(deliveryOrder), deliveryOrder);
                 } else {
-                    query = DeliveryOrderQueryBuilder.getFindAllDeliveryOrdersQuery();
+                    query = DeliveryOrderQueryBuilder.getFindDeliveryOrdersQuery();
                     deliveryOrders = super.findWithQuery(query);
                     listType = null;
                 }
@@ -940,7 +940,7 @@ public class DeliveryOrderController extends AbstractController {
             if (listType == null && deliveryOrders != null) {
                 deliveryOrders.add(deliveryOrder);
             } else {
-                query = DeliveryOrderQueryBuilder.getFindAllDeliveryOrdersQuery();
+                query = DeliveryOrderQueryBuilder.getFindDeliveryOrdersQuery();
                 deliveryOrders = super.findWithQuery(query);
                 listType = null;
             }
@@ -1205,7 +1205,7 @@ public class DeliveryOrderController extends AbstractController {
             deliveryOrder = deliveryOrders.get(0);
         } else {
             listType = null;
-            query = DeliveryOrderQueryBuilder.getFindAllDeliveryOrdersQuery();
+            query = DeliveryOrderQueryBuilder.getFindDeliveryOrdersQuery();
             deliveryOrders = super.findWithQuery(query);
             if ((deliveryOrders != null) && (deliveryOrders.size() > 1)) {
                 deliveryOrder = deliveryOrders.get(0);
