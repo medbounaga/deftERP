@@ -7,9 +7,13 @@ import com.defterp.modules.inventory.entities.Inventory;
 import com.defterp.modules.partners.entities.Partner;
 import com.defterp.modules.inventory.entities.Product;
 import com.defterp.modules.purchases.entities.PurchaseOrder;
-import com.casa.erp.dao.DeliveryOrderFacade;
+import com.defterp.modules.commonClasses.AbstractController;
+import com.defterp.modules.commonClasses.QueryWrapper;
+import com.defterp.modules.inventory.queryBuilders.DeliveryOrderQueryBuilder;
+import com.defterp.modules.inventory.queryBuilders.ProductQueryBuilder;
+import com.defterp.modules.partners.queryBuilders.PartnerQueryBuilder;
+import com.defterp.modules.commonClasses.IdGenerator;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -37,13 +41,10 @@ import org.primefaces.context.RequestContext;
  * @author MOHAMMED BOUNAGA
  */
 
-
 @Named(value = "supDeliveryOrderController")
 @ViewScoped
-public class SupDeliveryOrderController implements Serializable {
+public class SupDeliveryOrderController extends AbstractController {
 
-    @Inject
-    private DeliveryOrderFacade deliveryOrderFacade;
     @Inject
     @com.defterp.translation.annotations.Status
     private HashMap<String, String> statuses;
@@ -53,16 +54,24 @@ public class SupDeliveryOrderController implements Serializable {
     private List<DeliveryOrderLine> deliveryOrderLines;
     private List<DeliveryOrderLine> tobeDeliveredOrderLines;
     private DeliveryOrderLine deliveryOrderLine;
-    private String currentForm = "/sc/supDeliveryOrder/View.xhtml";
     private String purchaseId;
     private String listType;
     private String deliveryId;
     private String partnerId;
     private int rowIndex;
-    private List<Partner> topNSuppliers;
-    private List<Product> topPurchasedNProducts;
+    private List<Partner> topNActiveVendors;
+    private List<Partner> activeVendors;
+    private List<Partner> filteredActiveVendors;
+    private List<Product> topNActivePurchasedProducts;
+    private List<Product> activePurchasedProducts;
+    private List<Product> filteredActivePurchasedProducts;
     private Partner supplier;
     private Product product;
+    private QueryWrapper query;
+
+    public SupDeliveryOrderController() {
+        super("/sc/supDeliveryOrder/");
+    }
 
     public String getStatus(String status) {
         return statuses.get(status);
@@ -109,7 +118,7 @@ public class SupDeliveryOrderController implements Serializable {
     private void refreshInventory(List<DeliveryOrderLine> orderLines) {
 
         for (DeliveryOrderLine orderLine : orderLines) {
-            Inventory upToDateInventory = deliveryOrderFacade.findInventory(orderLine.getProduct().getInventory().getId());
+            Inventory upToDateInventory = super.findItemById(orderLine.getProduct().getInventory().getId(), Inventory.class);
             orderLine.getProduct().setInventory(upToDateInventory);
         }
     }
@@ -118,7 +127,7 @@ public class SupDeliveryOrderController implements Serializable {
 
         for (DeliveryOrderLine orderLine : orderLines) {
 //            orderLine.getProduct().getInventory().setQuantityAvailable(orderLine.getProduct().getInventory().getQuantityAvailable() + 2);
-            deliveryOrderFacade.update(orderLine.getProduct().getInventory());
+            super.updateItem(orderLine.getProduct().getInventory());
         }
     }
 
@@ -133,7 +142,7 @@ public class SupDeliveryOrderController implements Serializable {
                     orderLine.getProduct().getInventory().setIncomingQuantity(orderLine.getProduct().getInventory().getIncomingQuantity() + orderLine.getQuantity());
                 }
                 updateInventory(deliveryOrder.getDeliveryOrderLines());
-                deliveryOrder = deliveryOrderFacade.update(deliveryOrder);
+                deliveryOrder = super.updateItem(deliveryOrder);
                 deliveryOrders.set(deliveryOrders.indexOf(deliveryOrder), deliveryOrder);
 
             } else {
@@ -277,12 +286,12 @@ public class SupDeliveryOrderController implements Serializable {
                 deliveryOrder.getPurchaseOrder().setState(Status.DONE.value());
             }
             deliveryOrder.getPurchaseOrder().setShipped(Boolean.TRUE);
-            deliveryOrderFacade.update(deliveryOrder.getPurchaseOrder());
+            super.updateItem(deliveryOrder.getPurchaseOrder());
         }
 
         updateInventory(deliveryOrder.getDeliveryOrderLines());
 
-        deliveryOrder = deliveryOrderFacade.update(deliveryOrder);
+        deliveryOrder = super.updateItem(deliveryOrder);
         deliveryOrders.set(deliveryOrders.indexOf(deliveryOrder), deliveryOrder);
 
         tobeDeliveredOrderLines = null;
@@ -309,20 +318,23 @@ public class SupDeliveryOrderController implements Serializable {
         }
 
         backOrder.setDeliveryOrderLines(tobeDeliveredOrderLines);
+
         if (backOrder.getPurchaseOrder() != null) {
             backOrder.getPurchaseOrder().getDeliveryOrders().add(backOrder);
         }
 
         updateInventory(backOrder.getDeliveryOrderLines());
 
-        backOrder = deliveryOrderFacade.createInDelivery(backOrder);
+        backOrder = super.createItem(backOrder);
+        backOrder.setName(IdGenerator.generateDeliveryInId(backOrder.getId()));
+        backOrder = super.updateItem(backOrder);
 
         if (backOrder.getPurchaseOrder() != null) {
-            deliveryOrderFacade.update(backOrder.getPurchaseOrder());
+            super.updateItem(backOrder.getPurchaseOrder());
         }
 
         deliveryOrder.setDeliveryMethod("Partial");
-        deliveryOrder = deliveryOrderFacade.update(deliveryOrder);
+        deliveryOrder = super.updateItem(deliveryOrder);
 
         deliveryOrders.set(deliveryOrders.indexOf(deliveryOrder), deliveryOrder);
         deliveryOrders.add(backOrder);
@@ -433,7 +445,7 @@ public class SupDeliveryOrderController implements Serializable {
                     }
                     updateInventory(deliveryOrder.getDeliveryOrderLines());
                 }
-                deliveryOrder = deliveryOrderFacade.update(deliveryOrder);
+                deliveryOrder = super.updateItem(deliveryOrder);
                 deliveryOrders.set(deliveryOrders.indexOf(deliveryOrder), deliveryOrder);
 
             } else if (deliveryOrder.getState().equals(Status.DONE.value())) {
@@ -448,24 +460,32 @@ public class SupDeliveryOrderController implements Serializable {
     public void deleteDelivery() {
         if (deliveryExist(deliveryOrder.getId())) {
             if (deliveryOrder.getState().equals("Cancelled")) {
+
                 cancelRelations();
-                try {
-                    deliveryOrderFacade.remove(deliveryOrder);
-                } catch (Exception e) {
-                    JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
-                    return;
-                }
+                boolean deleted = super.deleteItem(deliveryOrder);
 
-                if (deliveryOrders.size() > 1) {
-                    deliveryOrders.remove(deliveryOrder);
+                if (deleted) {
+
+                    JsfUtil.addSuccessMessage("ItemDeleted");
+                    currentForm = VIEW_URL;
+
+                    if (deliveryOrders != null && deliveryOrders.size() > 1) {
+                        deliveryOrders.remove(deliveryOrder);
+                        deliveryOrder = deliveryOrders.get(0);
+                    } else {
+                        listType = null;
+                        query = DeliveryOrderQueryBuilder.getFindProductReceiptsQuery();
+                        deliveryOrders = super.findWithQuery(query);
+
+                        if (deliveryOrders != null && !deliveryOrders.isEmpty()) {
+                            deliveryOrder = deliveryOrders.get(0);
+                        }
+                    }
+
                 } else {
-                    listType = null;
-                    deliveryOrders = deliveryOrderFacade.findInDelivery();
+                    JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
                 }
 
-                deliveryOrder = deliveryOrders.get(0);
-                JsfUtil.addSuccessMessage("ItemDeleted");
-                currentForm = "/sc/supDeliveryOrder/View.xhtml";
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete");
             }
@@ -473,12 +493,14 @@ public class SupDeliveryOrderController implements Serializable {
     }
 
     private void cancelRelations() {
-        deliveryOrder.setChildren(deliveryOrderFacade.findByBackOrder(deliveryOrder.getId()));
+
+        query = DeliveryOrderQueryBuilder.getFindByBackOrderQuery(deliveryOrder.getId());
+        deliveryOrder.setChildren((List<DeliveryOrder>) (DeliveryOrder) super.findWithQuery(query));
 
         if (deliveryOrder.getChildren() != null && !deliveryOrder.getChildren().isEmpty()) {
             for (DeliveryOrder delivery : deliveryOrder.getChildren()) {
                 delivery.setBackOrder(null);
-                delivery = deliveryOrderFacade.update(delivery);
+                delivery = super.updateItem(delivery);
                 deliveryOrders.set(deliveryOrders.indexOf(delivery), delivery);
             }
 
@@ -486,67 +508,60 @@ public class SupDeliveryOrderController implements Serializable {
         }
 
         if (deliveryOrder.getPurchaseOrder() != null) {
-            PurchaseOrder purchaseOrder = deliveryOrderFacade.findPurchaseOrder(deliveryOrder.getPurchaseOrder().getId());
+            PurchaseOrder purchaseOrder = super.findItemById(deliveryOrder.getPurchaseOrder().getId(), PurchaseOrder.class);
             purchaseOrder.getDeliveryOrders().size();
             purchaseOrder.getDeliveryOrders().remove(deliveryOrder);
             deliveryOrder.setPurchaseOrder(null);
-            deliveryOrderFacade.update(purchaseOrder);
+            super.updateItem(purchaseOrder);
         }
     }
 
-    public void showDeliveryList() {
-        deliveryOrder = null;
-        currentForm = "/sc/supDeliveryOrder/List.xhtml";
-    }
-
-    public void showForm() {
-
-        if (deliveryOrders.size() > 0) {
-            deliveryOrder = deliveryOrders.get(0);
-            currentForm = "/sc/supDeliveryOrder/View.xhtml";
-        }
-    }
 
     public void showBackOrder(Integer id) {
         if (deliveryExist(id)) {
             listType = null;
-            deliveryOrders = deliveryOrderFacade.findInDelivery();
-            currentForm = "/sc/supDeliveryOrder/View.xhtml";
+            query = DeliveryOrderQueryBuilder.getFindProductReceiptsQuery();
+            deliveryOrders = super.findWithQuery(query);
+            currentForm = VIEW_URL;
         }
     }
 
     public void viewPartialDelivries() {
         if (deliveryExist(deliveryOrder.getId())) {
-            deliveryOrders = deliveryOrderFacade.findByBackOrder(deliveryOrder.getId());
+            query = DeliveryOrderQueryBuilder.getFindByBackOrderQuery(deliveryOrder.getId());
+            deliveryOrders = super.findWithQuery(query);
             deliveryOrder = deliveryOrders.get(0);
-            currentForm = "/sc/supDeliveryOrder/View.xhtml";
+            currentForm = VIEW_URL;
             listType = "partialDelivery";
         }
     }
 
     public Long countPartialDelivries() {
         if (deliveryOrder != null) {
-            return deliveryOrderFacade.countByBackOrder(deliveryOrder.getId());
+            query = DeliveryOrderQueryBuilder.getCountByBackOrderQuery(deliveryOrder.getId());
+            return (Long) super.findSingleWithQuery(query);
         }
         return 0L;
     }
 
     public void resolveRequestParams() {
-        
-        currentForm = "/sc/supDeliveryOrder/View.xhtml";
+
+        currentForm = VIEW_URL;
 
         if (JsfUtil.isNumeric(deliveryId)) {
             Integer id = Integer.valueOf(deliveryId);
-            deliveryOrder = deliveryOrderFacade.find(id);
+            deliveryOrder = super.findItemById(id, DeliveryOrder.class);
             if (deliveryOrder != null) {
-                deliveryOrders = deliveryOrderFacade.findInDelivery();
+                query = DeliveryOrderQueryBuilder.getFindProductReceiptsQuery();
+                deliveryOrders = super.findWithQuery(query);
                 return;
             }
         }
 
         if (JsfUtil.isNumeric(partnerId)) {
             Integer id = Integer.valueOf(partnerId);
-            deliveryOrders = deliveryOrderFacade.findByPartner(id, "Purchase");
+            query = DeliveryOrderQueryBuilder.getFindByVendorQuery(id);
+            deliveryOrders = super.findWithQuery(query);
             if (deliveryOrders != null && !deliveryOrders.isEmpty()) {
                 deliveryOrder = deliveryOrders.get(0);
                 listType = "partner";
@@ -556,7 +571,8 @@ public class SupDeliveryOrderController implements Serializable {
 
         if (JsfUtil.isNumeric(purchaseId)) {
             Integer id = Integer.valueOf(purchaseId);
-            deliveryOrders = deliveryOrderFacade.findByPurchaseId(id);
+            query = DeliveryOrderQueryBuilder.getFindByPurchaseOrderQuery(id);
+            deliveryOrders = super.findWithQuery(query);
             if ((deliveryOrders != null) && (!deliveryOrders.isEmpty())) {
                 deliveryOrder = deliveryOrders.get(0);
                 listType = "purchaseOrder";
@@ -564,14 +580,18 @@ public class SupDeliveryOrderController implements Serializable {
             }
         }
 
-        deliveryOrders = deliveryOrderFacade.findInDelivery();
-        deliveryOrder = deliveryOrders.get(0);
+        query = DeliveryOrderQueryBuilder.getFindProductReceiptsQuery();
+        deliveryOrders = super.findWithQuery(query);
+
+        if (deliveryOrders != null && !deliveryOrders.isEmpty()) {
+            deliveryOrder = deliveryOrders.get(0);
+        }
     }
 
     public void prepareView() {
         if (deliveryOrder != null) {
             if (deliveryExist(deliveryOrder.getId())) {
-                currentForm = "/sc/supDeliveryOrder/View.xhtml";
+                currentForm = VIEW_URL;
             }
         }
     }
@@ -605,13 +625,13 @@ public class SupDeliveryOrderController implements Serializable {
 
     private boolean deliveryExist(Integer id) {
         if (id != null) {
-            deliveryOrder = deliveryOrderFacade.find(id);
+            deliveryOrder = super.findItemById(id, DeliveryOrder.class);
             if (deliveryOrder == null) {
                 JsfUtil.addWarningMessage("ItemDoesNotExist");
                 deliveryOrders.remove(deliveryOrder);
                 deliveryOrder = deliveryOrders.get(0);
-//                listType = null;
-                currentForm = "/sc/supDeliveryOrder/View.xhtml";
+//              listType = null;
+                currentForm = VIEW_URL;
                 return false;
             } else {
                 deliveryOrder.getDeliveryOrderLines().size();
@@ -623,22 +643,39 @@ public class SupDeliveryOrderController implements Serializable {
         }
     }
     
-    private String getOrderStatus(Integer id) {
-        if (id != null) {
-            DeliveryOrder deliveryOrder = deliveryOrderFacade.find(id);
-            if (deliveryOrder != null) {
-                return deliveryOrder.getState();
+    private String getDeliveryOrderStatus() {
+        if (deliveryOrder != null) {
+
+            DeliveryOrder tempItem = super.findItemById(deliveryOrder.getId(), deliveryOrder.getClass());
+
+            if (tempItem != null) {
+                return tempItem.getState();
             } else {
-                JsfUtil.addWarningMessage("ItemDoesNotExist");
-                deliveryOrders.remove(deliveryOrder);
-                deliveryOrder = deliveryOrders.get(0);
-//                listType = null;
-                currentForm = "/sc/supDeliveryOrder/View.xhtml";
+                deliveryOrderNotFound();
                 return null;
             }
         }
         return null;
     }
+    
+    private void deliveryOrderNotFound() {
+
+        JsfUtil.addWarningMessage("ItemDoesNotExist");
+        currentForm = VIEW_URL;
+
+        if ((deliveryOrders != null) && (deliveryOrders.size() > 1)) {
+            deliveryOrders.remove(deliveryOrder);
+            deliveryOrder = deliveryOrders.get(0);
+        } else {
+            listType = null;
+            query = DeliveryOrderQueryBuilder.getFindProductReceiptsQuery();
+            deliveryOrders = super.findWithQuery(query);
+            if ((deliveryOrders != null) && (deliveryOrders.size() > 1)) {
+                deliveryOrder = deliveryOrders.get(0);
+            }
+        }
+    }
+
 
     public void printDelivery(ActionEvent actionEvent) throws IOException, JRException {
 
@@ -654,7 +691,7 @@ public class SupDeliveryOrderController implements Serializable {
         params.put("receipt", deliveryOrder);
         params.put("partner", deliveryOrder.getPartner());
         params.put("orderLines", deliveryOrder.getDeliveryOrderLines());
-        params.put("SUBREPORT_DIR", FacesContext.getCurrentInstance().getExternalContext().getRealPath("/reports/")+"/");
+        params.put("SUBREPORT_DIR", FacesContext.getCurrentInstance().getExternalContext().getRealPath("/reports/") + "/");
 
         String reportPath = FacesContext.getCurrentInstance().getExternalContext().getRealPath("/reports/receipt.jasper");
         JasperPrint jasperPrint = JasperFillManager.fillReport(reportPath, params, new JREmptyDataSource());
@@ -667,122 +704,14 @@ public class SupDeliveryOrderController implements Serializable {
 
     }
 
-    public String getPage() {
-        return currentForm;
-    }
-
-    public void setPage(String page) {
-        this.currentForm = page;
-    }
-
-    public DeliveryOrder getDeliveryOrder() {
-        if (deliveryOrder == null) {
-            return deliveryOrder = new DeliveryOrder();
-        }
-        return deliveryOrder;
-    }
-
-    public void setDeliveryOrder(DeliveryOrder deliveryOrder) {
-        this.deliveryOrder = deliveryOrder;
-    }
-
-    public DeliveryOrderLine getDeliveryOrderLine() {
-        if (deliveryOrderLine == null) {
-            deliveryOrderLine = new DeliveryOrderLine();
-        }
-        return deliveryOrderLine;
-    }
-
-    public void setDeliveryOrderLine(DeliveryOrderLine deliveryOrderLine) {
-        this.deliveryOrderLine = deliveryOrderLine;
-    }
-
-    public List<DeliveryOrder> getDeliveryOrders() {
-        if (deliveryOrders == null) {
-            deliveryOrders = deliveryOrderFacade.findInDelivery();
-        }
-        return deliveryOrders;
-    }
-
-    public void setDeliveryOrders(List<DeliveryOrder> deliveryOrders) {
-        this.deliveryOrders = deliveryOrders;
-    }
-
-    public List<DeliveryOrder> getFilteredDeliveryOrders() {
-        return filteredDeliveryOrders;
-    }
-
-    public void setFilteredDeliveryOrders(List<DeliveryOrder> filteredDeliveryOrders) {
-        this.filteredDeliveryOrders = filteredDeliveryOrders;
-    }
-
-    public List<DeliveryOrderLine> getDeliveryOrderLines() {
-        if (deliveryOrderLines == null) {
-            deliveryOrderLines = new ArrayList<>();
-        }
-        return deliveryOrderLines;
-    }
-
-    public void setDeliveryOrderLines(List<DeliveryOrderLine> deliveryOrderLines) {
-        this.deliveryOrderLines = deliveryOrderLines;
-    }
-
-    public List<DeliveryOrderLine> getTobeDeliveredOrderLines() {
-        return tobeDeliveredOrderLines;
-    }
-
-    public void setTobeDeliveredOrderLines(List<DeliveryOrderLine> tobeDeliveredOrderLines) {
-        this.tobeDeliveredOrderLines = tobeDeliveredOrderLines;
-    }
-
-    public String getCurrentForm() {
-        return currentForm;
-    }
-
-    public void setCurrentForm(String currentForm) {
-        this.currentForm = currentForm;
-    }
-
-    public String getPurchaseId() {
-        return purchaseId;
-    }
-
-    public void setPurchaseId(String purchaseId) {
-        this.purchaseId = purchaseId;
-    }
-
-    public String getDeliveryId() {
-        return deliveryId;
-    }
-
-    public void setDeliveryId(String deliveryId) {
-        this.deliveryId = deliveryId;
-    }
-
-    public String getPartnerId() {
-        return partnerId;
-    }
-
-    public void setPartnerId(String partnerId) {
-        this.partnerId = partnerId;
-    }
-
-    public String getListType() {
-        return listType;
-    }
-
-    public void setListType(String listType) {
-        this.listType = listType;
-    }
-
     public void setRowIndex() {
         Map<String, String> params = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap();
         rowIndex = Integer.valueOf(params.get("rowIndex"));
     }
 
     public void onSelectSupplier() {
-        if ((supplier != null) && (!topNSuppliers.contains(supplier))) {
-            topNSuppliers.add(supplier);
+        if ((supplier != null) && (!topNActiveVendors.contains(supplier))) {
+            topNActiveVendors.add(supplier);
         }
         deliveryOrder.setPartner(supplier);
     }
@@ -790,8 +719,8 @@ public class SupDeliveryOrderController implements Serializable {
     public void onSelectProduct() {
 
         if ((product != null)) {
-            if (!topPurchasedNProducts.contains(product)) {
-                topPurchasedNProducts.add(product);
+            if (!topNActivePurchasedProducts.contains(product)) {
+                topNActivePurchasedProducts.add(product);
             }
 
             if (rowIndex < 0) {
@@ -814,11 +743,14 @@ public class SupDeliveryOrderController implements Serializable {
     }
 
     public void updateOrder() {
-        if (getOrderStatus(deliveryOrder.getId()) != null) {
+        
+        String deliveryOrderStatus = getDeliveryOrderStatus();
+        
+        if (deliveryOrderStatus!= null) {
 
-            if (!getOrderStatus(deliveryOrder.getId()).equals(Status.DRAFT.value())) {
+            if (!deliveryOrderStatus.equals(Status.DRAFT.value())) {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorProceedEdit");
-                currentForm = "/sc/supDeliveryOrder/View.xhtml";
+                currentForm = VIEW_URL;
             } else if (deliveryOrderLines.isEmpty()) {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "AtLeastOneDeliveryOrderLineUpdate");
 
@@ -836,16 +768,17 @@ public class SupDeliveryOrderController implements Serializable {
                 }
 
                 deliveryOrder.setDeliveryOrderLines(deliveryOrderLines);
-                deliveryOrder = deliveryOrderFacade.update(deliveryOrder);
+                deliveryOrder = super.updateItem(deliveryOrder);
 
                 if (listType == null && deliveryOrders != null) {
                     deliveryOrders.set(deliveryOrders.indexOf(deliveryOrder), deliveryOrder);
                 } else {
-                    deliveryOrders = deliveryOrderFacade.findInDelivery();
+                    query = DeliveryOrderQueryBuilder.getFindProductReceiptsQuery();
+                    deliveryOrders = super.findWithQuery(query);
                     listType = null;
                 }
 
-                currentForm = "/sc/supDeliveryOrder/View.xhtml";
+                currentForm = VIEW_URL;
             }
         }
     }
@@ -871,16 +804,20 @@ public class SupDeliveryOrderController implements Serializable {
             deliveryOrder.setActive(Boolean.TRUE);
             deliveryOrder.setDeliveryMethod("Complete");
             deliveryOrder.setDeliveryOrderLines(deliveryOrderLines);
-            deliveryOrder = deliveryOrderFacade.createInDelivery(deliveryOrder);
+            
+            deliveryOrder = super.createItem(deliveryOrder);
+            deliveryOrder.setName(IdGenerator.generateDeliveryInId(deliveryOrder.getId()));
+            deliveryOrder = super.updateItem(deliveryOrder);
 
             if (listType == null && deliveryOrders != null) {
                 deliveryOrders.add(deliveryOrder);
             } else {
-                deliveryOrders = deliveryOrderFacade.findInDelivery();
+                query = DeliveryOrderQueryBuilder.getFindProductReceiptsQuery();
+                deliveryOrders = super.findWithQuery(query);
                 listType = null;
             }
 
-            currentForm = "/sc/supDeliveryOrder/View.xhtml";
+            currentForm = VIEW_URL;
         }
     }
 
@@ -889,14 +826,16 @@ public class SupDeliveryOrderController implements Serializable {
         deliveryOrder.setDeliveryMethod("Complete");
         deliveryOrderLines = new ArrayList<>();
         deliveryOrderLine = new DeliveryOrderLine();
-        topNSuppliers = deliveryOrderFacade.findTopNSuppliers(4);
-        topPurchasedNProducts = deliveryOrderFacade.findTopNPurchasedProducts(4);
-        if (topPurchasedNProducts != null && !topPurchasedNProducts.isEmpty()) {
-            deliveryOrderLine.setProduct(topPurchasedNProducts.get(0));
+        
+        loadActiveVendors();
+        loadActivePurchasedProducts();
+            
+        if (topNActivePurchasedProducts != null && !topNActivePurchasedProducts.isEmpty()) {
+            deliveryOrderLine.setProduct(topNActivePurchasedProducts.get(0));
             deliveryOrderLine.setUom(deliveryOrderLine.getProduct().getUom().getName());
         }
         deliveryOrderLine.setState(Status.NEW.value());
-        currentForm = "/sc/supDeliveryOrder/Create.xhtml";
+        currentForm = CREATE_URL;
     }
 
     public void prepareEdit() {
@@ -904,42 +843,44 @@ public class SupDeliveryOrderController implements Serializable {
             if (deliveryOrder.getState().equals(Status.DRAFT.value())) {
                 deliveryOrderLine = new DeliveryOrderLine();
                 deliveryOrderLines = deliveryOrder.getDeliveryOrderLines();
-                topNSuppliers = deliveryOrderFacade.findTopNSuppliers(4);
-                topPurchasedNProducts = deliveryOrderFacade.findTopNPurchasedProducts(4);
-                if (topPurchasedNProducts != null && !topPurchasedNProducts.isEmpty()) {
-                    deliveryOrderLine.setProduct(topPurchasedNProducts.get(0));
+                
+                loadActiveVendors();
+                loadActivePurchasedProducts();
+                
+                if (topNActivePurchasedProducts != null && !topNActivePurchasedProducts.isEmpty()) {
+                    deliveryOrderLine.setProduct(topNActivePurchasedProducts.get(0));
                     deliveryOrderLine.setUom(deliveryOrderLine.getProduct().getUom().getName());
                 }
+                
                 deliveryOrderLine.setState(Status.NEW.value());
 
-                if (!topNSuppliers.contains(deliveryOrder.getPartner())) {
-                    topNSuppliers.add(deliveryOrder.getPartner());
+                if (!topNActiveVendors.contains(deliveryOrder.getPartner())) {
+                    topNActiveVendors.add(deliveryOrder.getPartner());
                 }
 
                 for (DeliveryOrderLine orderLine : deliveryOrderLines) {
-                    if (!topPurchasedNProducts.contains(orderLine.getProduct())) {
-                        topPurchasedNProducts.add(orderLine.getProduct());
+                    if (!topNActivePurchasedProducts.contains(orderLine.getProduct())) {
+                        topNActivePurchasedProducts.add(orderLine.getProduct());
                     }
                 }
 
-                currentForm = "/sc/supDeliveryOrder/Edit.xhtml";
+                currentForm = EDIT_URL;
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorEdit");
             }
         }
     }
 
-    
     public void cancelCreate() {
 
         deliveryOrderLine = null;
         deliveryOrderLines = null;
-        topNSuppliers = null;
-        topPurchasedNProducts = null;
+        topNActiveVendors = null;
+        topNActivePurchasedProducts = null;
 
         if (deliveryOrders != null && !deliveryOrders.isEmpty()) {
             deliveryOrder = deliveryOrders.get(0);
-            currentForm = "/sc/supDeliveryOrder/View.xhtml";
+            currentForm = VIEW_URL;
         }
     }
 
@@ -947,11 +888,11 @@ public class SupDeliveryOrderController implements Serializable {
 
         deliveryOrderLine = null;
         deliveryOrderLines = null;
-        topNSuppliers = null;
-        topPurchasedNProducts = null;
+        topNActiveVendors = null;
+        topNActivePurchasedProducts = null;
 
         if (deliveryExist(deliveryOrder.getId())) {
-            currentForm = "/sc/supDeliveryOrder/View.xhtml";
+            currentForm = VIEW_URL;
         }
     }
 
@@ -990,40 +931,147 @@ public class SupDeliveryOrderController implements Serializable {
             deliveryOrder = newDeliveryOrder;
             deliveryOrderLine = new DeliveryOrderLine();
             deliveryOrderLines = deliveryOrder.getDeliveryOrderLines();
-            topNSuppliers = deliveryOrderFacade.findTopNSuppliers(4);
-            topPurchasedNProducts = deliveryOrderFacade.findTopNPurchasedProducts(4);
-            if (topPurchasedNProducts != null && !topPurchasedNProducts.isEmpty()) {
-                deliveryOrderLine.setProduct(topPurchasedNProducts.get(0));
+
+            loadActiveVendors();
+            loadActivePurchasedProducts();
+
+            if (topNActivePurchasedProducts != null && !topNActivePurchasedProducts.isEmpty()) {
+                deliveryOrderLine.setProduct(topNActivePurchasedProducts.get(0));
                 deliveryOrderLine.setPrice(deliveryOrderLine.getProduct().getPurchasePrice());
                 deliveryOrderLine.setUom(deliveryOrderLine.getProduct().getUom().getName());
             }
 
-            if (!topNSuppliers.contains(deliveryOrder.getPartner())) {
-                topNSuppliers.add(deliveryOrder.getPartner());
+            if (!topNActiveVendors.contains(deliveryOrder.getPartner())) {
+                topNActiveVendors.add(deliveryOrder.getPartner());
             }
 
             for (DeliveryOrderLine orderLine : deliveryOrderLines) {
-                if (!topPurchasedNProducts.contains(orderLine.getProduct())) {
-                    topPurchasedNProducts.add(orderLine.getProduct());
+                if (!topNActivePurchasedProducts.contains(orderLine.getProduct())) {
+                    topNActivePurchasedProducts.add(orderLine.getProduct());
                 }
             }
-            currentForm = "/sc/supDeliveryOrder/Create.xhtml";
+            currentForm = CREATE_URL;
         }
     }
 
-    public List<Partner> getTopNSuppliers() {
-        if (topNSuppliers == null) {
-            topNSuppliers = deliveryOrderFacade.findTopNSuppliers(4);
+    public void onDialogRowEdit(int Index) {
+        tobeDeliveredOrderLines.get(Index).setQuantity(JsfUtil.round(tobeDeliveredOrderLines.get(Index).getQuantity(), tobeDeliveredOrderLines.get(Index).getProduct().getUom().getDecimals()));
+
+        if (tobeDeliveredOrderLines.get(Index).getQuantity() == 0d) {
+            tobeDeliveredOrderLines.get(Index).setQuantity(1d);
         }
-        return topNSuppliers;
+    }
+
+    public void onDialogRowCancel() {
 
     }
 
-    public List<Product> getTopPurchasedNProducts() {
-        if (topPurchasedNProducts == null) {
-            topPurchasedNProducts = deliveryOrderFacade.findTopNPurchasedProducts(4);
+    public void onRowAdd() {
+        deliveryOrderLine.setQuantity(JsfUtil.round(deliveryOrderLine.getQuantity(), deliveryOrderLine.getProduct().getUom().getDecimals()));
+
+        if (deliveryOrderLine.getQuantity() == 0d) {
+            deliveryOrderLine.setQuantity(1d);
         }
-        return topPurchasedNProducts;
+
+        deliveryOrderLines.add(deliveryOrderLine);
+        deliveryOrderLine = new DeliveryOrderLine();
+        if (topNActivePurchasedProducts != null && !topNActivePurchasedProducts.isEmpty()) {
+            deliveryOrderLine.setProduct(topNActivePurchasedProducts.get(0));
+            deliveryOrderLine.setUom(topNActivePurchasedProducts.get(0).getUom().getName());
+        }
+        deliveryOrderLine.setState(Status.NEW.value());
+    }
+
+    public void onRowDelete(int Index) {
+        if (Index >= 0 && Index < deliveryOrderLines.size()) {
+            deliveryOrderLines.remove(Index);
+        }
+    }
+
+    public void onRowEditInit(DeliveryOrderLine orderLine) {
+        deliveryOrderLine = (DeliveryOrderLine) SerializationUtils.clone(orderLine);
+    }
+
+    public void onRowEdit(int index) {
+        deliveryOrderLines.get(index).setQuantity(JsfUtil.round(deliveryOrderLines.get(index).getQuantity(), deliveryOrderLines.get(index).getProduct().getUom().getDecimals()));
+
+        if (deliveryOrderLines.get(index).getQuantity() == 0d) {
+            deliveryOrderLines.get(index).setQuantity(1d);
+        }
+    }
+
+    public void onRowCancel(int index) {
+        deliveryOrderLines.remove(index);
+        deliveryOrderLines.add(index, deliveryOrderLine);
+        deliveryOrderLine = new DeliveryOrderLine();
+        if (topNActivePurchasedProducts != null && !topNActivePurchasedProducts.isEmpty()) {
+            deliveryOrderLine.setProduct(topNActivePurchasedProducts.get(0));
+            deliveryOrderLine.setUom(deliveryOrderLine.getProduct().getUom().getName());
+        }
+        deliveryOrderLine.setState(Status.NEW.value());
+    }
+
+    public void onRowCancel() {
+        deliveryOrderLine = new DeliveryOrderLine();
+        if (topNActivePurchasedProducts != null && !topNActivePurchasedProducts.isEmpty()) {
+            deliveryOrderLine.setProduct(topNActivePurchasedProducts.get(0));
+            deliveryOrderLine.setUom(deliveryOrderLine.getProduct().getUom().getName());
+        }
+        deliveryOrderLine.setState(Status.NEW.value());
+    }
+
+    public void onProductChange() {
+        deliveryOrderLine.setUom(deliveryOrderLine.getProduct().getUom().getName());
+    }
+
+    public void onProductChange(int rowIndex) {
+        deliveryOrderLines.get(rowIndex).setUom(deliveryOrderLines.get(rowIndex).getProduct().getUom().getName());
+    }
+
+    private void loadActiveVendors() {
+        query = PartnerQueryBuilder.getFindActiveVendorsQuery();
+        activeVendors = super.findWithQuery(query);
+
+        if (activeVendors != null && activeVendors.size() > MAX_DROPDOWN_ITEMS) {
+            topNActiveVendors = activeVendors.subList(0, MAX_DROPDOWN_ITEMS);
+        } else {
+            topNActiveVendors = activeVendors;
+        }
+    }
+
+    private void loadActivePurchasedProducts() {
+        query = ProductQueryBuilder.getFindActivePurchasedProductsQuery();
+        activePurchasedProducts = super.findWithQuery(query);
+
+        if (activePurchasedProducts != null && activePurchasedProducts.size() > MAX_DROPDOWN_ITEMS) {
+            topNActivePurchasedProducts = activePurchasedProducts.subList(0, MAX_DROPDOWN_ITEMS);
+        } else {
+            topNActivePurchasedProducts = activePurchasedProducts;
+        }
+    }
+
+    public List<Partner> getTopNActiveVendors() {
+        return topNActiveVendors;
+    }
+
+    public List<Partner> getActiveVendors() {
+        return activeVendors;
+    }
+
+    public List<Partner> getFilteredActiveVendors() {
+        return filteredActiveVendors;
+    }
+
+    public List<Product> getTopNActivePurchasedProducts() {
+        return topNActivePurchasedProducts;
+    }
+
+    public List<Product> getActivePurchasedProducts() {
+        return activePurchasedProducts;
+    }
+
+    public List<Product> getFilteredActivePurchasedProducts() {
+        return filteredActivePurchasedProducts;
     }
 
     public Partner getSupplier() {
@@ -1042,78 +1090,93 @@ public class SupDeliveryOrderController implements Serializable {
         this.product = product;
     }
 
-    public void onDialogRowEdit(int Index) {
-        tobeDeliveredOrderLines.get(Index).setQuantity(JsfUtil.round(tobeDeliveredOrderLines.get(Index).getQuantity(), tobeDeliveredOrderLines.get(Index).getProduct().getUom().getDecimals()));
-        
-        if (tobeDeliveredOrderLines.get(Index).getQuantity() == 0d) {
-            tobeDeliveredOrderLines.get(Index).setQuantity(1d);
+    public DeliveryOrder getDeliveryOrder() {
+        if (deliveryOrder == null) {
+            return deliveryOrder = new DeliveryOrder();
         }
+        return deliveryOrder;
     }
 
-    public void onDialogRowCancel() {
-
+    public void setDeliveryOrder(DeliveryOrder deliveryOrder) {
+        this.deliveryOrder = deliveryOrder;
     }
 
-    public void onRowAdd() {
-        deliveryOrderLine.setQuantity(JsfUtil.round(deliveryOrderLine.getQuantity(), deliveryOrderLine.getProduct().getUom().getDecimals()));
-        
-        if (deliveryOrderLine.getQuantity() == 0d) {
-            deliveryOrderLine.setQuantity(1d);
+    public DeliveryOrderLine getDeliveryOrderLine() {
+        if (deliveryOrderLine == null) {
+            deliveryOrderLine = new DeliveryOrderLine();
         }
-        
-        deliveryOrderLines.add(deliveryOrderLine);
-        deliveryOrderLine = new DeliveryOrderLine();
-        if (topPurchasedNProducts != null && !topPurchasedNProducts.isEmpty()) {
-            deliveryOrderLine.setProduct(topPurchasedNProducts.get(0));
-            deliveryOrderLine.setUom(topPurchasedNProducts.get(0).getUom().getName());
+        return deliveryOrderLine;
+    }
+
+    public void setDeliveryOrderLine(DeliveryOrderLine deliveryOrderLine) {
+        this.deliveryOrderLine = deliveryOrderLine;
+    }
+
+    public List<DeliveryOrder> getDeliveryOrders() {
+        return deliveryOrders;
+    }
+
+    public void setDeliveryOrders(List<DeliveryOrder> deliveryOrders) {
+        this.deliveryOrders = deliveryOrders;
+    }
+
+    public List<DeliveryOrder> getFilteredDeliveryOrders() {
+        return filteredDeliveryOrders;
+    }
+
+    public void setFilteredDeliveryOrders(List<DeliveryOrder> filteredDeliveryOrders) {
+        this.filteredDeliveryOrders = filteredDeliveryOrders;
+    }
+
+    public List<DeliveryOrderLine> getDeliveryOrderLines() {
+        if (deliveryOrderLines == null) {
+            deliveryOrderLines = new ArrayList<>();
         }
-        deliveryOrderLine.setState(Status.NEW.value());
+        return deliveryOrderLines;
     }
 
-    public void onRowDelete(int Index) {
-        if (Index >= 0 && Index < deliveryOrderLines.size()) {
-            deliveryOrderLines.remove(Index);
-        }
+    public void setDeliveryOrderLines(List<DeliveryOrderLine> deliveryOrderLines) {
+        this.deliveryOrderLines = deliveryOrderLines;
     }
 
-    public void onRowEditInit(DeliveryOrderLine orderLine) {
-        deliveryOrderLine = (DeliveryOrderLine) SerializationUtils.clone(orderLine);
+    public List<DeliveryOrderLine> getTobeDeliveredOrderLines() {
+        return tobeDeliveredOrderLines;
     }
 
-    public void onRowEdit(int index) {
-        deliveryOrderLines.get(index).setQuantity(JsfUtil.round(deliveryOrderLines.get(index).getQuantity(), deliveryOrderLines.get(index).getProduct().getUom().getDecimals()));
-        
-        if (deliveryOrderLines.get(index).getQuantity() == 0d) {
-            deliveryOrderLines.get(index).setQuantity(1d);
-        }
+    public void setTobeDeliveredOrderLines(List<DeliveryOrderLine> tobeDeliveredOrderLines) {
+        this.tobeDeliveredOrderLines = tobeDeliveredOrderLines;
     }
 
-    public void onRowCancel(int index) {
-        deliveryOrderLines.remove(index);
-        deliveryOrderLines.add(index, deliveryOrderLine);
-        deliveryOrderLine = new DeliveryOrderLine();
-        if (topPurchasedNProducts != null && !topPurchasedNProducts.isEmpty()) {
-            deliveryOrderLine.setProduct(topPurchasedNProducts.get(0));
-            deliveryOrderLine.setUom(deliveryOrderLine.getProduct().getUom().getName());
-        }
-        deliveryOrderLine.setState(Status.NEW.value());
+    public String getPurchaseId() {
+        return purchaseId;
     }
 
-    public void onRowCancel() {
-        deliveryOrderLine = new DeliveryOrderLine();
-        if (topPurchasedNProducts != null && !topPurchasedNProducts.isEmpty()) {
-            deliveryOrderLine.setProduct(topPurchasedNProducts.get(0));
-            deliveryOrderLine.setUom(deliveryOrderLine.getProduct().getUom().getName());
-        }
-        deliveryOrderLine.setState(Status.NEW.value());
+    public void setPurchaseId(String purchaseId) {
+        this.purchaseId = purchaseId;
     }
 
-    public void onProductChange() {
-        deliveryOrderLine.setUom(deliveryOrderLine.getProduct().getUom().getName());
+    public String getDeliveryId() {
+        return deliveryId;
     }
 
-    public void onProductChange(int rowIndex) {
-        deliveryOrderLines.get(rowIndex).setUom(deliveryOrderLines.get(rowIndex).getProduct().getUom().getName());
+    public void setDeliveryId(String deliveryId) {
+        this.deliveryId = deliveryId;
+    }
+
+    public String getPartnerId() {
+        return partnerId;
+    }
+
+    public void setPartnerId(String partnerId) {
+        this.partnerId = partnerId;
+    }
+
+    public String getListType() {
+        return listType;
+    }
+
+    public void setListType(String listType) {
+        this.listType = listType;
     }
 
 }
