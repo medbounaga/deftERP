@@ -1,7 +1,7 @@
 package com.defterp.modules.inventory.converters;
 
 import com.defterp.modules.inventory.entities.ProductUom;
-import com.casa.erp.dao.ProductUomFacade;
+import com.defterp.dataAccess.GenericDAO;
 import com.defterp.util.JsfUtil;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,33 +12,32 @@ import javax.faces.convert.Converter;
 import javax.faces.convert.FacesConverter;
 
 /**
- * 
+ *
  * @author MOHAMMED BOUNAGA
- * 
+ *
  * github.com/medbounaga
  */
-
 @FacesConverter(value = "productUomConverter")
 public class ProductUomConverter implements Converter {
 
     @Inject
-    private ProductUomFacade ejbFacade;
+    private GenericDAO dataAccess;
 
     @Override
     public Object getAsObject(FacesContext facesContext, UIComponent component, String value) {
         if (value == null || value.length() == 0 || JsfUtil.isDummySelectItem(component, value)) {
             return null;
         }
-        return this.ejbFacade.find(getKey(value));
+        return dataAccess.findById(getKey(value), ProductUom.class);
     }
 
-    java.lang.Integer getKey(String value) {
-        java.lang.Integer key;
+    private Integer getKey(String value) {
+        Integer key;
         key = Integer.valueOf(value);
         return key;
     }
 
-    String getStringKey(java.lang.Integer value) {
+    private String getStringKey(Integer value) {
         StringBuffer sb = new StringBuffer();
         sb.append(value);
         return sb.toString();
@@ -46,8 +45,7 @@ public class ProductUomConverter implements Converter {
 
     @Override
     public String getAsString(FacesContext facesContext, UIComponent component, Object object) {
-        if (object == null
-                || (object instanceof String && ((String) object).length() == 0)) {
+        if (object == null || (object instanceof String && ((String) object).length() == 0)) {
             return null;
         }
         if (object instanceof ProductUom) {
