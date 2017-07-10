@@ -5,10 +5,17 @@ import static com.defterp.translation.annotations.Countries.Version.SECOND;
 import com.defterp.util.JsfUtil;
 import com.defterp.modules.accounting.entities.Account;
 import com.defterp.modules.partners.entities.Partner;
-import com.casa.erp.dao.PartnerFacade;
+import com.defterp.modules.accounting.queryBuilders.AccountQueryBuilder;
+import com.defterp.modules.accounting.queryBuilders.InvoiceQueryBuilder;
+import com.defterp.modules.accounting.queryBuilders.PaymentQueryBuilder;
+import com.defterp.modules.commonClasses.AbstractController;
+import com.defterp.modules.commonClasses.QueryWrapper;
+import com.defterp.modules.inventory.queryBuilders.DeliveryOrderQueryBuilder;
+import com.defterp.modules.partners.queryBuilders.PartnerQueryBuilder;
+import com.defterp.modules.purchases.queryBuilders.PurchaseOrderQueryBuilder;
+import com.defterp.modules.sales.queryBuilders.SaleOrderQueryBuilder;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,12 +37,11 @@ import org.apache.commons.lang.StringUtils;
  *
  * github.com/medbounaga
  */
+
 @Named(value = "vendorController")
 @ViewScoped
-public class VendorController implements Serializable {
+public class VendorController extends AbstractController {
 
-    @Inject
-    private PartnerFacade partnerFacade;
     @Inject
     @Countries(version = SECOND)
     private HashMap<String, String> countries;
@@ -43,13 +49,26 @@ public class VendorController implements Serializable {
     private List<Partner> partners;
     private List<Partner> filteredPartners;
     private String partnerId;
-    private String partnerType = "Vendor";
+    private String partnerType;
     private String searchKey;
-    boolean isGridView = true;
-    private String currentForm = "/sc/supplier/View.xhtml";
-    private String currentList = "/sc/supplier/Grid.xhtml";
+    boolean isGridView;
+    private String currentForm;
+    private String currentList;
     private Part image;
     private boolean imageModified;
+    private QueryWrapper query;
+
+    public VendorController() {
+
+        super("/sc/supplier/");
+
+        currentList = super.GRID_URL;
+        currentForm = super.VIEW_URL;
+
+        isGridView = true;
+
+        partnerType = "Vendor";
+    }
 
     public void setImage(Part image) {
         if (image != null) {
@@ -71,16 +90,18 @@ public class VendorController implements Serializable {
     public void deleteVendor() {
 
         if (vendorExist(partner.getId())) {
-            try {
-                partnerFacade.remove(partner);
-            } catch (Exception e) {
+            
+            boolean deleted = super.deleteItem(partner);
+            
+            if (deleted) {
+                JsfUtil.addSuccessMessage("ItemDeleted");
+                currentForm = VIEW_URL;
+                showVendors();
+                
+            } else {
                 partner.setCountry(countries.get(partner.getCountry()));
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
-                return;
             }
-
-            JsfUtil.addSuccessMessage("ItemDeleted");
-            showVendors();
         }
     }
 
@@ -91,13 +112,18 @@ public class VendorController implements Serializable {
         partner.setSupplier(Boolean.TRUE);
         partner.setCreateDate(new Date());
         partner.setActive(Boolean.TRUE);
-        currentForm = "/sc/supplier/Create.xhtml";
+        currentForm = CREATE_URL;
 
-        accounts = partnerFacade.findByType("Receivable");
+        query = AccountQueryBuilder.getFindByTypeQuery("Receivable");
+        accounts = super.findWithQuery(query);
+        
         if (accounts != null && !accounts.isEmpty()) {
             partner.setAccountReceivable(accounts.get(0));
         }
-        accounts = partnerFacade.findByType("Payable");
+        
+        query = AccountQueryBuilder.getFindByTypeQuery("Payable");
+        accounts = super.findWithQuery(query);
+        
         if (accounts != null && !accounts.isEmpty()) {
             partner.setAccountPayable(accounts.get(0));
         }
@@ -106,7 +132,7 @@ public class VendorController implements Serializable {
     public void prepareEditSupplier() {
         if (vendorExist(partner.getId())) {
             imageModified = false;
-            currentForm = "/sc/supplier/Edit.xhtml";
+            currentForm = EDIT_URL;
         }
     }
 
@@ -128,7 +154,7 @@ public class VendorController implements Serializable {
             }
 
             if (partners != null && !partners.isEmpty()) {
-                currentForm = "/sc/supplier/View.xhtml";
+                currentForm = VIEW_URL;
             }
         }
     }
@@ -137,114 +163,121 @@ public class VendorController implements Serializable {
         if (!vendorExistTwo(partner.getId())) {
             JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorProceedEdit");
         } else if (partner != null) {
-            partner = partnerFacade.update(partner);
+            partner = super.updateItem(partner);
             partner.setCountry(countries.get(partner.getCountry()));
             partners.set(partners.indexOf(partner), partner);
         }
-        currentForm = "/sc/supplier/View.xhtml";
+        currentForm = VIEW_URL;
     }
 
     public Long countSaleOrders() {
         if (partner != null) {
-            return partnerFacade.countSalesOrders(partner.getId());
+            query = SaleOrderQueryBuilder.getCountByCustomerQuery(partner.getId());
+            return (Long) super.findSingleWithQuery(query);
         }
         return 0L;
     }
 
     public Long countSaleOrders(Integer partnerId) {
         if (partnerId != null) {
-            return partnerFacade.countSalesOrders(partnerId);
+            query = SaleOrderQueryBuilder.getCountByCustomerQuery(partnerId);
+            return (Long) super.findSingleWithQuery(query);
         }
         return 0L;
     }
 
     public Long countPurchaseOrders() {
         if (partner != null) {
-            return partnerFacade.countPurchaseOrders(partner.getId());
+            query = PurchaseOrderQueryBuilder.getCountByVendorQuery(partner.getId());
+            return (Long) super.findSingleWithQuery(query);
         }
         return 0L;
     }
 
     public Long countPurchaseOrders(Integer partnerId) {
         if (partnerId != null) {
-            return partnerFacade.countPurchaseOrders(partnerId);
+            query = PurchaseOrderQueryBuilder.getCountByVendorQuery(partnerId);
+            return (Long) super.findSingleWithQuery(query);
         }
         return 0L;
     }
 
     public Long countCustomerInvoices() {
         if (partner != null) {
-            return partnerFacade.countInvoices(partner.getId(), "Sale");
+            query = InvoiceQueryBuilder.getCountByCustomerQuery(partner.getId());
+            return (Long) super.findSingleWithQuery(query);
         }
         return 0L;
     }
 
     public Long countSupplierInvoices() {
         if (partner != null) {
-            return partnerFacade.countInvoices(partner.getId(), "Purchase");
-        }
-        return 0L;
-    }
-
-    public Long countJournalEntries() {
-        if (partner != null) {
-            return partnerFacade.countJournalEntries(partner.getId());
+            query = InvoiceQueryBuilder.getCountByVendorQuery(partner.getId());
+            return (Long) super.findSingleWithQuery(query);
         }
         return 0L;
     }
 
     public Long countInShipments() {
         if (partner != null) {
-            return partnerFacade.countShipments(partner.getId(), "Purchase");
+            query = DeliveryOrderQueryBuilder.getCountByVendorQuery(partner.getId());
+            return (Long) super.findSingleWithQuery(query);
         }
         return 0L;
     }
 
     public Long countOutShipments() {
         if (partner != null) {
-            return partnerFacade.countShipments(partner.getId(), "Sale");
+            query = DeliveryOrderQueryBuilder.getCountByCustomerQuery(partner.getId());
+            return (Long) super.findSingleWithQuery(query);
         }
         return 0L;
     }
 
     public Long countCustomerPayments() {
         if (partner != null) {
-            return partnerFacade.countPayments(partner.getId(), "customer");
+            query = PaymentQueryBuilder.getCountByCustomerQuery(partner.getId());
+            return (Long) super.findSingleWithQuery(query);
         }
         return 0L;
     }
 
     public Long countSupplierPayments() {
         if (partner != null) {
-            return partnerFacade.countPayments(partner.getId(), "supplier");
+            query = PaymentQueryBuilder.getCountByVendorQuery(partner.getId());
+            return (Long) super.findSingleWithQuery(query);
         }
         return 0L;
     }
 
     public Double getTotalPayables(Integer partnerId) {
         if (partnerId != null) {
-            return partnerFacade.getTotalDueAmount(partnerId, "Purchase");
+            query = InvoiceQueryBuilder.getTotalDueAmountByVendorQuery(partnerId);
+            return (Double) super.findSingleWithQuery(query);
         }
         return 0d;
     }
 
     public Double getTotalReceivales(Integer partnerId) {
         if (partnerId != null) {
-            return partnerFacade.getTotalDueAmount(partnerId, "Sale");
+            query = InvoiceQueryBuilder.getTotalDueAmountByCustomerQuery(partnerId);
+            return (Double) super.findSingleWithQuery(query);
         }
         return 0d;
     }
 
     public Double getTotalPayables() {
         if (partner != null) {
-            return partnerFacade.getTotalDueAmount(partner.getId(), "Purchase");
+            query = InvoiceQueryBuilder.getTotalDueAmountByVendorQuery(partner.getId());
+            return (Double) super.findSingleWithQuery(query);
         }
         return 0d;
     }
 
     public Double getTotalReceivales() {
         if (partner != null) {
-            return partnerFacade.getTotalDueAmount(partner.getId(), "Sale");
+            query = InvoiceQueryBuilder.getTotalDueAmountByCustomerQuery(partner.getId());
+            return (Double) super.findSingleWithQuery(query);
         }
         return 0d;
     }
@@ -268,6 +301,7 @@ public class VendorController implements Serializable {
 
     public void prepareViewPartner() {
         if (vendorExist(partner.getId())) {
+
             partners = null;
             filteredPartners = null;
 
@@ -284,7 +318,7 @@ public class VendorController implements Serializable {
             }
 
             if (partners != null && !partners.isEmpty()) {
-                currentForm = "/sc/supplier/View.xhtml";
+                currentForm = VIEW_URL;
             }
         }
     }
@@ -309,7 +343,7 @@ public class VendorController implements Serializable {
             }
 
             if (partners != null && !partners.isEmpty()) {
-                currentForm = "/sc/supplier/View.xhtml";
+                currentForm = VIEW_URL;
             }
         }
     }
@@ -318,15 +352,15 @@ public class VendorController implements Serializable {
 
         if (JsfUtil.isNumeric(partnerId)) {
             Integer id = Integer.valueOf(partnerId);
-            partner = partnerFacade.find(id);
+            partner = super.findItemById(id, Partner.class);
             if (partner != null) {
                 partner.setCountry(countries.get(partner.getCountry()));
                 partners = getSuppliers();
                 if (!partners.contains(partner)) {
                     partners.add(partner);
                 }
-                currentForm = "/sc/supplier/View.xhtml";
-                currentList = "/sc/supplier/Grid.xhtml";
+                currentForm = VIEW_URL;
+                currentList = GRID_URL;
                 return;
             }
         }
@@ -336,8 +370,8 @@ public class VendorController implements Serializable {
         if (!partners.isEmpty()) {
             partner = partners.get(0);
         }
-        currentForm = "/sc/supplier/View.xhtml";
-        currentList = "/sc/supplier/Grid.xhtml";
+        currentForm = VIEW_URL;
+        currentList = GRID_URL;
     }
 
     private void replaceCountryCodeWithName() {
@@ -353,13 +387,13 @@ public class VendorController implements Serializable {
 
             partner.setCredit(0d);
             partner.setDebit(0d);
-            partner = partnerFacade.create(partner);
+            partner = super.createItem(partner);
             partner.setCountry(countries.get(partner.getCountry()));
             partners.add(partner);
-            currentForm = "/sc/supplier/View.xhtml";
+            currentForm = VIEW_URL;
         }
     }
-    
+
     public void cancelCreate() {
 
         partners = null;
@@ -373,13 +407,13 @@ public class VendorController implements Serializable {
                 partners = getPartners();
                 break;
             default:
-                partners =  getSuppliers();
+                partners = getSuppliers();
                 break;
         }
 
         if (partners != null && !partners.isEmpty()) {
             partner = partners.get(0);
-            currentForm = "/sc/supplier/View.xhtml";
+            currentForm = VIEW_URL;
         }
     }
 
@@ -420,9 +454,9 @@ public class VendorController implements Serializable {
         updatePartnerType();
 
         if (isGridView) {
-            currentList = "/sc/supplier/Grid.xhtml";
+            currentList = GRID_URL;
         } else {
-            currentList = "/sc/supplier/List.xhtml";
+            currentList = LIST_URL;
         }
     }
 
@@ -530,7 +564,7 @@ public class VendorController implements Serializable {
 
     private boolean vendorExist(Integer id) {
         if (id != null) {
-            partner = partnerFacade.find(id);
+            partner = super.findItemById(id, Partner.class);
             if (partner == null) {
                 JsfUtil.addWarningMessage("ItemDoesNotExist");
                 showVendors();
@@ -547,7 +581,7 @@ public class VendorController implements Serializable {
 
     private boolean vendorExistTwo(Integer id) {
         if (id != null) {
-            Partner partner = partnerFacade.find(id);
+            Partner partner = super.findItemById(id, Partner.class);
             return partner != null;
         }
         return false;
@@ -555,23 +589,32 @@ public class VendorController implements Serializable {
 
     public List<Partner> getSuppliers() {
         if (partners == null) {
-            partners = partnerFacade.findSuppliers();
+            
+            query = PartnerQueryBuilder.getFindVendorsQuery();
+            partners = super.findWithQuery(query);
+            
             replaceCountryCodeWithName();
+            
             filteredPartners = new ArrayList<>();
             filteredPartners.addAll(partners);
+            
             partnerType = "Vendor";
         }
         return partners;
     }
 
-
     public List<Partner> getCustomers() {
 
         if (partners == null) {
-            partners = partnerFacade.findCustomers();
+            
+            query = PartnerQueryBuilder.getFindCustomersQuery();
+            partners = super.findWithQuery(query);
+            
             replaceCountryCodeWithName();
+            
             filteredPartners = new ArrayList<>();
             filteredPartners.addAll(partners);
+            
             partnerType = "Customer";
         }
         return partners;
@@ -579,10 +622,15 @@ public class VendorController implements Serializable {
 
     public List<Partner> getPartners() {
         if (partners == null) {
-            partners = partnerFacade.findAll();
+            
+            query = PartnerQueryBuilder.getFindPartnersQuery();
+            partners = super.findWithQuery(query);
+            
             replaceCountryCodeWithName();
+            
             filteredPartners = new ArrayList<>();
             filteredPartners.addAll(partners);
+            
             partnerType = "Partner";
         }
         return partners;
