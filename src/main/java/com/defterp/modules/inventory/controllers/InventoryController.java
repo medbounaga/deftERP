@@ -2,35 +2,37 @@ package com.defterp.modules.inventory.controllers;
 
 import com.defterp.util.JsfUtil;
 import com.defterp.modules.inventory.entities.Inventory;
-import com.casa.erp.dao.InventoryFacade;
+import com.defterp.modules.commonClasses.AbstractController;
+import com.defterp.modules.commonClasses.QueryWrapper;
+import com.defterp.modules.inventory.queryBuilders.InventoryQueryBuilder;
 import com.defterp.validators.annotations.StrictlyPositiveNumber;
-import java.io.Serializable;
 import java.util.List;
 import javax.faces.context.FacesContext;
 import javax.inject.Named;
 import javax.faces.view.ViewScoped;
-import javax.inject.Inject;
 
 /**
- * 
+ *
  * @author MOHAMMED BOUNAGA
- * 
+ *
  * github.com/medbounaga
  */
 
 @Named(value = "inventoryController")
 @ViewScoped
-public class InventoryController implements Serializable {
+public class InventoryController extends AbstractController {
 
-    @Inject
-    private InventoryFacade inventoryFacade;
-    private List<Inventory> inventory;
-    private Inventory productInventory;
     @StrictlyPositiveNumber(message = "{PositiveQuantity}")
     private Double newQuantityOnHand;
+    private List<Inventory> inventory;
+    private Inventory productInventory;
     private String inventoryId;
     private List<Inventory> filteredInventory;
-    private String currentForm = "/sc/inventory/View.xhtml";
+    private QueryWrapper query;
+
+    public InventoryController() {
+        super("/sc/inventory/");
+    }
 
     public void prepareProductUpdate() {
         newQuantityOnHand = productInventory.getQuantityOnHand();
@@ -46,45 +48,39 @@ public class InventoryController implements Serializable {
 
             productInventory.setQuantityOnHand(newQuantityOnHand);
             productInventory.setTotalCost(JsfUtil.round(productInventory.getUnitCost() * productInventory.getQuantityOnHand()));
-            productInventory = inventoryFacade.update(productInventory);
+            productInventory = super.updateItem(productInventory);
             inventory.set(inventory.indexOf(productInventory), productInventory);
             newQuantityOnHand = null;
         }
     }
 
     public void resolveRequestParams() {
+
+        currentForm = VIEW_URL;
+
         if (JsfUtil.isNumeric(inventoryId)) {
             Integer id = Integer.valueOf(inventoryId);
-            productInventory = inventoryFacade.find(id);
+            productInventory = super.findItemById(id, Inventory.class);
             if (productInventory != null) {
-                inventory = inventoryFacade.findAll();
-                currentForm = "/sc/inventory/View.xhtml";
+                query = InventoryQueryBuilder.getFindAllInventoryQuery();
+                inventory = super.findWithQuery(query);
                 return;
             }
         }
 
-        inventory = inventoryFacade.findAll();
-        productInventory = inventory.get(0);
-        currentForm = "/sc/inventory/View.xhtml";
+        query = InventoryQueryBuilder.getFindAllInventoryQuery();
+        inventory = super.findWithQuery(query);
+
+        if ((inventory != null) && (!inventory.isEmpty())) {
+            productInventory = inventory.get(0);
+        }
     }
 
     public void prepareViewInventory() {
         if (productInventory != null) {
             if (inventoryExist(productInventory.getId())) {
-                currentForm = "/sc/inventory/View.xhtml";
+                currentForm = VIEW_URL;
             }
-        }
-    }
-
-    public void showInventoryList() {
-        productInventory = null;
-        currentForm = "/sc/inventory/List.xhtml";
-    }
-
-    public void showInventoryForm() {
-        if (inventory.size() > 0) {
-            productInventory = inventory.get(0);
-            currentForm = "/sc/inventory/View.xhtml";
         }
     }
 
@@ -113,25 +109,31 @@ public class InventoryController implements Serializable {
 
     private boolean inventoryExist(Integer id) {
         if (id != null) {
-            productInventory = inventoryFacade.find(id);
+            productInventory = super.findItemById(id, Inventory.class);
             if (productInventory == null) {
-                JsfUtil.addWarningMessage("ItemDoesNotExist");
-                inventory = null;
-                currentForm = "/sc/inventory/List.xhtml";
-                return false;
-            } else {
-                return true;
-            }
 
-        } else {
-            return false;
+                JsfUtil.addWarningMessage("ItemDoesNotExist");
+                currentForm = VIEW_URL;
+
+                if ((inventory != null) && (inventory.size() > 1)) {
+                    inventory.remove(productInventory);
+                    productInventory = inventory.get(0);
+                } else {
+                    query = InventoryQueryBuilder.getFindAllInventoryQuery();
+                    inventory = super.findWithQuery(query);
+                    if ((inventory != null) && (!inventory.isEmpty())) {
+                        productInventory = inventory.get(0);
+                    }
+                }
+
+                return false;
+            }
+            return true;
         }
+        return false;
     }
 
     public List<Inventory> getInventory() {
-        if (inventory == null) {
-            inventory = inventoryFacade.findAll();
-        }
         return inventory;
     }
 
@@ -153,14 +155,6 @@ public class InventoryController implements Serializable {
 
     public void setFilteredInventory(List<Inventory> filteredInventory) {
         this.filteredInventory = filteredInventory;
-    }
-
-    public String getCurrentForm() {
-        return currentForm;
-    }
-
-    public void setCurrentForm(String currentForm) {
-        this.currentForm = currentForm;
     }
 
     public String getInventoryId() {
