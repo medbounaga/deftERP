@@ -2,12 +2,12 @@ package com.defterp.modules.inventory.controllers;
 
 import com.defterp.util.JsfUtil;
 import com.defterp.modules.inventory.entities.ProductUom;
-import com.casa.erp.dao.ProductUomFacade;
-import java.io.Serializable;
+import com.defterp.modules.commonClasses.AbstractController;
+import com.defterp.modules.commonClasses.QueryWrapper;
+import com.defterp.modules.inventory.queryBuilders.ProductUomQueryBuilder;
 import java.util.List;
 import javax.inject.Named;
 import javax.faces.view.ViewScoped;
-import javax.inject.Inject;
 
 /**
  *
@@ -15,40 +15,45 @@ import javax.inject.Inject;
  *
  * github.com/medbounaga
  */
+
 @Named(value = "productUomController")
 @ViewScoped
-public class ProductUomController implements Serializable {
+public class ProductUomController extends AbstractController {
 
-    @Inject
-    private ProductUomFacade productUomFacade;
     private ProductUom productUom;
     private List<ProductUom> productUoms;
     private List<ProductUom> filteredProductUoms;
     private String productUomId;
-    private String decimals;
-    private String currentForm = "/sc/productUom/View.xhtml";
+    private QueryWrapper query;
+
+    public ProductUomController() {
+        super("/sc/productUom/");
+    }
 
     public void deleteProductUom() {
         if (productUomExist(productUom.getId())) {
-            try {
-                productUomFacade.remove(productUom);
-            } catch (Exception e) {
-                JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
-                return;
-            }
 
-            JsfUtil.addSuccessMessage("ItemDeleted");
-            currentForm = "/sc/productUom/View.xhtml";
+            boolean deleted = super.deleteItem(productUom);
 
-            if ((productUoms != null) && (productUoms.size() > 1)) {
-                productUoms.remove(productUom);
-                productUom = productUoms.get(0);
-            } else {
+            if (deleted) {
 
-                productUoms = productUomFacade.findAll();
-                if ((productUoms != null) && (!productUoms.isEmpty())) {
+                JsfUtil.addSuccessMessage("ItemDeleted");
+                currentForm = VIEW_URL;
+
+                if ((productUoms != null) && (productUoms.size() > 1)) {
+                    productUoms.remove(productUom);
                     productUom = productUoms.get(0);
+                } else {
+
+                    query = ProductUomQueryBuilder.getFindAllQuery();
+                    productUoms = super.findWithQuery(query);
+                    if ((productUoms != null) && (!productUoms.isEmpty())) {
+                        productUom = productUoms.get(0);
+                    }
                 }
+
+            } else {
+                JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
             }
 
         } else {
@@ -58,19 +63,20 @@ public class ProductUomController implements Serializable {
 
     public void cancelEditProductUom() {
         if (productUomExist(productUom.getId())) {
-            currentForm = "/sc/productUom/View.xhtml";
+            currentForm = VIEW_URL;
         }
     }
 
     public void cancelCreateProductUom() {
 
-        currentForm = "/sc/productUom/View.xhtml";
+        currentForm = VIEW_URL;
 
         if ((productUoms != null) && (!productUoms.isEmpty())) {
             productUom = productUoms.get(0);
         } else {
 
-            productUoms = productUomFacade.findAll();
+            query = ProductUomQueryBuilder.getFindAllQuery();
+            productUoms = super.findWithQuery(query);
 
             if ((productUoms != null) && (!productUoms.isEmpty())) {
                 productUom = productUoms.get(0);
@@ -80,26 +86,29 @@ public class ProductUomController implements Serializable {
 
     public void updateProductUom() {
         if (productUomExistTwo(productUom.getId())) {
-            productUom = productUomFacade.update(productUom);
-            productUoms = productUomFacade.findAll();
-            currentForm = "/sc/productUom/View.xhtml";
+            productUom = super.updateItem(productUom);
+            query = ProductUomQueryBuilder.getFindAllQuery();
+            productUoms = super.findWithQuery(query);
+            currentForm = VIEW_URL;
         }
     }
 
     private boolean productUomExistTwo(Integer id) {
         if (id != null) {
-            ProductUom prodUom = productUomFacade.find(id);
+            ProductUom prodUom = super.findItemById(id, ProductUom.class);
             if (prodUom == null) {
 
                 JsfUtil.addWarningMessage("ItemDoesNotExist");
-                currentForm = "/sc/productUom/View.xhtml";
+                currentForm = VIEW_URL;
 
                 if ((productUoms != null) && (productUoms.size() > 1)) {
                     productUoms.remove(productUom);
                     productUom = productUoms.get(0);
                 } else {
 
-                    productUoms = productUomFacade.findAll();
+                    query = ProductUomQueryBuilder.getFindAllQuery();
+                    productUoms = super.findWithQuery(query);
+                    
                     if ((productUoms != null) && (!productUoms.isEmpty())) {
                         productUom = productUoms.get(0);
                     }
@@ -117,23 +126,27 @@ public class ProductUomController implements Serializable {
     public void prepareCreateProductUom() {
         productUom = new ProductUom();
         productUom.setActive(Boolean.TRUE);
-        currentForm = "/sc/productUom/Create.xhtml";
+        currentForm = CREATE_URL;
     }
 
     public void resolveRequestParams() {
 
-        currentForm = "/sc/productUom/View.xhtml";
+        currentForm = VIEW_URL;
 
         if (JsfUtil.isNumeric(productUomId)) {
             Integer id = Integer.valueOf(productUomId);
-            productUom = productUomFacade.find(id);
+            productUom = super.findItemById(id, ProductUom.class);
             if (productUom != null) {
-                productUoms = productUomFacade.findAll();
+                
+                query = ProductUomQueryBuilder.getFindAllQuery();
+                productUoms = super.findWithQuery(query);
                 return;
             }
         }
 
-        productUoms = productUomFacade.findAll();
+        query = ProductUomQueryBuilder.getFindAllQuery();
+        productUoms = super.findWithQuery(query);
+        
         if (productUoms != null && !productUoms.isEmpty()) {
             productUom = productUoms.get(0);
         }
@@ -141,35 +154,37 @@ public class ProductUomController implements Serializable {
 
     public void createProductUom() {
         if (productUom != null) {
-            productUom = productUomFacade.create(productUom);
+            productUom = super.createItem(productUom);
             if (productUoms != null && !productUoms.isEmpty()) {
                 productUoms.add(productUom);
             } else {
 
-                productUoms = productUomFacade.findAll();
+                query = ProductUomQueryBuilder.getFindAllQuery();
+                productUoms = super.findWithQuery(query);
             }
-            currentForm = "/sc/productUom/View.xhtml";
+            currentForm = VIEW_URL;
         }
     }
 
     public void prepareEditProductUom() {
         if (productUomExist(productUom.getId())) {
-            currentForm = "/sc/productUom/Edit.xhtml";
+            currentForm = EDIT_URL;
         }
     }
 
     private boolean productUomExist(Integer id) {
         if (id != null) {
-            productUom = productUomFacade.find(id);
+            productUom = super.findItemById(id, ProductUom.class);
             if (productUom == null) {
                 JsfUtil.addWarningMessage("ItemDoesNotExist");
-                currentForm = "/sc/productUom/View.xhtml";
+                currentForm = VIEW_URL;
 
                 if ((productUoms != null) && (productUoms.size() > 1)) {
                     productUoms.remove(productUom);
                     productUom = productUoms.get(0);
                 } else {
-                    productUoms = productUomFacade.findAll();
+                    query = ProductUomQueryBuilder.getFindAllQuery();
+                    productUoms = super.findWithQuery(query);
                     if ((productUoms != null) && (!productUoms.isEmpty())) {
                         productUom = productUoms.get(0);
                     }
@@ -188,7 +203,7 @@ public class ProductUomController implements Serializable {
 
         if (productUom != null) {
             if (productUomExist(productUom.getId())) {
-                currentForm = "/sc/productUom/View.xhtml";
+                currentForm = VIEW_URL;
             }
         }
     }
@@ -217,15 +232,13 @@ public class ProductUomController implements Serializable {
     }
 
     public List<ProductUom> getProductUoms() {
-        if (productUoms == null) {
-            productUoms = productUomFacade.findAll();
-        }
         return productUoms;
     }
 
     public List<ProductUom> getActiveUoms() {
         if (productUoms == null) {
-            productUoms = productUomFacade.findActiveUoms();
+            query = ProductUomQueryBuilder.getFindActiveProductUomsQuery();
+            productUoms = super.findWithQuery(query);
         }
         return productUoms;
     }
@@ -248,14 +261,6 @@ public class ProductUomController implements Serializable {
 
     public void setProductUomId(String productUomId) {
         this.productUomId = productUomId;
-    }
-
-    public String getCurrentForm() {
-        return currentForm;
-    }
-
-    public void setCurrentForm(String currentForm) {
-        this.currentForm = currentForm;
     }
 
     public ProductUom getProductUom() {
