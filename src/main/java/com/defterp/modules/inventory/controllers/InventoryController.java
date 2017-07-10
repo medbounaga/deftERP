@@ -62,13 +62,13 @@ public class InventoryController extends AbstractController {
             Integer id = Integer.valueOf(inventoryId);
             productInventory = super.findItemById(id, Inventory.class);
             if (productInventory != null) {
-                query = InventoryQueryBuilder.getFindAllInventoryQuery();
+                query = InventoryQueryBuilder.getFindAllQuery();
                 inventory = super.findWithQuery(query);
                 return;
             }
         }
 
-        query = InventoryQueryBuilder.getFindAllInventoryQuery();
+        query = InventoryQueryBuilder.getFindAllQuery();
         inventory = super.findWithQuery(query);
 
         if ((inventory != null) && (!inventory.isEmpty())) {
@@ -119,7 +119,7 @@ public class InventoryController extends AbstractController {
                     inventory.remove(productInventory);
                     productInventory = inventory.get(0);
                 } else {
-                    query = InventoryQueryBuilder.getFindAllInventoryQuery();
+                    query = InventoryQueryBuilder.getFindAllQuery();
                     inventory = super.findWithQuery(query);
                     if ((inventory != null) && (!inventory.isEmpty())) {
                         productInventory = inventory.get(0);
