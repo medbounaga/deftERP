@@ -1,5 +1,6 @@
 package com.defterp.modules.sales.controllers;
 
+import com.defterp.modules.accounting.entities.Account;
 import com.defterp.translation.annotations.Countries;
 import static com.defterp.translation.annotations.Countries.Version.SECOND;
 import com.defterp.util.JsfUtil;
@@ -9,13 +10,21 @@ import com.defterp.modules.inventory.entities.DeliveryOrderLine;
 import com.defterp.modules.accounting.entities.Invoice;
 import com.defterp.modules.accounting.entities.InvoiceLine;
 import com.defterp.modules.accounting.entities.InvoiceTax;
+import com.defterp.modules.accounting.entities.Journal;
+import com.defterp.modules.accounting.queryBuilders.AccountQueryBuilder;
+import com.defterp.modules.accounting.queryBuilders.JournalQueryBuilder;
 import com.defterp.modules.partners.entities.Partner;
 import com.defterp.modules.inventory.entities.Product;
 import com.defterp.modules.sales.entities.SaleOrder;
 import com.defterp.modules.sales.entities.SaleOrderLine;
-import com.casa.erp.dao.SaleOrderFacade;
+import com.defterp.modules.commonClasses.AbstractController;
+import com.defterp.modules.commonClasses.QueryWrapper;
+import com.defterp.modules.inventory.queryBuilders.ProductQueryBuilder;
+import com.defterp.modules.partners.queryBuilders.PartnerQueryBuilder;
+import com.defterp.modules.sales.queryBuilders.SaleOrderLineQueryBuilder;
+import com.defterp.modules.sales.queryBuilders.SaleOrderQueryBuilder;
+import com.defterp.modules.commonClasses.IdGenerator;
 import java.io.IOException;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -26,10 +35,10 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.ResourceBundle;
 import javax.inject.Named;
-import javax.faces.view.ViewScoped;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
+import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -41,20 +50,10 @@ import net.sf.jasperreports.engine.JasperPrint;
 import org.apache.commons.lang.SerializationUtils;
 import org.primefaces.context.RequestContext;
 
-/**
- *
- * @author MOHAMMED BOUNAGA
- *
- * github.com/medbounaga
- */
-
-
 @Named(value = "saleOrderController")
 @ViewScoped
-public class SaleOrderController implements Serializable {
+public class SaleOrderController extends AbstractController {
 
-    @Inject
-    private SaleOrderFacade saleOrderFacade;
     @Inject
     @Status
     private HashMap<String, String> statuses;
@@ -79,12 +78,21 @@ public class SaleOrderController implements Serializable {
     private String partialListType;
     private int uninvoicedlines;
     private int rowIndex;
-    private List<Partner> topNCustomers;
+    private List<Partner> topNActiveCustomers;
+    private List<Partner> activeCustomers;
+    private List<Partner> filteredActiveCustomers;
+    private List<Product> topNActiveSoldProducts;
+    private List<Product> activeSoldProducts;
+    private List<Product> filteredActiveSoldProducts;
     private Partner customer;
-    private List<Product> topSoldNProducts;
     private Product product;
     private String currentForm = "/sc/saleOrder/View.xhtml";
     private String currentList = "/sc/saleOrder/List.xhtml";
+    private QueryWrapper query;
+
+    public SaleOrderController() {
+        super("/sc/saleOrder/");
+    }
 
     public String getCountry() {
 
@@ -97,8 +105,8 @@ public class SaleOrderController implements Serializable {
     }
 
     public void onSelectCustomer() {
-        if ((customer != null) && (!topNCustomers.contains(customer))) {
-            topNCustomers.add(customer);
+        if ((customer != null) && (!topNActiveCustomers.contains(customer))) {
+            topNActiveCustomers.add(customer);
         }
         saleOrder.setPartner(customer);
     }
@@ -106,8 +114,8 @@ public class SaleOrderController implements Serializable {
     public void onSelectProduct() {
 
         if ((product != null)) {
-            if (!topSoldNProducts.contains(product)) {
-                topSoldNProducts.add(product);
+            if (!topNActiveSoldProducts.contains(product)) {
+                topNActiveSoldProducts.add(product);
             }
 
             if (rowIndex < 0) {
@@ -147,12 +155,13 @@ public class SaleOrderController implements Serializable {
                     OrderLine.setSaleOrder(saleOrder);
                 }
                 saleOrder.setSaleOrderLines(saleOrderLines);
-                saleOrder = saleOrderFacade.update(saleOrder);
+                saleOrder = super.updateItem(saleOrder);
 
                 if (partialListType == null && saleOrders != null) {
                     saleOrders.set(saleOrders.indexOf(saleOrder), saleOrder);
                 } else {
-                    saleOrders = saleOrderFacade.findAll();
+                    query = SaleOrderQueryBuilder.getFindAllQuery();
+                    saleOrders = super.findWithQuery(query);
                     partialListType = null;
                 }
                 currentForm = "/sc/saleOrder/View.xhtml";
@@ -171,12 +180,16 @@ public class SaleOrderController implements Serializable {
 
             saleOrder.setState("Quotation");
             saleOrder.setSaleOrderLines(saleOrderLines);
-            saleOrder = saleOrderFacade.create(saleOrder);
+
+            saleOrder = super.createItem(saleOrder);
+            saleOrder.setName(IdGenerator.generateSaleId(saleOrder.getId()));
+            saleOrder = super.updateItem(saleOrder);
 
             if (partialListType == null && saleOrders != null) {
                 saleOrders.add(saleOrder);
             } else {
-                saleOrders = saleOrderFacade.findAll();
+                query = SaleOrderQueryBuilder.getFindAllQuery();
+                saleOrders = super.findWithQuery(query);
                 partialListType = null;
             }
 
@@ -188,24 +201,30 @@ public class SaleOrderController implements Serializable {
         if (saleOrderExist(id)) {
             if (saleOrder.getState().equals("Cancelled")) {
                 cancelRelations();
-                try {
-                    saleOrderFacade.remove(saleOrder);
-                } catch (Exception e) {
-                    System.out.println("Error Delete: " + e.getMessage());
-                    JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
-                    return;
-                }
 
-                if (saleOrders.size() > 1) {
-                    saleOrders.remove(saleOrder);
+                boolean deleted = super.deleteItem(saleOrder);
+
+                if (deleted) {
+
+                    JsfUtil.addSuccessMessage("ItemDeleted");
+                    currentForm = VIEW_URL;
+
+                    if (saleOrders != null && saleOrders.size() > 1) {
+                        saleOrders.remove(saleOrder);
+                        saleOrder = saleOrders.get(0);
+                    } else {
+                        partialListType = null;
+                        query = SaleOrderQueryBuilder.getFindAllQuery();
+                        saleOrders = super.findWithQuery(query);
+
+                        if (saleOrders != null && !saleOrders.isEmpty()) {
+                            saleOrder = saleOrders.get(0);
+                        }
+                    }
                 } else {
-                    saleOrders = saleOrderFacade.findAll();
-                    partialListType = null;
+                    JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
                 }
 
-                saleOrder = saleOrders.get(0);
-                JsfUtil.addSuccessMessage("ItemDeleted");
-                currentForm = "/sc/saleOrder/View.xhtml";
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete");
             }
@@ -216,7 +235,7 @@ public class SaleOrderController implements Serializable {
         if (!saleOrder.getInvoices().isEmpty()) {
             for (Invoice invoice : saleOrder.getInvoices()) {
                 invoice.setSaleOrder(null);
-                saleOrderFacade.update(invoice);
+                super.updateItem(invoice);
             }
             saleOrder.getInvoices().clear();
         }
@@ -224,7 +243,7 @@ public class SaleOrderController implements Serializable {
         if (!saleOrder.getDeliveryOrders().isEmpty()) {
             for (DeliveryOrder deliveryOrder : saleOrder.getDeliveryOrders()) {
                 deliveryOrder.setSaleOrder(null);
-                saleOrderFacade.update(deliveryOrder);
+                super.updateItem(deliveryOrder);
             }
             saleOrder.getDeliveryOrders().clear();
         }
@@ -255,8 +274,12 @@ public class SaleOrderController implements Serializable {
                 deliveryOrder.setDeliveryOrderLines(deliverOrderLines);
                 saleOrder.getDeliveryOrders().add(deliveryOrder);
                 saleOrder.setDeliveryCreated(true);
-                saleOrderFacade.create(deliveryOrder);
-                saleOrder = saleOrderFacade.update(saleOrder);
+
+                deliveryOrder = super.createItem(deliveryOrder);
+                deliveryOrder.setName(IdGenerator.generateDeliveryOutId(deliveryOrder.getId()));
+                super.updateItem(deliveryOrder);
+
+                saleOrder = super.updateItem(saleOrder);
                 saleOrders.set(saleOrders.indexOf(saleOrder), saleOrder);
 
             } else {
@@ -301,7 +324,17 @@ public class SaleOrderController implements Serializable {
             if (saleOrder.getState().equals("To Invoice") && saleOrder.getInvoiceMethod().equals("Partial")) {
                 refreshLinesToInvoice();
                 if (saleOrderLines != null && !saleOrderLines.isEmpty()) {
-                    invoice = new Invoice(new Date(), "Sale", saleOrder.getName(), "Draft", Boolean.TRUE, saleOrder.getPartner(), saleOrder, saleOrderFacade.findAccount("Account Receivable"), saleOrderFacade.findJournal("INV"));
+                    invoice = new Invoice(
+                            new Date(),
+                            "Sale",
+                            saleOrder.getName(),
+                            "Draft",
+                            Boolean.TRUE,
+                            saleOrder.getPartner(),
+                            saleOrder,
+                            (Account) super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Account Receivable")),
+                            (Journal) super.findSingleWithQuery(JournalQueryBuilder.getFindByCodeQuery("INV")));
+
                     SumUpInvoice();
                     invoiceLines = new ArrayList<>();
                     for (SaleOrderLine lineToInvoice : saleOrderLines) {
@@ -324,7 +357,7 @@ public class SaleOrderController implements Serializable {
                                         saleOrder.getPartner(),
                                         orderLine.getProduct(),
                                         orderLine.getTax(),
-                                        saleOrderFacade.findAccount("Product Sales")));
+                                        (Account) super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Product Sales"))));
                             }
                         }
                     }
@@ -338,13 +371,17 @@ public class SaleOrderController implements Serializable {
                     invoice.setInvoiceLines(invoiceLines);
                     generateInvoiceTaxes();
                     saleOrder.getInvoices().add(invoice);
-                    Integer InvId = saleOrderFacade.create(invoice).getId();
-                    saleOrder = saleOrderFacade.update(saleOrder);
+
+                    invoice = super.createItem(invoice);
+                    invoice.setName(IdGenerator.generateInvoiceId(invoice.getId()));
+                    invoice = super.updateItem(invoice);
+
+                    saleOrder = super.updateItem(saleOrder);
                     saleOrders.set(saleOrders.indexOf(saleOrder), saleOrder);
 
                     if (redirect) {
                         ExternalContext context = FacesContext.getCurrentInstance().getExternalContext();
-                        context.redirect(context.getRequestContextPath() + "/sc/invoice/index.xhtml?id=" + InvId);
+                        context.redirect(context.getRequestContextPath() + "/sc/invoice/index.xhtml?id=" + invoice.getId());
                     }
                 }
             } else {
@@ -452,7 +489,7 @@ public class SaleOrderController implements Serializable {
             if (saleOrder.getState().equals("Quotation")) {
                 System.out.println("----------is Quotation--------");
                 saleOrder.setState("To Invoice");
-                saleOrder = saleOrderFacade.update(saleOrder);
+                saleOrder = super.updateItem(saleOrder);
                 saleOrders.set(saleOrders.indexOf(saleOrder), saleOrder);
             } else {
                 System.out.println("----------already modified--------");
@@ -487,7 +524,7 @@ public class SaleOrderController implements Serializable {
 
                 if (canBeCancelled == true) {
                     saleOrder.setState("Cancelled");
-                    saleOrder = saleOrderFacade.update(saleOrder);
+                    saleOrder = super.updateItem(saleOrder);
                     saleOrders.set(saleOrders.indexOf(saleOrder), saleOrder);
                 }
             } else if (saleOrder.getState().equals("Done")) {
@@ -523,8 +560,8 @@ public class SaleOrderController implements Serializable {
 
         saleOrderLine = null;
         saleOrderLines = null;
-        topNCustomers = null;
-        topSoldNProducts = null;
+        topNActiveCustomers = null;
+        topNActiveSoldProducts = null;
 
         if (saleOrders != null && !saleOrders.isEmpty()) {
             saleOrder = saleOrders.get(0);
@@ -536,8 +573,8 @@ public class SaleOrderController implements Serializable {
 
         saleOrderLine = null;
         saleOrderLines = null;
-        topNCustomers = null;
-        topSoldNProducts = null;
+        topNActiveCustomers = null;
+        topNActiveSoldProducts = null;
 
         if (saleOrderExist(saleOrder.getId())) {
             currentForm = "/sc/saleOrder/View.xhtml";
@@ -555,12 +592,13 @@ public class SaleOrderController implements Serializable {
 
     public void showForm(Integer id) {
         if (id != null) {
-            saleOrder = saleOrderFacade.find(id);
+            saleOrder = super.findItemById(id, SaleOrder.class);
             if (saleOrder != null) {
                 partialListType = null;
                 saleOrderLines = null;
                 saleOrderLine = null;
-                saleOrders = saleOrderFacade.findAll();
+                query = SaleOrderQueryBuilder.getFindAllQuery();
+                saleOrders = super.findWithQuery(query);
                 currentForm = "/sc/saleOrder/View.xhtml";
             } else {
                 JsfUtil.addWarningMessage("ItemDoesNotExist");
@@ -579,8 +617,8 @@ public class SaleOrderController implements Serializable {
         saleOrder = null;
         saleOrderLine = null;
         saleOrderLines = null;
-        topNCustomers = null;
-        topSoldNProducts = null;
+        topNActiveCustomers = null;
+        topNActiveSoldProducts = null;
         currentForm = "/sc/saleOrder/List.xhtml";
     }
 
@@ -591,10 +629,12 @@ public class SaleOrderController implements Serializable {
         saleOrder.setDate(new Date());
         saleOrderLines = new ArrayList<>();
         saleOrderLine = new SaleOrderLine();
-        topNCustomers = saleOrderFacade.findTopNCustomers(4);
-        topSoldNProducts = saleOrderFacade.findTopNSoldProducts(4);
-        if (topSoldNProducts != null && !topSoldNProducts.isEmpty()) {
-            saleOrderLine.setProduct(topSoldNProducts.get(0));
+
+        loadActiveCustomers();
+        loadActiveSoldProducts();
+
+        if (topNActiveSoldProducts != null && !topNActiveSoldProducts.isEmpty()) {
+            saleOrderLine.setProduct(topNActiveSoldProducts.get(0));
             saleOrderLine.setPrice(saleOrderLine.getProduct().getSalePrice());
             saleOrderLine.setUom(saleOrderLine.getProduct().getUom().getName());
         }
@@ -609,21 +649,23 @@ public class SaleOrderController implements Serializable {
             if (saleOrder.getState().equals("Quotation")) {
                 saleOrderLine = new SaleOrderLine();
                 saleOrderLines = saleOrder.getSaleOrderLines();
-                topNCustomers = saleOrderFacade.findTopNCustomers(4);
-                topSoldNProducts = saleOrderFacade.findTopNSoldProducts(4);
-                if (topSoldNProducts != null && !topSoldNProducts.isEmpty()) {
-                    saleOrderLine.setProduct(topSoldNProducts.get(0));
+
+                loadActiveCustomers();
+                loadActiveSoldProducts();
+
+                if (topNActiveSoldProducts != null && !topNActiveSoldProducts.isEmpty()) {
+                    saleOrderLine.setProduct(topNActiveSoldProducts.get(0));
                     saleOrderLine.setPrice(saleOrderLine.getProduct().getSalePrice());
                     saleOrderLine.setUom(saleOrderLine.getProduct().getUom().getName());
                 }
 
-                if (!topNCustomers.contains(saleOrder.getPartner())) {
-                    topNCustomers.add(saleOrder.getPartner());
+                if (!topNActiveCustomers.contains(saleOrder.getPartner())) {
+                    topNActiveCustomers.add(saleOrder.getPartner());
                 }
 
                 for (SaleOrderLine orderLine : saleOrderLines) {
-                    if (!topSoldNProducts.contains(orderLine.getProduct())) {
-                        topSoldNProducts.add(orderLine.getProduct());
+                    if (!topNActiveSoldProducts.contains(orderLine.getProduct())) {
+                        topNActiveSoldProducts.add(orderLine.getProduct());
                     }
                 }
 
@@ -646,9 +688,10 @@ public class SaleOrderController implements Serializable {
 
         if (JsfUtil.isNumeric(saleId)) {
             Integer id = Integer.valueOf(saleId);
-            saleOrder = saleOrderFacade.find(id);
+            saleOrder = super.findItemById(id, SaleOrder.class);
             if (saleOrder != null) {
-                saleOrders = saleOrderFacade.findAll();
+                query = SaleOrderQueryBuilder.getFindAllQuery();
+                saleOrders = super.findWithQuery(query);
                 currentList = "/sc/saleOrder/List.xhtml";
                 currentForm = "/sc/saleOrder/View.xhtml";
                 return;
@@ -657,7 +700,8 @@ public class SaleOrderController implements Serializable {
 
         if (JsfUtil.isNumeric(partnerId)) {
             Integer id = Integer.valueOf(partnerId);
-            saleOrders = saleOrderFacade.findByPartner(id);
+            query = SaleOrderQueryBuilder.getFindByCustomerQuery(id);
+            saleOrders = super.findWithQuery(query);
             if (saleOrders != null && !saleOrders.isEmpty()) {
                 saleOrder = saleOrders.get(0);
                 partialListType = "partner";
@@ -669,7 +713,8 @@ public class SaleOrderController implements Serializable {
 
         if (JsfUtil.isNumeric(productId)) {
             Integer id = Integer.valueOf(productId);
-            saleOrderLines = saleOrderFacade.findByProduct(id);
+            query = SaleOrderLineQueryBuilder.getFindByProductQuery(id);
+            saleOrderLines = super.findWithQuery(query);
             if (!saleOrderLines.isEmpty()) {
                 saleOrderLine = saleOrderLines.get(0);
                 currentList = "/sc/saleOrder/ListByProduct.xhtml";
@@ -680,19 +725,25 @@ public class SaleOrderController implements Serializable {
 
         if (JsfUtil.isNumeric(saleLineId)) {
             Integer id = Integer.valueOf(saleLineId);
-            saleOrderLine = saleOrderFacade.findOrderLine(id);
+            saleOrderLine = super.findItemById(id, SaleOrderLine.class);
             if (saleOrderLine != null) {
-                saleOrderLines = saleOrderFacade.findByProduct(saleOrderLine.getProduct().getId());
+                query = SaleOrderLineQueryBuilder.getFindByProductQuery(saleOrderLine.getProduct().getId());
+                saleOrderLines = super.findWithQuery(query);
                 productId = Integer.toString(saleOrderLine.getProduct().getId());
                 currentList = "/sc/saleOrder/ListByProduct.xhtml";
                 currentForm = "/sc/saleOrder/ViewByProduct.xhtml";
                 return;
             }
         }
-        saleOrders = saleOrderFacade.findAll();
-        saleOrder = saleOrders.get(0);
+
         currentList = "/sc/saleOrder/List.xhtml";
         currentForm = "/sc/saleOrder/View.xhtml";
+
+        query = SaleOrderQueryBuilder.getFindAllQuery();
+        saleOrders = super.findWithQuery(query);
+        if (saleOrders != null && !saleOrders.isEmpty()) {
+            saleOrder = saleOrders.get(0);
+        }
     }
 
     public void duplicateSaleOrder(Integer id) {
@@ -725,21 +776,23 @@ public class SaleOrderController implements Serializable {
             saleOrder = newSaleOrder;
             saleOrderLine = new SaleOrderLine();
             saleOrderLines = saleOrder.getSaleOrderLines();
-            topNCustomers = saleOrderFacade.findTopNCustomers(4);
-            topSoldNProducts = saleOrderFacade.findTopNSoldProducts(4);
-            if (topSoldNProducts != null && !topSoldNProducts.isEmpty()) {
-                saleOrderLine.setProduct(topSoldNProducts.get(0));
+
+            loadActiveCustomers();
+            loadActiveSoldProducts();
+
+            if (topNActiveSoldProducts != null && !topNActiveSoldProducts.isEmpty()) {
+                saleOrderLine.setProduct(topNActiveSoldProducts.get(0));
                 saleOrderLine.setPrice(saleOrderLine.getProduct().getSalePrice());
                 saleOrderLine.setUom(saleOrderLine.getProduct().getUom().getName());
             }
 
-            if (!topNCustomers.contains(saleOrder.getPartner())) {
-                topNCustomers.add(saleOrder.getPartner());
+            if (!topNActiveCustomers.contains(saleOrder.getPartner())) {
+                topNActiveCustomers.add(saleOrder.getPartner());
             }
 
             for (SaleOrderLine orderLine : saleOrderLines) {
-                if (!topSoldNProducts.contains(orderLine.getProduct())) {
-                    topSoldNProducts.add(orderLine.getProduct());
+                if (!topNActiveSoldProducts.contains(orderLine.getProduct())) {
+                    topNActiveSoldProducts.add(orderLine.getProduct());
                 }
             }
             currentForm = "/sc/saleOrder/Create.xhtml";
@@ -804,7 +857,7 @@ public class SaleOrderController implements Serializable {
 
     private boolean saleOrderExist(Integer id) {
         if (id != null) {
-            saleOrder = saleOrderFacade.find(id);
+            saleOrder = super.findItemById(id, SaleOrder.class);
             if (saleOrder == null) {
                 System.out.println("saleOrderExist: no!!");
                 JsfUtil.addWarningMessage("ItemDoesNotExist");
@@ -826,7 +879,7 @@ public class SaleOrderController implements Serializable {
 
     private String getOrderStatus(Integer id) {
         if (id != null) {
-            SaleOrder saleOrder = saleOrderFacade.find(id);
+            SaleOrder saleOrder = super.findItemById(id, SaleOrder.class);
             if (saleOrder != null) {
                 return saleOrder.getState();
             } else {
@@ -852,6 +905,28 @@ public class SaleOrderController implements Serializable {
 
     public Double getLineTotal() {
         return getLineTax() + saleOrderLine.getSubTotal();
+    }
+
+    private void loadActiveCustomers() {
+        query = PartnerQueryBuilder.getFindActiveCustomersQuery();
+        activeCustomers = super.findWithQuery(query);
+
+        if (activeCustomers != null && activeCustomers.size() > MAX_DROPDOWN_ITEMS) {
+            topNActiveCustomers = activeCustomers.subList(0, MAX_DROPDOWN_ITEMS);
+        } else {
+            topNActiveCustomers = activeCustomers;
+        }
+    }
+
+    private void loadActiveSoldProducts() {
+        query = ProductQueryBuilder.getFindActiveSoldProductsQuery();
+        activeSoldProducts = super.findWithQuery(query);
+
+        if (activeSoldProducts != null && activeSoldProducts.size() > MAX_DROPDOWN_ITEMS) {
+            topNActiveSoldProducts = activeSoldProducts.subList(0, MAX_DROPDOWN_ITEMS);
+        } else {
+            topNActiveSoldProducts = activeSoldProducts;
+        }
     }
 
     public String getCurrentForm() {
@@ -894,7 +969,8 @@ public class SaleOrderController implements Serializable {
 
     public List<SaleOrder> getSaleOrders() {
         if (saleOrders == null) {
-            saleOrders = saleOrderFacade.findAll();
+            query = SaleOrderQueryBuilder.getFindAllQuery();
+            saleOrders = super.findWithQuery(query);
         }
         return saleOrders;
     }
@@ -928,37 +1004,6 @@ public class SaleOrderController implements Serializable {
 
     public void setFilteredSaleOrderLines(List<SaleOrderLine> filteredSaleOrderLines) {
         this.filteredSaleOrderLines = filteredSaleOrderLines;
-    }
-
-    public List<Partner> getTopNCustomers() {
-        if (topNCustomers == null) {
-            topNCustomers = saleOrderFacade.findTopNCustomers(4);
-        }
-        return topNCustomers;
-
-    }
-
-    public List<Product> getTopSoldNProducts() {
-        if (topSoldNProducts == null) {
-            topSoldNProducts = saleOrderFacade.findTopNSoldProducts(4);
-        }
-        return topSoldNProducts;
-    }
-
-    public Partner getCustomer() {
-        return customer;
-    }
-
-    public void setCustomer(Partner customer) {
-        this.customer = customer;
-    }
-
-    public Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
     }
 
     public String getSaleId() {
@@ -1056,10 +1101,10 @@ public class SaleOrderController implements Serializable {
         saleOrderLines.add(saleOrderLine);
         SumUpOrder();
         saleOrderLine = new SaleOrderLine();
-        if (topSoldNProducts != null && !topSoldNProducts.isEmpty()) {
-            saleOrderLine.setProduct(topSoldNProducts.get(0));
-            saleOrderLine.setPrice(topSoldNProducts.get(0).getSalePrice());
-            saleOrderLine.setUom(topSoldNProducts.get(0).getUom().getName());
+        if (topNActiveSoldProducts != null && !topNActiveSoldProducts.isEmpty()) {
+            saleOrderLine.setProduct(topNActiveSoldProducts.get(0));
+            saleOrderLine.setPrice(topNActiveSoldProducts.get(0).getSalePrice());
+            saleOrderLine.setUom(topNActiveSoldProducts.get(0).getUom().getName());
         }
 
     }
@@ -1121,8 +1166,8 @@ public class SaleOrderController implements Serializable {
         saleOrderLines.remove(index);
         saleOrderLines.add(index, saleOrderLine);
         saleOrderLine = new SaleOrderLine();
-        if (topSoldNProducts != null && !topSoldNProducts.isEmpty()) {
-            saleOrderLine.setProduct(topSoldNProducts.get(0));
+        if (topNActiveSoldProducts != null && !topNActiveSoldProducts.isEmpty()) {
+            saleOrderLine.setProduct(topNActiveSoldProducts.get(0));
             saleOrderLine.setPrice(saleOrderLine.getProduct().getSalePrice());
             saleOrderLine.setUom(saleOrderLine.getProduct().getUom().getName());
         }
@@ -1130,8 +1175,8 @@ public class SaleOrderController implements Serializable {
 
     public void onRowCancel() {
         saleOrderLine = new SaleOrderLine();
-        if (topSoldNProducts != null && !topSoldNProducts.isEmpty()) {
-            saleOrderLine.setProduct(topSoldNProducts.get(0));
+        if (topNActiveSoldProducts != null && !topNActiveSoldProducts.isEmpty()) {
+            saleOrderLine.setProduct(topNActiveSoldProducts.get(0));
             saleOrderLine.setPrice(saleOrderLine.getProduct().getSalePrice());
             saleOrderLine.setUom(saleOrderLine.getProduct().getUom().getName());
         }
@@ -1232,5 +1277,45 @@ public class SaleOrderController implements Serializable {
         } else {
             saleOrderLine = saleOrderLines.get(saleOrderLines.indexOf(saleOrderLine) - 1);
         }
+    }
+
+    public List<Partner> getTopNActiveCustomers() {
+        return topNActiveCustomers;
+    }
+
+    public List<Partner> getActiveCustomers() {
+        return activeCustomers;
+    }
+
+    public List<Partner> getFilteredActiveCustomers() {
+        return filteredActiveCustomers;
+    }
+
+    public List<Product> getTopNActiveSoldProducts() {
+        return topNActiveSoldProducts;
+    }
+
+    public List<Product> getActiveSoldProducts() {
+        return activeSoldProducts;
+    }
+
+    public List<Product> getFilteredActiveSoldProducts() {
+        return filteredActiveSoldProducts;
+    }
+
+    public Partner getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(Partner customer) {
+        this.customer = customer;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
     }
 }
