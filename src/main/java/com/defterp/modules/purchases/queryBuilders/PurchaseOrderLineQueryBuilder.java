@@ -5,7 +5,7 @@ import com.defterp.modules.commonClasses.QueryWrapper;
 public class PurchaseOrderLineQueryBuilder {
 
     private static final String FIND_BY_PRODUCT = "SELECT p FROM PurchaseOrderLine p WHERE p.product.id = :productId";
-    private static final String TOTAL_PRODUCT_QUANTITY = "SELECT SUM(p.quantity) FROM PurchaseOrderLine p WHERE p.product.id = :productId ";
+    private static final String TOTAL_PRODUCT_PURCHASED_QUANTITY = "SELECT SUM(p.quantity) FROM PurchaseOrderLine p WHERE p.product.id = :productId ";
 
     public static QueryWrapper getFindByProductQuery(Integer productId) {
 
@@ -13,9 +13,9 @@ public class PurchaseOrderLineQueryBuilder {
                 .setParameter("productId", productId);
     }
 
-    public static QueryWrapper getCountQuantityByProductQuery(Integer productId) {
+    public static QueryWrapper getTotalProductPurchasedQuantityQuery(Integer productId) {
 
-        return new QueryWrapper(TOTAL_PRODUCT_QUANTITY)
+        return new QueryWrapper(TOTAL_PRODUCT_PURCHASED_QUANTITY)
                 .setParameter("productId", productId);
     }
 

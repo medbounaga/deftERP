@@ -4,11 +4,14 @@ import com.defterp.util.JsfUtil;
 import com.defterp.modules.inventory.entities.Product;
 import com.defterp.modules.inventory.entities.ProductCategory;
 import com.defterp.modules.inventory.entities.ProductUom;
-import com.casa.erp.dao.ProductFacade;
+import com.defterp.modules.commonClasses.AbstractController;
+import com.defterp.modules.commonClasses.QueryWrapper;
+import com.defterp.modules.inventory.queryBuilders.ProductQueryBuilder;
+import com.defterp.modules.purchases.queryBuilders.PurchaseOrderLineQueryBuilder;
+import com.defterp.modules.sales.queryBuilders.SaleOrderLineQueryBuilder;
 import com.defterp.validators.annotations.StrictlyPositiveNumber;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -18,7 +21,6 @@ import javax.faces.component.UIInput;
 import javax.faces.context.FacesContext;
 import javax.inject.Named;
 import javax.faces.view.ViewScoped;
-import javax.inject.Inject;
 import javax.servlet.http.Part;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -29,12 +31,11 @@ import org.apache.commons.lang.StringUtils;
  *
  * github.com/medbounaga
  */
+
 @Named(value = "productController")
 @ViewScoped
-public class ProductController implements Serializable {
+public class ProductController extends AbstractController {
 
-    @Inject
-    private ProductFacade productFacade;
     private List<Product> products;
     private List<Product> filteredProducts;
     private Product product;
@@ -47,23 +48,27 @@ public class ProductController implements Serializable {
     private List<ProductCategory> topNProductCategories;
     private ProductUom unitOfMeasure;
     private List<ProductUom> topNUnitsOfMeasure;
-    private String currentForm = "/sc/product/View.xhtml";
-    private String currentList = "/sc/product/Grid.xhtml";
     private Part image;
     private boolean imageModified;
+    private QueryWrapper query;
+
+    public ProductController() {
+        super("/sc/product/");
+    }     
 
     public void deleteProduct(Integer id) {
 
         if (productExist(id)) {
-            try {
-                productFacade.remove(product);
-            } catch (Exception e) {
-                JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
-                return;
-            }
+            
+            boolean deleted = super.deleteItem(product);
 
-            JsfUtil.addSuccessMessage("ItemDeleted");
-            showProducts();
+            if (deleted) {
+                showProducts();
+                JsfUtil.addSuccessMessage("ItemDeleted");
+                currentForm = VIEW_URL;
+            } else {
+                JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
+            }
 
         } else {
             JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete");
@@ -119,7 +124,8 @@ public class ProductController implements Serializable {
 
     public void prepareViewProduct() {
         if (productExist(product.getId())) {
-            products = productFacade.findAll();
+            query = ProductQueryBuilder.getFindAllQuery();
+            products = super.findWithQuery(query);
             filteredProducts = new ArrayList<>();
             filteredProducts.addAll(products);
             currentForm = "/sc/product/View.xhtml";
@@ -128,7 +134,9 @@ public class ProductController implements Serializable {
 
     public void prepareViewProduct(int id) {
         if (productExist(id)) {
-            products = productFacade.findAll();
+            
+            query = ProductQueryBuilder.getFindAllQuery();
+            products = super.findWithQuery(query);
             filteredProducts = new ArrayList<>();
             filteredProducts.addAll(products);
             currentForm = "/sc/product/View.xhtml";
@@ -183,7 +191,7 @@ public class ProductController implements Serializable {
             product.setLength(JsfUtil.round(product.getLength()));
             product.setVolume(JsfUtil.round(product.getVolume()));
             product.setWeight(JsfUtil.round(product.getWeight()));
-            product = productFacade.update(product);
+            product = super.updateItem(product);
             products.set(products.indexOf(product), product);
 
             currentForm = "/sc/product/View.xhtml";
@@ -235,15 +243,20 @@ public class ProductController implements Serializable {
             product.getInventory().setTotalCost(0d);
             product.getInventory().setProduct(product);
 
-            product = productFacade.create(product);
-            products = productFacade.findAll();
+            product = super.createItem(product);
+            
+            query = ProductQueryBuilder.getFindAllQuery();
+            products = super.findWithQuery(query);
+            
             currentForm = "/sc/product/View.xhtml";
         }
     }
 
     public void cancelCreate() {
         
-        products = productFacade.findAll();
+        query = ProductQueryBuilder.getFindAllQuery();
+        products = super.findWithQuery(query);
+        
         filteredProducts = new ArrayList<>();
         filteredProducts.addAll(products);
         
@@ -269,7 +282,7 @@ public class ProductController implements Serializable {
 
                 product.getInventory().setQuantityOnHand(newQuantityOnHand);
                 product.getInventory().setTotalCost(JsfUtil.round(product.getInventory().getUnitCost() * product.getInventory().getQuantityOnHand()));
-                product.setInventory(productFacade.update(product.getInventory()));
+                product.setInventory(super.updateItem(product.getInventory()));
                 products.set(products.indexOf(product), product);
                 newQuantityOnHand = null;
             }
@@ -297,7 +310,7 @@ public class ProductController implements Serializable {
 
     private boolean productExist(Integer id) {
         if (id != null) {
-            product = productFacade.find(id);
+            product = super.findItemById(id, Product.class);
             if (product == null) {
                 JsfUtil.addWarningMessage("ItemDoesNotExist");
                 products = null;
@@ -314,7 +327,7 @@ public class ProductController implements Serializable {
 
     private boolean productExistTwo(Integer id) {
         if (id != null) {
-            Product product = productFacade.find(id);
+            Product product = super.findItemById(id, Product.class);
             return product != null;
         }
         return false;
@@ -324,18 +337,22 @@ public class ProductController implements Serializable {
 
         if (JsfUtil.isNumeric(productId)) {
             Integer id = Integer.valueOf(productId);
-            product = productFacade.find(id);
+            product = super.findItemById(id, Product.class);
             if (product != null) {
-                products = productFacade.findAll();
+                query = ProductQueryBuilder.getFindAllQuery();
+                products = super.findWithQuery(query);
                 currentForm = "/sc/product/View.xhtml";
                 currentList = "/sc/product/Grid.xhtml";
                 return;
             }
         }
 
-        products = productFacade.findAll();
+        query = ProductQueryBuilder.getFindAllQuery();
+        products = super.findWithQuery(query);
+        
         filteredProducts = new ArrayList<>();
         filteredProducts.addAll(products);
+        
         if (products != null && !products.isEmpty()) {
             product = products.get(0);
         }
@@ -366,15 +383,16 @@ public class ProductController implements Serializable {
         }
     }
 
-    public void showProductForm() {
-
-        products = productFacade.findAll();
-
-        if (products.size() > 0) {
-            product = products.get(0);
-            currentForm = "/sc/product/View.xhtml";
-        }
-    }
+//    public void showProductForm() {
+//
+//        query = ProductQueryBuilder.getFindAllProductsQuery();
+//        products = super.findWithQuery(query);
+//
+//        if (products.size() > 0) {
+//            product = products.get(0);
+//            currentForm = "/sc/product/View.xhtml";
+//        }
+//    }
 
     public int getProductIndex() {
         if (product != null && products != null && !products.isEmpty()) {
@@ -403,41 +421,43 @@ public class ProductController implements Serializable {
         }
     }
 
-    public int countProductSales() {
+    public Integer countProductSales() {
         if (product != null) {
-            return productFacade.countProductSales(product.getId()).intValue();
+            query = SaleOrderLineQueryBuilder.getTotalProductSoldQuantityQuery(product.getId());
+            return (Integer) super.findSingleWithQuery(query);
         }
         return 0;
     }
 
-    public int countProductPurchases() {
+    public Integer countProductPurchases() {
         if (product != null) {
-            return productFacade.countProductPurchases(product.getId()).intValue();
+            query = PurchaseOrderLineQueryBuilder.getTotalProductPurchasedQuantityQuery(product.getId());
+            return (Integer) super.findSingleWithQuery(query);
         }
         return 0;
     }
 
-    public List<ProductCategory> getTopNProductCategories() {
-        if (topNProductCategories == null) {
-            topNProductCategories = productFacade.findTopNProductCategories(1);
-        }
-        return topNProductCategories;
-    }
+//    public List<ProductCategory> getTopNProductCategories() {
+//        if (topNProductCategories == null) {
+//            topNProductCategories = productFacade.findTopNProductCategories(1);
+//        }
+//        return topNProductCategories;
+//    }
+//
+//    public List<ProductUom> getTopNUnitsOfMeasure() {
+//        if (topNUnitsOfMeasure == null) {
+//            topNUnitsOfMeasure = productFacade.findTopNUnitsOfMeasure(1);
+//        }
+//        return topNUnitsOfMeasure;
+//    }
 
-    public List<ProductUom> getTopNUnitsOfMeasure() {
-        if (topNUnitsOfMeasure == null) {
-            topNUnitsOfMeasure = productFacade.findTopNUnitsOfMeasure(1);
-        }
-        return topNUnitsOfMeasure;
-    }
-
-    public void onSelectProductCategory() {
-        if ((productCategory != null) && (!topNProductCategories.contains(productCategory))) {
-            topNProductCategories.add(productCategory);
-        }
-        product.setCategory(productCategory);
-        System.out.println(productCategory == null);
-    }
+//    public void onSelectProductCategory() {
+//        if ((productCategory != null) && (!topNProductCategories.contains(productCategory))) {
+//            topNProductCategories.add(productCategory);
+//        }
+//        product.setCategory(productCategory);
+//        System.out.println(productCategory == null);
+//    }
 
     public void onSelectUnitOfMeasure() {
         if ((unitOfMeasure != null) && (!topNUnitsOfMeasure.contains(unitOfMeasure))) {
@@ -470,26 +490,27 @@ public class ProductController implements Serializable {
     public List<Product> getProducts() {
 
         if (products == null) {
-            products = productFacade.findAll();
+            query = ProductQueryBuilder.getFindAllQuery();
+            products = super.findWithQuery(query);
             filteredProducts = new ArrayList<>();
             filteredProducts.addAll(products);
         }
         return products;
     }
 
-    public List<Product> getPurchasedProducts() {
-        if (products == null) {
-            products = productFacade.findPurchasedProducts();
-        }
-        return products;
-    }
-
-    public List<Product> getSoldProducts() {
-        if (products == null) {
-            products = productFacade.findSoldProducts();
-        }
-        return products;
-    }
+//    public List<Product> getPurchasedProducts() {
+//        if (products == null) {
+//            products = productFacade.findPurchasedProducts();
+//        }
+//        return products;
+//    }
+//
+//    public List<Product> getSoldProducts() {
+//        if (products == null) {
+//            products = productFacade.findSoldProducts();
+//        }
+//        return products;
+//    }
 
     public List<Product> getFilteredProducts() {
         return filteredProducts;
@@ -546,22 +567,6 @@ public class ProductController implements Serializable {
 
     public void setSearchKey(String searchKey) {
         this.searchKey = searchKey;
-    }
-
-    public String getCurrentForm() {
-        return currentForm;
-    }
-
-    public void setCurrentForm(String currentForm) {
-        this.currentForm = currentForm;
-    }
-
-    public String getCurrentList() {
-        return currentList;
-    }
-
-    public void setCurrentList(String currentList) {
-        this.currentList = currentList;
     }
 
     public boolean getImageModified() {
