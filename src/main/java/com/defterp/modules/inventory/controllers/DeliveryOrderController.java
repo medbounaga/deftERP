@@ -3,15 +3,19 @@ package com.defterp.modules.inventory.controllers;
 import com.defterp.translation.annotations.Countries;
 import static com.defterp.translation.annotations.Countries.Version.SECOND;
 import com.defterp.util.JsfUtil;
-import com.casa.erp.dao.DeliveryOrderFacade;
+import com.defterp.modules.commonClasses.AbstractController;
 import com.defterp.modules.inventory.entities.DeliveryOrder;
 import com.defterp.modules.inventory.entities.DeliveryOrderLine;
 import com.defterp.modules.inventory.entities.Inventory;
 import com.defterp.modules.inventory.entities.Product;
 import com.defterp.modules.partners.entities.Partner;
+import com.defterp.modules.partners.queryBuilders.PartnerQueryBuilder;
 import com.defterp.modules.sales.entities.SaleOrder;
+import com.defterp.modules.commonClasses.QueryWrapper;
+import com.defterp.modules.inventory.queryBuilders.DeliveryOrderQueryBuilder;
+import com.defterp.modules.inventory.queryBuilders.ProductQueryBuilder;
+import com.defterp.modules.commonClasses.IdGenerator;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -19,7 +23,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.ResourceBundle;
-import javax.ejb.EJBException;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
 import javax.inject.Named;
@@ -27,8 +30,6 @@ import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
 import net.sf.jasperreports.engine.JREmptyDataSource;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
@@ -43,12 +44,11 @@ import org.primefaces.context.RequestContext;
  *
  * github.com/medbounaga
  */
+
 @Named(value = "deliveryOrderController")
 @ViewScoped
-public class DeliveryOrderController implements Serializable {
+public class DeliveryOrderController extends AbstractController {
 
-    @Inject
-    private DeliveryOrderFacade deliveryOrderFacade;
     @Inject
     @com.defterp.translation.annotations.Status
     private HashMap<String, String> statuses;
@@ -61,16 +61,24 @@ public class DeliveryOrderController implements Serializable {
     private List<DeliveryOrderLine> deliveryOrderLines;
     private List<DeliveryOrderLine> tobeDeliveredOrderLines;
     private DeliveryOrderLine deliveryOrderLine;
-    private String currentForm = "/sc/deliveryOrder/View.xhtml";
     private String saleId;
     private String deliveryId;
     private String partnerId;
     private String listType;
     private int rowIndex;
-    private List<Partner> topNCustomers;
-    private List<Product> topSoldNProducts;
+    private List<Partner> topNActiveCustomers;
+    private List<Partner> activeCustomers;
+    private List<Partner> filteredActiveCustomers;
+    private List<Product> topNActiveSoldProducts;
+    private List<Product> activeSoldProducts;
+    private List<Product> filteredActiveSoldProducts;
     private Partner customer;
     private Product product;
+    private QueryWrapper query;
+
+    public DeliveryOrderController() {
+        super("/sc/deliveryOrder/");
+    }
 
     public String getCountry() {
 
@@ -132,7 +140,7 @@ public class DeliveryOrderController implements Serializable {
                 updateOrderLinesStatus();
                 updateOrderStatus();
                 updateInventory(deliveryOrder.getDeliveryOrderLines());
-                deliveryOrder = deliveryOrderFacade.update(deliveryOrder);
+                deliveryOrder = super.updateItem(deliveryOrder);
                 deliveryOrders.set(deliveryOrders.indexOf(deliveryOrder), deliveryOrder);
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorAlreadyModified");
@@ -143,7 +151,7 @@ public class DeliveryOrderController implements Serializable {
     private void refreshInventory(List<DeliveryOrderLine> orderLines) {
 
         for (DeliveryOrderLine orderLine : orderLines) {
-            Inventory upToDateInventory = deliveryOrderFacade.findInventory(orderLine.getProduct().getInventory().getId());
+            Inventory upToDateInventory = super.findItemById(orderLine.getProduct().getInventory().getId(), Inventory.class);
             orderLine.getProduct().setInventory(upToDateInventory);
         }
     }
@@ -216,7 +224,7 @@ public class DeliveryOrderController implements Serializable {
     private void updateInventory(List<DeliveryOrderLine> orderLines) {
 
         for (DeliveryOrderLine orderLine : orderLines) {
-            deliveryOrderFacade.update(orderLine.getProduct().getInventory());
+            super.updateItem(orderLine.getProduct().getInventory());
         }
     }
 
@@ -246,7 +254,7 @@ public class DeliveryOrderController implements Serializable {
                 }
                 refreshInventory(deliveryOrder.getDeliveryOrderLines());
                 updateOrderLinesAvailability();
-                deliveryOrder = deliveryOrderFacade.update(deliveryOrder);
+                deliveryOrder = super.updateItem(deliveryOrder);
                 deliveryOrders.set(deliveryOrders.indexOf(deliveryOrder), deliveryOrder);
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorValidate");
@@ -384,12 +392,12 @@ public class DeliveryOrderController implements Serializable {
                 deliveryOrder.getSaleOrder().setState(Status.DONE.value());
             }
             deliveryOrder.getSaleOrder().setShipped(Boolean.TRUE);
-            deliveryOrderFacade.update(deliveryOrder.getSaleOrder());
+            super.updateItem(deliveryOrder.getSaleOrder());
         }
 
         updateInventory(deliveryOrder.getDeliveryOrderLines());
 
-        deliveryOrder = deliveryOrderFacade.update(deliveryOrder);
+        deliveryOrder = super.updateItem(deliveryOrder);
         deliveryOrders.set(deliveryOrders.indexOf(deliveryOrder), deliveryOrder);
 
         tobeDeliveredOrderLines = null;
@@ -430,13 +438,16 @@ public class DeliveryOrderController implements Serializable {
         updateOrderStatus();
         updateInventory(backOrder.getDeliveryOrderLines());
 
-        backOrder = deliveryOrderFacade.createOutDelivery(backOrder);
+        backOrder = super.createItem(backOrder);
+        backOrder.setName(IdGenerator.generateDeliveryOutId(backOrder.getId()));
+        backOrder = super.updateItem(backOrder);
+
         if (backOrder.getSaleOrder() != null) {
-            deliveryOrderFacade.update(backOrder.getSaleOrder());
+            super.updateItem(backOrder.getSaleOrder());
         }
 
         deliveryOrder.setDeliveryMethod("Partial");
-        deliveryOrder = deliveryOrderFacade.update(deliveryOrder);
+        deliveryOrder = super.updateItem(deliveryOrder);
         deliveryOrders.set(deliveryOrders.indexOf(deliveryOrder), deliveryOrder);
         deliveryOrders.add(backOrder);
 
@@ -486,15 +497,15 @@ public class DeliveryOrderController implements Serializable {
                         tobeDeliveredOrderLines.add(line);
                     }
                 }
-                
-                System.out.println("-------------- start size: "+tobeDeliveredOrderLines.size());
+
+                System.out.println("-------------- start size: " + tobeDeliveredOrderLines.size());
                 System.out.println("---------------------------------------------------------");
 
                 for (int i = 0; i < tobeDeliveredOrderLines.size(); i++) {
-                    System.out.println("--------------iiii: "+ i);
-                     System.out.println("---------------------------------------------------------");
+                    System.out.println("--------------iiii: " + i);
+                    System.out.println("---------------------------------------------------------");
                     for (int j = 0; j < tobeDeliveredOrderLines.size(); j++) {
-                        System.out.println("--------------jjjj: "+ j);
+                        System.out.println("--------------jjjj: " + j);
                         if (tobeDeliveredOrderLines.get(i).getProduct().getId() == tobeDeliveredOrderLines.get(j).getProduct().getId() && tobeDeliveredOrderLines.get(i) != tobeDeliveredOrderLines.get(j)) {
 
                             tobeDeliveredOrderLines.get(i).setQuantity(tobeDeliveredOrderLines.get(i).getQuantity() + tobeDeliveredOrderLines.get(j).getQuantity());
@@ -503,15 +514,14 @@ public class DeliveryOrderController implements Serializable {
                     }
                     tobeDeliveredOrderLines.get(i).setReserved(tobeDeliveredOrderLines.get(i).getQuantity());
                 }
-                 System.out.println("---------------------------------------------------------");
-                System.out.println("-------------- finish size: "+tobeDeliveredOrderLines.size());
+                System.out.println("---------------------------------------------------------");
+                System.out.println("-------------- finish size: " + tobeDeliveredOrderLines.size());
             } else {
                 FacesContext.getCurrentInstance().validationFailed();
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorAlreadyModified");
             }
         }
     }
-
 
     private void prepareAvailableProducts1() {
 
@@ -591,7 +601,7 @@ public class DeliveryOrderController implements Serializable {
                 for (DeliveryOrderLine orderLine : deliveryOrder.getDeliveryOrderLines()) {
                     orderLine.setState(Status.CANCELLED.value());
                 }
-                deliveryOrder = deliveryOrderFacade.update(deliveryOrder);
+                deliveryOrder = super.updateItem(deliveryOrder);
                 deliveryOrders.set(deliveryOrders.indexOf(deliveryOrder), deliveryOrder);
 
             } else if (deliveryOrder.getState().equals(Status.DONE.value())) {
@@ -616,7 +626,7 @@ public class DeliveryOrderController implements Serializable {
                 updateInventory(deliveryOrder.getDeliveryOrderLines());
                 resetOrderLinesAvailability();
                 updateOrderLinesAvailability();
-                deliveryOrder = deliveryOrderFacade.update(deliveryOrder);
+                deliveryOrder = super.updateItem(deliveryOrder);
                 deliveryOrders.set(deliveryOrders.indexOf(deliveryOrder), deliveryOrder);
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorAlreadyModified");
@@ -627,26 +637,32 @@ public class DeliveryOrderController implements Serializable {
     public void deleteDelivery() {
         if (deliveryExist(deliveryOrder.getId())) {
             if (deliveryOrder.getState().equals("Cancelled")) {
+
                 cancelRelations();
+                boolean deleted = super.deleteItem(deliveryOrder);
 
-                try {
-                    deliveryOrderFacade.remove(deliveryOrder);
-                } catch (Exception e) {
-                    System.out.println("Error Delete: " + e.getMessage());
-                    JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
-                    return;
-                }
+                if (deleted) {
 
-                if (deliveryOrders.size() > 1) {
-                    deliveryOrders.remove(deliveryOrder);
+                    JsfUtil.addSuccessMessage("ItemDeleted");
+                    currentForm = VIEW_URL;
+
+                    if (deliveryOrders != null && deliveryOrders.size() > 1) {
+                        deliveryOrders.remove(deliveryOrder);
+                        deliveryOrder = deliveryOrders.get(0);
+                    } else {
+                        listType = null;
+                        query = DeliveryOrderQueryBuilder.getFindAllDeliveryOrdersQuery();
+                        deliveryOrders = super.findWithQuery(query);
+
+                        if (deliveryOrders != null && !deliveryOrders.isEmpty()) {
+                            deliveryOrder = deliveryOrders.get(0);
+                        }
+                    }
+
                 } else {
-                    listType = null;
-                    deliveryOrders = deliveryOrderFacade.findOutDelivery();
+                    JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
                 }
 
-                deliveryOrder = deliveryOrders.get(0);
-                JsfUtil.addSuccessMessage("ItemDeleted");
-                currentForm = "/sc/deliveryOrder/View.xhtml";
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete");
             }
@@ -654,12 +670,14 @@ public class DeliveryOrderController implements Serializable {
     }
 
     private void cancelRelations() {
-        deliveryOrder.setChildren(deliveryOrderFacade.findByBackOrder(deliveryOrder.getId()));
+
+        query = DeliveryOrderQueryBuilder.getFindAllByBackOrderQuery(deliveryOrder.getId());
+        deliveryOrder.setChildren((List<DeliveryOrder>) (DeliveryOrder) super.findWithQuery(query));
 
         if (deliveryOrder.getChildren() != null && !deliveryOrder.getChildren().isEmpty()) {
             for (DeliveryOrder delivery : deliveryOrder.getChildren()) {
                 delivery.setBackOrder(null);
-                delivery = deliveryOrderFacade.update(delivery);
+                delivery = super.updateItem(delivery);
                 deliveryOrders.set(deliveryOrders.indexOf(delivery), delivery);
             }
 
@@ -667,35 +685,32 @@ public class DeliveryOrderController implements Serializable {
         }
 
         if (deliveryOrder.getSaleOrder() != null) {
-            SaleOrder saleOrder = deliveryOrderFacade.findSaleOrder(deliveryOrder.getSaleOrder().getId());
+            SaleOrder saleOrder = super.findItemById(deliveryOrder.getSaleOrder().getId(), SaleOrder.class);
             saleOrder.getDeliveryOrders().size();
             saleOrder.getDeliveryOrders().remove(deliveryOrder);
             deliveryOrder.setSaleOrder(null);
-            deliveryOrderFacade.update(saleOrder);
+            super.updateItem(saleOrder);
         }
     }
 
-    public void showDeliveryList() {
-        deliveryOrder = null;
-        currentForm = "/sc/deliveryOrder/List.xhtml";
-    }
-
     public void resolveRequestParams() {
-        
-        currentForm = "/sc/deliveryOrder/View.xhtml";
+
+        currentForm = VIEW_URL;
 
         if (JsfUtil.isNumeric(deliveryId)) {
             Integer id = Integer.valueOf(deliveryId);
-            deliveryOrder = deliveryOrderFacade.find(id);
+            deliveryOrder = super.findItemById(id, DeliveryOrder.class);
             if (deliveryOrder != null) {
-                deliveryOrders = deliveryOrderFacade.findOutDelivery();
+                query = DeliveryOrderQueryBuilder.getFindAllDeliveryOrdersQuery();
+                deliveryOrders = super.findWithQuery(query);
                 return;
             }
         }
 
         if (JsfUtil.isNumeric(partnerId)) {
             Integer id = Integer.valueOf(partnerId);
-            deliveryOrders = deliveryOrderFacade.findByPartner(id, "Sale");
+            query = DeliveryOrderQueryBuilder.getFindAllByCustomerQuery(id);
+            deliveryOrders = super.findWithQuery(query);
             if (deliveryOrders != null && !deliveryOrders.isEmpty()) {
                 deliveryOrder = deliveryOrders.get(0);
                 listType = "partner";
@@ -705,74 +720,57 @@ public class DeliveryOrderController implements Serializable {
 
         if (saleId != null && JsfUtil.isNumeric(saleId)) {
             Integer id = Integer.valueOf(saleId);
-            deliveryOrders = deliveryOrderFacade.findBySaleId(id);
+            query = DeliveryOrderQueryBuilder.getFindAllBySaleOrderQuery(id);
+            deliveryOrders = super.findWithQuery(query);
             if (deliveryOrders != null && !deliveryOrders.isEmpty()) {
                 deliveryOrder = deliveryOrders.get(0);
                 listType = "saleOrder";
                 return;
             }
         }
-        try {
-            deliveryOrders = deliveryOrderFacade.findOutDelivery();
+
+        query = DeliveryOrderQueryBuilder.getFindAllDeliveryOrdersQuery();
+        deliveryOrders = super.findWithQuery(query);
+
+        if (deliveryOrders != null && !deliveryOrders.isEmpty()) {
             deliveryOrder = deliveryOrders.get(0);
-        } catch (EJBException ex) {
-            Throwable cause = JsfUtil.getRootCause(ex.getCause());
-            if (cause != null) {
-                if (cause instanceof ConstraintViolationException) {
-                    ConstraintViolationException excp = (ConstraintViolationException) cause;
-                    for (ConstraintViolation s : excp.getConstraintViolations()) {
-                        System.out.println("Errooooor:" + s.getMessage());
-                    }
-                } else {
-                    String msg = cause.getLocalizedMessage();
-                    if (msg.length() > 0) {
-                        System.out.println("Errooooor:" + msg);
-                    } else {
-                        System.out.println("Errooooor:" + ResourceBundle.getBundle("/Bundle").getString("PersistenceErrorOccured"));
-                    }
-                }
-            }
         }
+
     }
 
     public void prepareView() {
 
         if (deliveryOrder != null) {
             if (deliveryExist(deliveryOrder.getId())) {
-                currentForm = "/sc/deliveryOrder/View.xhtml";
+                currentForm = VIEW_URL;
             }
-        }
-    }
-
-    public void showForm() {
-
-        if (deliveryOrders.size() > 0) {
-            deliveryOrder = deliveryOrders.get(0);
-            currentForm = "/sc/deliveryOrder/View.xhtml";
         }
     }
 
     public void showBackOrder(Integer id) {
         if (deliveryExist(id)) {
             listType = null;
-            deliveryOrders = deliveryOrderFacade.findOutDelivery();
-            currentForm = "/sc/deliveryOrder/View.xhtml";
+            query = DeliveryOrderQueryBuilder.getFindAllDeliveryOrdersQuery();
+            deliveryOrders = super.findWithQuery(query);
+            currentForm = VIEW_URL;
 
         }
     }
 
     public void viewPartialDelivries() {
         if (deliveryExist(deliveryOrder.getId())) {
-            deliveryOrders = deliveryOrderFacade.findByBackOrder(deliveryOrder.getId());
+            query = DeliveryOrderQueryBuilder.getFindAllByBackOrderQuery(deliveryOrder.getId());
+            deliveryOrders = super.findWithQuery(query);
             deliveryOrder = deliveryOrders.get(0);
-            currentForm = "/sc/deliveryOrder/View.xhtml";
+            currentForm = VIEW_URL;
             listType = "partialDelivery";
         }
     }
 
     public Long countPartialDelivries() {
         if (deliveryOrder != null) {
-            return deliveryOrderFacade.countByBackOrder(deliveryOrder.getId());
+            query = DeliveryOrderQueryBuilder.getCountByBackOrderQuery(deliveryOrder.getId());
+            return (Long) super.findSingleWithQuery(query);
         }
         return 0L;
     }
@@ -804,7 +802,6 @@ public class DeliveryOrderController implements Serializable {
         }
     }
 
-
     public void printDelivery(ActionEvent actionEvent) throws IOException, JRException {
 
         for (DeliveryOrderLine orderLine : deliveryOrder.getDeliveryOrderLines()) {
@@ -834,131 +831,25 @@ public class DeliveryOrderController implements Serializable {
 
     }
 
-    public String getPage() {
-        return currentForm;
-    }
-
-    public void setPage(String page) {
-        this.currentForm = page;
-    }
-
-    public String getListType() {
-        return listType;
-    }
-
-    public void setListType(String listType) {
-        this.listType = listType;
-    }
-
-    public DeliveryOrder getDeliveryOrder() {
-        if (deliveryOrder == null) {
-            return deliveryOrder = new DeliveryOrder();
-        }
-        return deliveryOrder;
-    }
-
-    public void setDeliveryOrder(DeliveryOrder deliveryOrder) {
-        this.deliveryOrder = deliveryOrder;
-    }
-
-    public DeliveryOrderLine getDeliveryOrderLine() {
-        if (deliveryOrderLine == null) {
-            deliveryOrderLine = new DeliveryOrderLine();
-        }
-        return deliveryOrderLine;
-    }
-
-    public void setDeliveryOrderLine(DeliveryOrderLine deliveryOrderLine) {
-        this.deliveryOrderLine = deliveryOrderLine;
-    }
-
-    public List<DeliveryOrder> getDeliveryOrders() {
-        if (deliveryOrders == null) {
-            deliveryOrders = deliveryOrderFacade.findOutDelivery();
-        }
-        return deliveryOrders;
-    }
-
-    public void setDeliveryOrders(List<DeliveryOrder> deliveryOrders) {
-        this.deliveryOrders = deliveryOrders;
-    }
-
-    public List<DeliveryOrder> getFilteredDeliveryOrders() {
-        return filteredDeliveryOrders;
-    }
-
-    public void setFilteredDeliveryOrders(List<DeliveryOrder> filteredDeliveryOrders) {
-        this.filteredDeliveryOrders = filteredDeliveryOrders;
-    }
-
-    public List<DeliveryOrderLine> getDeliveryOrderLines() {
-        if (deliveryOrderLines == null) {
-            deliveryOrderLines = new ArrayList<>();
-        }
-        return deliveryOrderLines;
-    }
-
-    public void setDeliveryOrderLines(List<DeliveryOrderLine> deliveryOrderLines) {
-        this.deliveryOrderLines = deliveryOrderLines;
-    }
-
-    public List<DeliveryOrderLine> getTobeDeliveredOrderLines() {
-        return tobeDeliveredOrderLines;
-    }
-
-    public void setTobeDeliveredOrderLines(List<DeliveryOrderLine> tobeDeliveredOrderLines) {
-        this.tobeDeliveredOrderLines = tobeDeliveredOrderLines;
-    }
-
-    public String getCurrentForm() {
-        return currentForm;
-    }
-
-    public void setCurrentForm(String currentForm) {
-        this.currentForm = currentForm;
-    }
-
-    public String getSaleId() {
-        return saleId;
-    }
-
-    public void setSaleId(String saleId) {
-        this.saleId = saleId;
-    }
-
-    public String getDeliveryId() {
-        return deliveryId;
-    }
-
-    public void setDeliveryId(String deliveryId) {
-        this.deliveryId = deliveryId;
-    }
-
-    public String getPartnerId() {
-        return partnerId;
-    }
-
-    public void setPartnerId(String partnerId) {
-        this.partnerId = partnerId;
-    }
-
     public void setRowIndex() {
         Map<String, String> params = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap();
         rowIndex = Integer.valueOf(params.get("rowIndex"));
     }
 
     public void onSelectCustomer() {
-        if ((customer != null) && (!topNCustomers.contains(customer))) {
-            topNCustomers.add(customer);
+        if (customer != null) {
+            if (topNActiveCustomers != null && !topNActiveCustomers.contains(customer)) {
+                topNActiveCustomers.add(customer);
+            }
+            deliveryOrder.setPartner(customer);
         }
-        deliveryOrder.setPartner(customer);
     }
 
     public void onSelectProduct() {
 
         if ((product != null)) {
-            if (!topSoldNProducts.contains(product)) {
-                topSoldNProducts.add(product);
+            if (!topNActiveSoldProducts.contains(product)) {
+                topNActiveSoldProducts.add(product);
             }
 
             if (rowIndex < 0) {
@@ -981,10 +872,13 @@ public class DeliveryOrderController implements Serializable {
     }
 
     public void updateOrder() {
-        if (getOrderStatus(deliveryOrder.getId()) != null) {
-            if (!getOrderStatus(deliveryOrder.getId()).equals(Status.DRAFT.value())) {
+
+        String deliveryOrderStatus = getDeliveryOrderStatus();
+
+        if (deliveryOrderStatus != null) {
+            if (!deliveryOrderStatus.equals(Status.DRAFT.value())) {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorProceedEdit");
-                currentForm = "/sc/DeliveryOrder/View.xhtml";
+                currentForm = VIEW_URL;
             } else if (deliveryOrderLines.isEmpty()) {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "AtLeastOneDeliveryOrderLineUpdate");
 
@@ -1002,16 +896,17 @@ public class DeliveryOrderController implements Serializable {
                 }
 
                 deliveryOrder.setDeliveryOrderLines(deliveryOrderLines);
-                deliveryOrder = deliveryOrderFacade.update(deliveryOrder);
+                deliveryOrder = super.updateItem(deliveryOrder);
 
                 if (listType == null && deliveryOrders != null) {
                     deliveryOrders.set(deliveryOrders.indexOf(deliveryOrder), deliveryOrder);
                 } else {
-                    deliveryOrders = deliveryOrderFacade.findOutDelivery();
+                    query = DeliveryOrderQueryBuilder.getFindAllDeliveryOrdersQuery();
+                    deliveryOrders = super.findWithQuery(query);
                     listType = null;
                 }
 
-                currentForm = "/sc/deliveryOrder/View.xhtml";
+                currentForm = VIEW_URL;
             }
         }
     }
@@ -1037,15 +932,19 @@ public class DeliveryOrderController implements Serializable {
             deliveryOrder.setActive(Boolean.TRUE);
             deliveryOrder.setDeliveryMethod("Complete");
             deliveryOrder.setDeliveryOrderLines(deliveryOrderLines);
-            deliveryOrder = deliveryOrderFacade.createOutDelivery(deliveryOrder);
+
+            deliveryOrder = super.createItem(deliveryOrder);
+            deliveryOrder.setName(IdGenerator.generateDeliveryOutId(deliveryOrder.getId()));
+            deliveryOrder = super.updateItem(deliveryOrder);
 
             if (listType == null && deliveryOrders != null) {
                 deliveryOrders.add(deliveryOrder);
             } else {
-                deliveryOrders = deliveryOrderFacade.findOutDelivery();
+                query = DeliveryOrderQueryBuilder.getFindAllDeliveryOrdersQuery();
+                deliveryOrders = super.findWithQuery(query);
                 listType = null;
             }
-            currentForm = "/sc/deliveryOrder/View.xhtml";
+            currentForm = VIEW_URL;
         }
     }
 
@@ -1053,16 +952,21 @@ public class DeliveryOrderController implements Serializable {
         System.out.println("prepareCreate(): start");
         deliveryOrder = new DeliveryOrder();
         deliveryOrder.setDeliveryMethod("Complete");
+        deliveryOrder.setActive(Boolean.TRUE);
         deliveryOrderLines = new ArrayList<>();
         deliveryOrderLine = new DeliveryOrderLine();
-        topNCustomers = deliveryOrderFacade.findTopNCustomers(4);
-        topSoldNProducts = deliveryOrderFacade.findTopNSoldProducts(4);
-        if (topSoldNProducts != null && !topSoldNProducts.isEmpty()) {
-            deliveryOrderLine.setProduct(topSoldNProducts.get(0));
+
+        loadActiveCustomers();
+        loadActiveSoldProducts();
+
+        deliveryOrderLine.setState(Status.NEW.value());
+
+        if (topNActiveSoldProducts != null && !topNActiveSoldProducts.isEmpty()) {
+            deliveryOrderLine.setProduct(topNActiveSoldProducts.get(0));
             deliveryOrderLine.setUom(deliveryOrderLine.getProduct().getUom().getName());
         }
-        deliveryOrderLine.setState(Status.NEW.value());
-        currentForm = "/sc/deliveryOrder/Create.xhtml";
+
+        currentForm = CREATE_URL;
         System.out.println("prepareCreate(): finish");
     }
 
@@ -1071,25 +975,27 @@ public class DeliveryOrderController implements Serializable {
             if (deliveryOrder.getState().equals(Status.DRAFT.value())) {
                 deliveryOrderLine = new DeliveryOrderLine();
                 deliveryOrderLines = deliveryOrder.getDeliveryOrderLines();
-                topNCustomers = deliveryOrderFacade.findTopNCustomers(4);
-                topSoldNProducts = deliveryOrderFacade.findTopNSoldProducts(4);
-                if (topSoldNProducts != null && !topSoldNProducts.isEmpty()) {
-                    deliveryOrderLine.setProduct(topSoldNProducts.get(0));
+
+                loadActiveCustomers();
+                loadActiveSoldProducts();
+
+                if (topNActiveSoldProducts != null && !topNActiveSoldProducts.isEmpty()) {
+                    deliveryOrderLine.setProduct(topNActiveSoldProducts.get(0));
                     deliveryOrderLine.setUom(deliveryOrderLine.getProduct().getUom().getName());
                 }
                 deliveryOrderLine.setState(Status.NEW.value());
 
-                if (!topNCustomers.contains(deliveryOrder.getPartner())) {
-                    topNCustomers.add(deliveryOrder.getPartner());
+                if (!topNActiveCustomers.contains(deliveryOrder.getPartner())) {
+                    topNActiveCustomers.add(deliveryOrder.getPartner());
                 }
 
                 for (DeliveryOrderLine orderLine : deliveryOrderLines) {
-                    if (!topSoldNProducts.contains(orderLine.getProduct())) {
-                        topSoldNProducts.add(orderLine.getProduct());
+                    if (!topNActiveSoldProducts.contains(orderLine.getProduct())) {
+                        topNActiveSoldProducts.add(orderLine.getProduct());
                     }
                 }
 
-                currentForm = "/sc/deliveryOrder/Edit.xhtml";
+                currentForm = EDIT_URL;
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorEdit");
             }
@@ -1100,12 +1006,12 @@ public class DeliveryOrderController implements Serializable {
 
         deliveryOrderLine = null;
         deliveryOrderLines = null;
-        topNCustomers = null;
-        topSoldNProducts = null;
+        topNActiveCustomers = null;
+        topNActiveSoldProducts = null;
 
         if (deliveryOrders != null && !deliveryOrders.isEmpty()) {
             deliveryOrder = deliveryOrders.get(0);
-            currentForm = "/sc/deliveryOrder/View.xhtml";
+            currentForm = VIEW_URL;
         }
     }
 
@@ -1113,11 +1019,11 @@ public class DeliveryOrderController implements Serializable {
 
         deliveryOrderLine = null;
         deliveryOrderLines = null;
-        topNCustomers = null;
-        topSoldNProducts = null;
+        topNActiveCustomers = null;
+        topNActiveSoldProducts = null;
 
         if (deliveryExist(deliveryOrder.getId())) {
-            currentForm = "/sc/deliveryOrder/View.xhtml";
+            currentForm = VIEW_URL;
         }
     }
 
@@ -1156,56 +1062,27 @@ public class DeliveryOrderController implements Serializable {
             deliveryOrder = newDeliveryOrder;
             deliveryOrderLine = new DeliveryOrderLine();
             deliveryOrderLines = deliveryOrder.getDeliveryOrderLines();
-            topNCustomers = deliveryOrderFacade.findTopNCustomers(4);
-            topSoldNProducts = deliveryOrderFacade.findTopNSoldProducts(4);
-            if (topSoldNProducts != null && !topSoldNProducts.isEmpty()) {
-                deliveryOrderLine.setProduct(topSoldNProducts.get(0));
+
+            loadActiveCustomers();
+            loadActiveSoldProducts();
+
+            if (topNActiveSoldProducts != null && !topNActiveSoldProducts.isEmpty()) {
+                deliveryOrderLine.setProduct(topNActiveSoldProducts.get(0));
                 deliveryOrderLine.setPrice(deliveryOrderLine.getProduct().getSalePrice());
                 deliveryOrderLine.setUom(deliveryOrderLine.getProduct().getUom().getName());
             }
 
-            if (!topNCustomers.contains(deliveryOrder.getPartner())) {
-                topNCustomers.add(deliveryOrder.getPartner());
+            if (!topNActiveCustomers.contains(deliveryOrder.getPartner())) {
+                topNActiveCustomers.add(deliveryOrder.getPartner());
             }
 
             for (DeliveryOrderLine orderLine : deliveryOrderLines) {
-                if (!topSoldNProducts.contains(orderLine.getProduct())) {
-                    topSoldNProducts.add(orderLine.getProduct());
+                if (!topNActiveSoldProducts.contains(orderLine.getProduct())) {
+                    topNActiveSoldProducts.add(orderLine.getProduct());
                 }
             }
-            currentForm = "/sc/deliveryOrder/Create.xhtml";
+            currentForm = CREATE_URL;
         }
-    }
-
-    public List<Partner> getTopNCustomers() {
-        if (topNCustomers == null) {
-            topNCustomers = deliveryOrderFacade.findTopNCustomers(4);
-        }
-        return topNCustomers;
-
-    }
-
-    public List<Product> getTopSoldNProducts() {
-        if (topSoldNProducts == null) {
-            topSoldNProducts = deliveryOrderFacade.findTopNSoldProducts(4);
-        }
-        return topSoldNProducts;
-    }
-
-    public Partner getCustomer() {
-        return customer;
-    }
-
-    public void setCustomer(Partner customer) {
-        this.customer = customer;
-    }
-
-    public Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
     }
 
     public void onDialogRowEdit(int Index) {
@@ -1230,9 +1107,9 @@ public class DeliveryOrderController implements Serializable {
 
         deliveryOrderLines.add(deliveryOrderLine);
         deliveryOrderLine = new DeliveryOrderLine();
-        if (topSoldNProducts != null && !topSoldNProducts.isEmpty()) {
-            deliveryOrderLine.setProduct(topSoldNProducts.get(0));
-            deliveryOrderLine.setUom(topSoldNProducts.get(0).getUom().getName());
+        if (topNActiveSoldProducts != null && !topNActiveSoldProducts.isEmpty()) {
+            deliveryOrderLine.setProduct(topNActiveSoldProducts.get(0));
+            deliveryOrderLine.setUom(topNActiveSoldProducts.get(0).getUom().getName());
         }
         deliveryOrderLine.setState(Status.NEW.value());
     }
@@ -1259,8 +1136,8 @@ public class DeliveryOrderController implements Serializable {
         deliveryOrderLines.remove(index);
         deliveryOrderLines.add(index, deliveryOrderLine);
         deliveryOrderLine = new DeliveryOrderLine();
-        if (topSoldNProducts != null && !topSoldNProducts.isEmpty()) {
-            deliveryOrderLine.setProduct(topSoldNProducts.get(0));
+        if (topNActiveSoldProducts != null && !topNActiveSoldProducts.isEmpty()) {
+            deliveryOrderLine.setProduct(topNActiveSoldProducts.get(0));
             deliveryOrderLine.setUom(deliveryOrderLine.getProduct().getUom().getName());
         }
         deliveryOrderLine.setState(Status.NEW.value());
@@ -1268,8 +1145,8 @@ public class DeliveryOrderController implements Serializable {
 
     public void onRowCancel() {
         deliveryOrderLine = new DeliveryOrderLine();
-        if (topSoldNProducts != null && !topSoldNProducts.isEmpty()) {
-            deliveryOrderLine.setProduct(topSoldNProducts.get(0));
+        if (topNActiveSoldProducts != null && !topNActiveSoldProducts.isEmpty()) {
+            deliveryOrderLine.setProduct(topNActiveSoldProducts.get(0));
             deliveryOrderLine.setUom(deliveryOrderLine.getProduct().getUom().getName());
         }
         deliveryOrderLine.setState(Status.NEW.value());
@@ -1282,16 +1159,16 @@ public class DeliveryOrderController implements Serializable {
     public void onProductChange(int rowIndex) {
         deliveryOrderLines.get(rowIndex).setUom(deliveryOrderLines.get(rowIndex).getProduct().getUom().getName());
     }
-    
+
     private boolean deliveryExist(Integer id) {
         if (id != null) {
-            deliveryOrder = deliveryOrderFacade.find(id);
+            deliveryOrder = super.findItemById(id, DeliveryOrder.class);
             if (deliveryOrder == null) {
                 JsfUtil.addWarningMessage("ItemDoesNotExist");
                 deliveryOrders.remove(deliveryOrder);
                 deliveryOrder = deliveryOrders.get(0);
-//                listType = null;
-                currentForm = "/sc/deliveryOrder/View.xhtml";
+//              listType = null;
+                currentForm = VIEW_URL;
                 return false;
             } else {
                 deliveryOrder.getDeliveryOrderLines().size();
@@ -1303,21 +1180,188 @@ public class DeliveryOrderController implements Serializable {
         }
     }
 
-    private String getOrderStatus(Integer id) {
-        if (id != null) {
-            DeliveryOrder delivery = deliveryOrderFacade.find(id);
-            if (delivery != null) {
-                return delivery.getState();
+    private String getDeliveryOrderStatus() {
+        if (deliveryOrder != null) {
+
+            DeliveryOrder tempItem = super.findItemById(deliveryOrder.getId(), deliveryOrder.getClass());
+
+            if (tempItem != null) {
+                return tempItem.getState();
             } else {
-                JsfUtil.addWarningMessage("ItemDoesNotExist");
-                deliveryOrders.remove(deliveryOrder);
-                deliveryOrder = deliveryOrders.get(0);
-//                listType = null;
-                currentForm = "/sc/deliveryOrder/View.xhtml";
+                deliveryOrderNotFound();
                 return null;
             }
         }
         return null;
+    }
+
+    private void deliveryOrderNotFound() {
+
+        JsfUtil.addWarningMessage("ItemDoesNotExist");
+        currentForm = VIEW_URL;
+
+        if ((deliveryOrders != null) && (deliveryOrders.size() > 1)) {
+            deliveryOrders.remove(deliveryOrder);
+            deliveryOrder = deliveryOrders.get(0);
+        } else {
+            listType = null;
+            query = DeliveryOrderQueryBuilder.getFindAllDeliveryOrdersQuery();
+            deliveryOrders = super.findWithQuery(query);
+            if ((deliveryOrders != null) && (deliveryOrders.size() > 1)) {
+                deliveryOrder = deliveryOrders.get(0);
+            }
+        }
+    }
+
+    private void loadActiveCustomers() {
+        query = PartnerQueryBuilder.getFindActiveCustomersQuery();
+        activeCustomers = super.findWithQuery(query);
+
+        if (activeCustomers != null && activeCustomers.size() > MAX_DROPDOWN_ITEMS) {
+            topNActiveCustomers = activeCustomers.subList(0, MAX_DROPDOWN_ITEMS);
+        } else {
+            topNActiveCustomers = activeCustomers;
+        }
+    }
+
+    private void loadActiveSoldProducts() {
+        query = ProductQueryBuilder.getFindActiveSoldProductsQuery();
+        activeSoldProducts = super.findWithQuery(query);
+
+        if (activeSoldProducts != null && activeSoldProducts.size() > MAX_DROPDOWN_ITEMS) {
+            topNActiveSoldProducts = activeSoldProducts.subList(0, MAX_DROPDOWN_ITEMS);
+        } else {
+            topNActiveSoldProducts = activeSoldProducts;
+        }
+    }
+
+    public Partner getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(Partner customer) {
+        this.customer = customer;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+
+    public String getListType() {
+        return listType;
+    }
+
+    public void setListType(String listType) {
+        this.listType = listType;
+    }
+
+    public DeliveryOrder getDeliveryOrder() {
+        if (deliveryOrder == null) {
+            return deliveryOrder = new DeliveryOrder();
+        }
+        return deliveryOrder;
+    }
+
+    public void setDeliveryOrder(DeliveryOrder deliveryOrder) {
+        this.deliveryOrder = deliveryOrder;
+    }
+
+    public DeliveryOrderLine getDeliveryOrderLine() {
+        if (deliveryOrderLine == null) {
+            deliveryOrderLine = new DeliveryOrderLine();
+        }
+        return deliveryOrderLine;
+    }
+
+    public void setDeliveryOrderLine(DeliveryOrderLine deliveryOrderLine) {
+        this.deliveryOrderLine = deliveryOrderLine;
+    }
+
+    public List<DeliveryOrder> getDeliveryOrders() {
+        return deliveryOrders;
+    }
+
+    public void setDeliveryOrders(List<DeliveryOrder> deliveryOrders) {
+        this.deliveryOrders = deliveryOrders;
+    }
+
+    public List<DeliveryOrder> getFilteredDeliveryOrders() {
+        return filteredDeliveryOrders;
+    }
+
+    public void setFilteredDeliveryOrders(List<DeliveryOrder> filteredDeliveryOrders) {
+        this.filteredDeliveryOrders = filteredDeliveryOrders;
+    }
+
+    public List<DeliveryOrderLine> getDeliveryOrderLines() {
+        if (deliveryOrderLines == null) {
+            deliveryOrderLines = new ArrayList<>();
+        }
+        return deliveryOrderLines;
+    }
+
+    public void setDeliveryOrderLines(List<DeliveryOrderLine> deliveryOrderLines) {
+        this.deliveryOrderLines = deliveryOrderLines;
+    }
+
+    public List<DeliveryOrderLine> getTobeDeliveredOrderLines() {
+        return tobeDeliveredOrderLines;
+    }
+
+    public void setTobeDeliveredOrderLines(List<DeliveryOrderLine> tobeDeliveredOrderLines) {
+        this.tobeDeliveredOrderLines = tobeDeliveredOrderLines;
+    }
+
+    public String getSaleId() {
+        return saleId;
+    }
+
+    public void setSaleId(String saleId) {
+        this.saleId = saleId;
+    }
+
+    public String getDeliveryId() {
+        return deliveryId;
+    }
+
+    public void setDeliveryId(String deliveryId) {
+        this.deliveryId = deliveryId;
+    }
+
+    public String getPartnerId() {
+        return partnerId;
+    }
+
+    public void setPartnerId(String partnerId) {
+        this.partnerId = partnerId;
+    }
+
+    public List<Partner> getActiveCustomers() {
+        return activeCustomers;
+    }
+
+    public List<Partner> getTopNActiveCustomers() {
+        return topNActiveCustomers;
+    }
+
+    public List<Partner> getFilteredActiveCustomers() {
+        return filteredActiveCustomers;
+    }
+
+    public List<Product> getActiveSoldProducts() {
+        return activeSoldProducts;
+    }
+
+    public List<Product> getTopNActiveSoldProducts() {
+        return topNActiveSoldProducts;
+    }
+
+    public List<Product> getFilteredActiveSoldProducts() {
+        return filteredActiveSoldProducts;
     }
 
 }
