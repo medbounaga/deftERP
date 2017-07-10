@@ -1,11 +1,12 @@
 package com.defterp.modules.users.controllers;
 
-import com.defterp.modules.users.entities.User;
+import com.defterp.modules.commonClasses.AbstractController;
+import com.defterp.modules.commonClasses.QueryWrapper;
 import com.defterp.util.JsfUtil;
-import com.casa.erp.dao.UserFacade;
+import com.defterp.modules.users.entities.User;
+import com.defterp.modules.users.queryBuilders.UserQueryBuilder;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -15,7 +16,6 @@ import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.inject.Named;
 import javax.faces.view.ViewScoped;
-import javax.inject.Inject;
 import javax.servlet.http.Part;
 import org.apache.commons.io.IOUtils;
 
@@ -25,12 +25,11 @@ import org.apache.commons.io.IOUtils;
  *
  * github.com/medbounaga
  */
+
 @Named(value = "userController")
 @ViewScoped
-public class UserController implements Serializable {
+public class UserController extends AbstractController {
 
-    @Inject
-    private UserFacade userFacade;
     private User user;
     private List<User> users;
     private List<User> filteredUsers;
@@ -39,6 +38,11 @@ public class UserController implements Serializable {
     private Part image;
     private boolean imageModified;
     private String currentForm = "/sc/userInfo/View.xhtml";
+    private QueryWrapper query;
+
+    public UserController() {
+        super("/sc/userInfo/");
+    }
 
     @PostConstruct
     public void init() {
@@ -99,24 +103,26 @@ public class UserController implements Serializable {
 
     public void deleteUser() {
         if (userExist(user.getId())) {
-            try {
-                userFacade.remove(user);
-            } catch (Exception e) {
-                JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
-                return;
-            }
 
-            JsfUtil.addSuccessMessage("ItemDeleted");
-            currentForm = "/sc/userInfo/View.xhtml";
+            boolean deleted = super.deleteItem(user);
 
-            if ((users != null) && (users.size() > 1)) {
-                users.remove(user);
-                user = users.get(0);
-            } else {
-                users = userFacade.findAll();
-                if ((users != null) && (!users.isEmpty())) {
+            if (deleted) {
+
+                JsfUtil.addSuccessMessage("ItemDeleted");
+                currentForm = VIEW_URL;
+
+                if (users != null && users.size() > 1) {
+                    users.remove(user);
                     user = users.get(0);
+                } else {
+                    query = UserQueryBuilder.getFindAllQuery();
+                    users = super.findWithQuery(query);
+                    if ((users != null) && (!users.isEmpty())) {
+                        user = users.get(0);
+                    }
                 }
+            } else {
+                JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
             }
 
         } else {
@@ -136,7 +142,8 @@ public class UserController implements Serializable {
             user = users.get(0);
             currentForm = "/sc/userInfo/View.xhtml";
         } else {
-            users = userFacade.findAll();
+            query = UserQueryBuilder.getFindAllQuery();
+            users = super.findWithQuery(query);
             if ((users != null) && (!users.isEmpty())) {
                 user = users.get(0);
                 currentForm = "/sc/userInfo/View.xhtml";
@@ -146,7 +153,7 @@ public class UserController implements Serializable {
 
     public void updateUser() {
         if (userExistTwo(user.getId())) {
-            user = userFacade.update(user);
+            user = super.updateItem(user);
             users.set(users.indexOf(user), user);
             currentForm = "/sc/userInfo/View.xhtml";
         }
@@ -154,14 +161,15 @@ public class UserController implements Serializable {
 
     private boolean userExistTwo(Integer id) {
         if (id != null) {
-            User usr = userFacade.find(id);
+            User usr = super.findItemById(id, User.class);
             if (usr == null) {
                 JsfUtil.addWarningMessage("ItemDoesNotExist");
                 if ((users != null) && (users.size() > 1)) {
                     users.remove(user);
                     user = users.get(0);
                 } else {
-                    users = userFacade.findAll();
+                    query = UserQueryBuilder.getFindAllQuery();
+                    users = super.findWithQuery(query);
                     if ((users != null) && (!users.isEmpty())) {
                         user = users.get(0);
                     }
@@ -190,15 +198,17 @@ public class UserController implements Serializable {
         if (JsfUtil.isNumeric(userId)) {
 
             Integer id = Integer.valueOf(userId);
-            user = userFacade.find(id);
+            user = super.findItemById(id, User.class);
 
             if (user != null) {
-                users = userFacade.findAll();
+                query = UserQueryBuilder.getFindAllQuery();
+                users = super.findWithQuery(query);
                 return;
             }
         }
 
-        users = userFacade.findAll();
+        query = UserQueryBuilder.getFindAllQuery();
+        users = super.findWithQuery(query);
         if (users != null && !users.isEmpty()) {
             user = users.get(0);
         }
@@ -207,12 +217,13 @@ public class UserController implements Serializable {
     public void createUser() {
         if (user != null) {
 
-            user = userFacade.create(user);
+            user = super.createItem(user);
 
             if ((users != null) && (!users.isEmpty())) {
                 users.add(user);
             } else {
-                users = userFacade.findAll();
+                query = UserQueryBuilder.getFindAllQuery();
+                users = super.findWithQuery(query);
             }
 
             currentForm = "/sc/userInfo/View.xhtml";
@@ -228,7 +239,7 @@ public class UserController implements Serializable {
 
     private boolean userExist(Integer id) {
         if (id != null) {
-            user = userFacade.find(id);
+            user = super.findItemById(id, User.class);
             if (user == null) {
                 JsfUtil.addWarningMessage("ItemDoesNotExist");
 
@@ -236,7 +247,8 @@ public class UserController implements Serializable {
                     users.remove(user);
                     user = users.get(0);
                 } else {
-                    users = userFacade.findAll();
+                    query = UserQueryBuilder.getFindAllQuery();
+                    users = super.findWithQuery(query);
                     if ((users != null) && (!users.isEmpty())) {
                         user = users.get(0);
                     }
@@ -258,7 +270,6 @@ public class UserController implements Serializable {
             currentForm = "/sc/userInfo/View.xhtml";
         }
     }
-
 
     public int getUserIndex() {
         if (users != null && user != null) {
@@ -293,7 +304,8 @@ public class UserController implements Serializable {
 
     public List<User> getUsers() {
         if (users == null) {
-            users = userFacade.findAll();
+            query = UserQueryBuilder.getFindAllQuery();
+            users = super.findWithQuery(query);
         }
 
         return users;
