@@ -1,7 +1,7 @@
 package com.defterp.modules.inventory.converters;
 
 import com.defterp.modules.inventory.entities.Inventory;
-import com.casa.erp.dao.InventoryFacade;
+import com.defterp.dataAccess.GenericDAO;
 import com.defterp.util.JsfUtil;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,33 +12,32 @@ import javax.faces.convert.Converter;
 import javax.faces.convert.FacesConverter;
 
 /**
- * 
+ *
  * @author MOHAMMED BOUNAGA
- * 
+ *
  * github.com/medbounaga
  */
-
 @FacesConverter(value = "inventoryConverter")
 public class InventoryConverter implements Converter {
 
     @Inject
-    private InventoryFacade ejbFacade;
+    private GenericDAO dataAccess;
 
     @Override
     public Object getAsObject(FacesContext facesContext, UIComponent component, String value) {
         if (value == null || value.length() == 0 || JsfUtil.isDummySelectItem(component, value)) {
             return null;
         }
-        return this.ejbFacade.find(getKey(value));
+        return dataAccess.findById(getKey(value), Inventory.class);
     }
 
-    java.lang.Integer getKey(String value) {
+    private Integer getKey(String value) {
         java.lang.Integer key;
         key = Integer.valueOf(value);
         return key;
     }
 
-    String getStringKey(java.lang.Integer value) {
+    private String getStringKey(Integer value) {
         StringBuffer sb = new StringBuffer();
         sb.append(value);
         return sb.toString();
