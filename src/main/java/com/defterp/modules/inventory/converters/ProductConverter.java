@@ -1,7 +1,7 @@
 package com.defterp.modules.inventory.converters;
 
 import com.defterp.modules.inventory.entities.Product;
-import com.casa.erp.dao.ProductFacade;
+import com.defterp.dataAccess.GenericDAO;
 import com.defterp.util.JsfUtil;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,44 +12,37 @@ import javax.faces.convert.Converter;
 import javax.faces.convert.FacesConverter;
 
 /**
- * 
+ *
  * @author MOHAMMED BOUNAGA
- * 
+ *
  * github.com/medbounaga
  */
-
 @FacesConverter(value = "productConverter")
 public class ProductConverter implements Converter {
 
     @Inject
-    private ProductFacade ejbFacade;
+    private GenericDAO dataAccess;
 
     @Override
     public Object getAsObject(FacesContext facesContext, UIComponent component, String value) {
-        if (value == null || value.length() == 0 || JsfUtil.isDummySelectItem(component, value) || !isNumeric(value)) {
+        if (value == null || value.length() == 0 || JsfUtil.isDummySelectItem(component, value)) {
             return null;
         }
-        
-        try {
-            return this.ejbFacade.find(getKey(value));
-        } catch (Exception e) {
-            return null;
-        }
-        
+        return dataAccess.findById(getKey(value), Product.class);
     }
 
-    java.lang.Integer getKey(String value) throws Exception  {
+    private Integer getKey(String value) {
         java.lang.Integer key;
         key = Integer.valueOf(value);
         return key;
     }
 
-    String getStringKey(java.lang.Integer value) {
+    private String getStringKey(Integer value) {
         StringBuffer sb = new StringBuffer();
         sb.append(value);
         return sb.toString();
     }
-    
+
     public static boolean isNumeric(String str) {
         for (char c : str.toCharArray()) {
             if (!Character.isDigit(c)) {
@@ -61,8 +54,7 @@ public class ProductConverter implements Converter {
 
     @Override
     public String getAsString(FacesContext facesContext, UIComponent component, Object object) {
-        if (object == null
-                || (object instanceof String && ((String) object).length() == 0)) {
+        if (object == null || (object instanceof String && ((String) object).length() == 0)) {
             return null;
         }
         if (object instanceof Product) {
