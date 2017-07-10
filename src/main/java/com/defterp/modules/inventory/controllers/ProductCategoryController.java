@@ -2,12 +2,12 @@ package com.defterp.modules.inventory.controllers;
 
 import com.defterp.util.JsfUtil;
 import com.defterp.modules.inventory.entities.ProductCategory;
-import com.casa.erp.dao.ProductCategoryFacade;
-import java.io.Serializable;
+import com.defterp.modules.commonClasses.AbstractController;
+import com.defterp.modules.commonClasses.QueryWrapper;
+import com.defterp.modules.inventory.queryBuilders.ProductCategoryQueryBuilder;
 import java.util.List;
 import javax.inject.Named;
 import javax.faces.view.ViewScoped;
-import javax.inject.Inject;
 
 /**
  *
@@ -15,68 +15,72 @@ import javax.inject.Inject;
  *
  * github.com/medbounaga
  */
+
 @Named(value = "productCategoryController")
 @ViewScoped
-public class ProductCategoryController implements Serializable {
+public class ProductCategoryController extends AbstractController {
 
-    @Inject
-    private ProductCategoryFacade productCategoryFacade;
     private List<ProductCategory> productCategories;
     private List<ProductCategory> filteredProductCategories;
     private ProductCategory productCategory;
     private String productCategoryId;
-    private String currentForm = "/sc/productCtg/View.xhtml";
+    private QueryWrapper query;
+
+    public ProductCategoryController() {
+        super("/sc/productCtg/");
+    }
 
     public void prepareCreateProductCategory() {
         productCategory = new ProductCategory();
         productCategory.setActive(Boolean.TRUE);
-        currentForm = "/sc/productCtg/Create.xhtml";
+        currentForm = CREATE_URL;
     }
 
     public void deleteProductCategory() {
         if (productCategoryExist(productCategory.getId())) {
-            try {
-                productCategoryFacade.remove(productCategory);
-            } catch (Exception e) {
-                JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
-                return;
-            }
 
-            JsfUtil.addSuccessMessage("ItemDeleted");
-            currentForm = "/sc/productCtg/View.xhtml";
+            boolean deleted = super.deleteItem(productCategory);
 
-            if ((productCategories != null) && (productCategories.size() > 1)) {
-                productCategories.remove(productCategory);
-                productCategory = productCategories.get(0);
-            } else {
+            if (deleted) {
 
-                productCategories = productCategoryFacade.findAll();
-                if ((productCategories != null) && (!productCategories.isEmpty())) {
+                JsfUtil.addSuccessMessage("ItemDeleted");
+                currentForm = VIEW_URL;
+
+                if (productCategories != null && productCategories.size() > 1) {
+                    productCategories.remove(productCategory);
                     productCategory = productCategories.get(0);
-                }
-            }
+                } else {
+                    query = ProductCategoryQueryBuilder.getFindAllQuery();
+                    productCategories = super.findWithQuery(query);
 
-        } else {
-            JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete");
-        }
+                    if (productCategories != null && !productCategories.isEmpty()) {
+                        productCategory = productCategories.get(0);
+                    }
+                }
+
+            } else {
+                JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
+            }
+        } 
     }
 
     public void cancelEditProductCategory() {
         if (productCategoryExist(productCategory.getId())) {
-            currentForm = "/sc/productCtg/View.xhtml";
+            currentForm = VIEW_URL;
         }
     }
 
     public void cancelCreateProductCategory() {
-        
-        currentForm = "/sc/productCtg/View.xhtml";
+
+        currentForm = VIEW_URL;
 
         if ((productCategories != null) && (!productCategories.isEmpty())) {
             productCategory = productCategories.get(0);
         } else {
-            
-            productCategories = productCategoryFacade.findAll();
-            
+
+            query = ProductCategoryQueryBuilder.getFindAllQuery();
+            productCategories = super.findWithQuery(query);
+
             if ((productCategories != null) && (!productCategories.isEmpty())) {
                 productCategory = productCategories.get(0);
             }
@@ -85,26 +89,28 @@ public class ProductCategoryController implements Serializable {
 
     public void updateProductCategory() {
         if (productCategoryExistTwo(productCategory.getId())) {
-            productCategory = productCategoryFacade.update(productCategory);
-            productCategories = productCategoryFacade.findAll();
-            currentForm = "/sc/productCtg/View.xhtml";
+            productCategory = super.updateItem(productCategory);
+            query = ProductCategoryQueryBuilder.getFindAllQuery();
+            productCategories = super.findWithQuery(query);
+            currentForm = VIEW_URL;
         }
     }
 
     private boolean productCategoryExistTwo(Integer id) {
         if (id != null) {
-            ProductCategory productCat = productCategoryFacade.find(id);
+            ProductCategory productCat = super.findItemById(id, ProductCategory.class);
             if (productCat == null) {
 
                 JsfUtil.addWarningMessage("ItemDoesNotExist");
-                currentForm = "/sc/productCtg/View.xhtml";
+                currentForm = VIEW_URL;
 
                 if ((productCategories != null) && (productCategories.size() > 1)) {
                     productCategories.remove(productCategory);
                     productCategory = productCategories.get(0);
                 } else {
 
-                    productCategories = productCategoryFacade.findAll();
+                    query = ProductCategoryQueryBuilder.getFindAllQuery();
+                    productCategories = super.findWithQuery(query);
                     if ((productCategories != null) && (!productCategories.isEmpty())) {
                         productCategory = productCategories.get(0);
                     }
@@ -121,18 +127,20 @@ public class ProductCategoryController implements Serializable {
 
     public void resolveRequestParams() {
 
-        currentForm = "/sc/productCtg/View.xhtml";
+        currentForm = VIEW_URL;
 
         if (JsfUtil.isNumeric(productCategoryId)) {
             Integer id = Integer.valueOf(productCategoryId);
-            productCategory = productCategoryFacade.find(id);
+            productCategory = super.findItemById(id, ProductCategory.class);
             if (productCategory != null) {
-                productCategories = productCategoryFacade.findAll();
+                query = ProductCategoryQueryBuilder.getFindAllQuery();
+                productCategories = super.findWithQuery(query);
                 return;
             }
         }
 
-        productCategories = productCategoryFacade.findAll();
+        query = ProductCategoryQueryBuilder.getFindAllQuery();
+        productCategories = super.findWithQuery(query);
         if (productCategories != null && !productCategories.isEmpty()) {
             productCategory = productCategories.get(0);
         }
@@ -140,35 +148,37 @@ public class ProductCategoryController implements Serializable {
 
     public void createProductCategory() {
         if (productCategory != null) {
-            productCategory = productCategoryFacade.create(productCategory);
+            productCategory = super.createItem(productCategory);
             if (productCategories != null && !productCategories.isEmpty()) {
                 productCategories.add(productCategory);
             } else {
 
-                productCategories = productCategoryFacade.findAll();
+                query = ProductCategoryQueryBuilder.getFindAllQuery();
+                productCategories = super.findWithQuery(query);
             }
-            currentForm = "/sc/productCtg/View.xhtml";
+            currentForm = VIEW_URL;
         }
     }
 
     public void prepareEditProductCategory() {
         if (productCategoryExist(productCategory.getId())) {
-            currentForm = "/sc/productCtg/Edit.xhtml";
+            currentForm = EDIT_URL;
         }
     }
 
     private boolean productCategoryExist(Integer id) {
         if (id != null) {
-            productCategory = productCategoryFacade.find(id);
+            productCategory = super.findItemById(id, ProductCategory.class);
             if (productCategory == null) {
                 JsfUtil.addWarningMessage("ItemDoesNotExist");
-                currentForm = "/sc/productCtg/View.xhtml";
+                currentForm = VIEW_URL;
 
                 if ((productCategories != null) && (productCategories.size() > 1)) {
                     productCategories.remove(productCategory);
                     productCategory = productCategories.get(0);
                 } else {
-                    productCategories = productCategoryFacade.findAll();
+                    query = ProductCategoryQueryBuilder.getFindAllQuery();
+                    productCategories = super.findWithQuery(query);
                     if ((productCategories != null) && (!productCategories.isEmpty())) {
                         productCategory = productCategories.get(0);
                     }
@@ -187,7 +197,7 @@ public class ProductCategoryController implements Serializable {
 
         if (productCategory != null) {
             if (productCategoryExist(productCategory.getId())) {
-                currentForm = "/sc/productCtg/View.xhtml";
+                currentForm = VIEW_URL;
             }
         }
     }
@@ -217,7 +227,8 @@ public class ProductCategoryController implements Serializable {
 
     public List<ProductCategory> getProductCategories() {
         if (productCategories == null) {
-            productCategories = productCategoryFacade.findAll();
+            query = ProductCategoryQueryBuilder.getFindAllQuery();
+            productCategories = super.findWithQuery(query);
         }
         return productCategories;
     }
@@ -249,14 +260,6 @@ public class ProductCategoryController implements Serializable {
 
     public void setProductCategoryId(String productCategoryId) {
         this.productCategoryId = productCategoryId;
-    }
-
-    public String getCurrentForm() {
-        return currentForm;
-    }
-
-    public void setCurrentForm(String currentForm) {
-        this.currentForm = currentForm;
     }
 
 }
