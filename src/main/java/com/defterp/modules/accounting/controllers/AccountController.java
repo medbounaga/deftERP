@@ -42,20 +42,20 @@ public class AccountController extends AbstractController {
     public void resolveRequestParams() {
 
         currentForm = VIEW_URL;
-        query = AccountQueryBuilder.getFindAllAccountsQuery();
+        query = AccountQueryBuilder.getFindAllQuery();
 
         if (JsfUtil.isNumeric(accountId)) {
 
             Integer id = Integer.valueOf(accountId);
-            account = findItemById(id, Account.class);
+            account = super.findItemById(id, Account.class);
 
             if (account != null) {
-                accounts = findWithQuery(query);
+                accounts = super.findWithQuery(query);
                 return;
             }
         }
-        
-        accounts = findWithQuery(query);
+
+        accounts = super.findWithQuery(query);
         if (accounts != null && !accounts.isEmpty()) {
             account = accounts.get(0);
         }
@@ -64,7 +64,7 @@ public class AccountController extends AbstractController {
     public void createAccount() {
         if (account != null) {
             account.setName(account.getCode() + " " + account.getTitle());
-            account = createItem(account);
+            account = super.createItem(account);
             if (accounts != null && !accounts.isEmpty()) {
                 accounts.add(account);
             }
@@ -74,89 +74,75 @@ public class AccountController extends AbstractController {
 
     public void prepareViewAccount() {
         if (account != null) {
-            account = findItemById(account.getId(), account.getClass());
+            account = super.findItemById(account.getId(), account.getClass());
             if (account != null) {
                 currentForm = VIEW_URL;
             } else {
-                accountNotFound();
+                ItemNotFound();
             }
         }
     }
 
     public void prepareUpdateAccount() {
-        account = findItemById(account.getId(), account.getClass());
+        account = super.findItemById(account.getId(), account.getClass());
         if (account != null) {
             currentForm = EDIT_URL;
         } else {
-            accountNotFound();
+            ItemNotFound();
         }
     }
 
     public void prepareCreateAccount() {
         account = new Account();
-        account.setActive(Boolean.TRUE);
         currentForm = CREATE_URL;
     }
 
     public void cancelUpdateAccount() {
-        account = ((Account) findItemById(account.getId(), account.getClass()));
+        account = super.findItemById(account.getId(), Account.class);
         if (account != null) {
             currentForm = VIEW_URL;
         } else {
-            accountNotFound();
+            ItemNotFound();
         }
     }
 
     public void cancelCreateAccount() {
-
-        if ((accounts != null) && (!accounts.isEmpty())) {
-            account = accounts.get(0);
-            currentForm = VIEW_URL;
-        } else {
-            query = AccountQueryBuilder.getFindAllAccountsQuery();
-            accounts = findWithQuery(query);
-            if ((accounts != null) && (!accounts.isEmpty())) {
-                account = accounts.get(0);
-                currentForm = VIEW_URL;
-            }
-        }
+        currentForm = VIEW_URL;
+        resetListAndCurrentItem();
     }
 
     public void deleteAccount() {
-        account = findItemById(account.getId(), account.getClass());
+        account = super.findItemById(account.getId(), account.getClass());
         if (account != null) {
-            boolean deleted = deleteItem(account);
+            boolean deleted = super.deleteItem(account);
             if (deleted) {
-                if ((accounts != null) && (accounts.size() > 1)) {
-                    accounts.remove(account);                   
-                    account = accounts.get(0);
-                    System.out.println("-----------first-------------");
-                } else {
-                    query = AccountQueryBuilder.getFindAllAccountsQuery();
-                    accounts = findWithQuery(query);
-                    if ((accounts != null) && (!accounts.isEmpty())) {
-                        System.out.println("-----------second-------------");
-                        account = accounts.get(0);
-                    }
-                }
+                
                 JsfUtil.addSuccessMessage("ItemDeleted");
+                currentForm = VIEW_URL;
+
+                if (accounts != null) {
+                    accounts.remove(account);
+                }
+
+                resetListAndCurrentItem();
+                            
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
             }
         } else {
-            accountNotFound();
+            ItemNotFound();
         }
     }
 
     public void updateAccount() {
-        account = findItemById(account.getId(), account.getClass());
+        account = super.findItemById(account.getId(), account.getClass());
         if (account != null) {
             account.setName(account.getCode() + " " + account.getTitle());
-            account = ((Account) updateItem(account));
+            account = super.updateItem(account);
             accounts.set(accounts.indexOf(account), account);
             currentForm = VIEW_URL;
         } else {
-            accountNotFound();
+            ItemNotFound();
         }
     }
 
@@ -203,40 +189,52 @@ public class AccountController extends AbstractController {
         return 0d;
     }
 
-    protected void accountNotFound() {
-        JsfUtil.addWarningMessage("ItemDoesNotExist");
+    protected void ItemNotFound() {
 
-        if ((accounts != null) && (accounts.size() > 1)) {
+        currentForm = VIEW_URL;
+        JsfUtil.addWarningMessage("ItemDoesNotExist");      
+
+        if (accounts != null) {
             accounts.remove(account);
+        }
+
+        resetListAndCurrentItem();
+    }
+
+    public void resetListAndCurrentItem() { 
+
+        if (accounts != null && !accounts.isEmpty()) {
+            
             account = accounts.get(0);
         } else {
-            query = AccountQueryBuilder.getFindAllAccountsQuery();
-            accounts = findWithQuery(query);
-            if ((accounts != null) && (accounts.size() > 1)) {
+            
+            query = AccountQueryBuilder.getFindAllQuery();
+            accounts = super.findWithQuery(query);
+            
+            if ((accounts != null) && !accounts.isEmpty()) {
                 account = accounts.get(0);
             }
         }
-        currentForm = VIEW_URL;
     }
 
     public void nextAccount() {
         if (accounts.indexOf(account) == accounts.size() - 1) {
-            account = ((Account) accounts.get(0));
+            account = accounts.get(0);
         } else {
-            account = ((Account) accounts.get(accounts.indexOf(account) + 1));
+            account = accounts.get(accounts.indexOf(account) + 1);
         }
     }
 
     public void previousAccount() {
         if (accounts.indexOf(account) == 0) {
-            account = ((Account) accounts.get(accounts.size() - 1));
+            account = accounts.get(accounts.size() - 1);
         } else {
-            account = ((Account) accounts.get(accounts.indexOf(account) - 1));
+            account = accounts.get(accounts.indexOf(account) - 1);
         }
     }
 
     public int getAccountIndex() {
-        if ((accounts != null) && (account != null)) {
+        if (accounts != null && account != null) {
             return accounts.indexOf(account) + 1;
         }
         return 0;

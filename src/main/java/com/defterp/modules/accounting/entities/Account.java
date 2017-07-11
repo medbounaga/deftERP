@@ -70,14 +70,8 @@ public class Account extends BaseEntity {
     private List<Invoice> invoices;
 
     public Account() {
+        active = true;
     }
-
-
-    public Account(String name, Boolean active) {
-        this.name = name;
-        this.active = active;
-    }
-
 
     public String getName() {
         return name;
