@@ -190,7 +190,6 @@ public class GenericDAO implements Serializable {
         entityManager.clear();
 
         return result;
-
     }
 
     public <T> List<T> findWithNativeQuery(String nativeQuery) throws Exception {
