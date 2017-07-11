@@ -1304,8 +1304,8 @@ public class InvoiceController extends AbstractController {
         }
         findOutstandingPayments();
     }
-    
-      private void loadActiveCustomers() {
+
+    private void loadActiveCustomers() {
         query = PartnerQueryBuilder.getFindActiveCustomersQuery();
         activeCustomers = super.findWithQuery(query);
 
@@ -1325,6 +1325,11 @@ public class InvoiceController extends AbstractController {
         } else {
             topNActiveSoldProducts = activeSoldProducts;
         }
+    }
+    
+    public List<Account> getInvoiceAccounts() {
+        query = AccountQueryBuilder.getFindByNameQuery("Account Receivable");
+        return super.findWithQuery(query);
     }
 
     public List<Invoice> getInvoices() {

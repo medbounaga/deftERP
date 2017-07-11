@@ -635,6 +635,16 @@ public class VendorController extends AbstractController {
         }
         return partners;
     }
+    
+    public List<Account> getReceivableAccounts() {
+        query = AccountQueryBuilder.getFindByTypeQuery("Receivable");
+        return super.findWithQuery(query);
+    }
+
+    public List<Account> getPayableAccounts() {
+        query = AccountQueryBuilder.getFindByTypeQuery("Payable");
+        return super.findWithQuery(query);
+    }
 
     public List<Partner> getFilteredPartners() {
         return filteredPartners;

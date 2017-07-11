@@ -1255,6 +1255,11 @@ public class SupInvoiceController extends AbstractController {
         }
         return topPurchasedNProducts;
     }
+    
+    public List<Account> getBillAccounts() {
+        query = AccountQueryBuilder.getFindByNameQuery("Account Payable");
+        return super.findWithQuery(query);
+    }
 
     public Invoice getInvoice() {
         if (invoice == null) {

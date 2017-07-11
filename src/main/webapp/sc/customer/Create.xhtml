@@ -274,7 +274,7 @@
                                         <div class="col-md-7">
                                             <p:selectOneMenu id="accountReceivable" class="required input-width-90" value="#{customerController.partner.accountReceivable}" required="true" requiredMessage="#{messages.accountReceivableRequired}" converter="accountConverter" >   
                                                 <f:selectItem  itemLabel="&#160;" />
-                                                <f:selectItems value="#{accountController.receivableAccounts}"
+                                                <f:selectItems value="#{customerController.receivableAccounts}"
                                                                var="account"
                                                                itemValue="#{account}"
                                                                itemLabel="#{account.name.toString()}"/>
@@ -298,7 +298,7 @@
                                         <div class="col-md-7">
                                             <p:selectOneMenu id="accountPayable"  class="required input-width-90" value="#{customerController.partner.accountPayable}" required="true" requiredMessage="#{messages.accountPayableRequired}" converter="accountConverter" >   
                                                 <f:selectItem  itemLabel="&#160;" />
-                                                <f:selectItems value="#{accountController.payableAccounts}"
+                                                <f:selectItems value="#{customerController.payableAccounts}"
                                                                var="account"
                                                                itemValue="#{account}"
                                                                itemLabel="#{account.name.toString()}"/>

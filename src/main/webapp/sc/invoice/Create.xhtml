@@ -406,7 +406,7 @@
                                         <div class="col-md-7">
                                             <p:selectOneMenu id="invoiceAccount" class="input-width-80 required form-data-value font-1" value="#{invoiceController.invoice.account}" required="true" requiredMessage="#{messages.AccountRequired}" converter="accountConverter" >   
                                                 <f:selectItem  itemLabel="&#160;" />
-                                                <f:selectItems value="#{accountController.invoiceAccounts}"
+                                                <f:selectItems value="#{invoiceController.invoiceAccounts}"
                                                                var="account"
                                                                itemValue="#{account}"
                                                                itemLabel="#{account.name.toString()}"/>

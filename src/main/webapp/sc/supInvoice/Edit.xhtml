@@ -370,7 +370,7 @@
                             <div class="col-md-3point5 ">
                                 <p:selectOneMenu id="invoiceAccount" class="fullWidth required" value="#{supInvoiceController.invoice.account}" required="true" requiredMessage="#{messages.AccountRequired}" converter="accountConverter" >   
                                     <f:selectItem  itemLabel="&#160;" />
-                                    <f:selectItems value="#{accountController.billAccounts}"
+                                    <f:selectItems value="#{supInvoiceController.billAccounts}"
                                                    var="account"
                                                    itemValue="#{account}"
                                                    itemLabel="#{account.name.toString()}"/>

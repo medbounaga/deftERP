@@ -146,31 +146,6 @@ public class AccountController extends AbstractController {
         }
     }
 
-    public List<Account> getReceivableAccounts() {
-        query = AccountQueryBuilder.getFindByTypeQuery("Receivable");
-        return super.findWithQuery(query);
-    }
-
-    public List<Account> getPayableAccounts() {
-        query = AccountQueryBuilder.getFindByTypeQuery("Payable");
-        return super.findWithQuery(query);
-    }
-
-    public List<Account> getProductSaleAccount() {
-        query = AccountQueryBuilder.getFindByNameQuery("Product Sales");
-        return super.findWithQuery(query);
-    }
-
-    public List<Account> getInvoiceAccounts() {
-        query = AccountQueryBuilder.getFindByNameQuery("Account Receivable");
-        return super.findWithQuery(query);
-    }
-
-    public List<Account> getBillAccounts() {
-        query = AccountQueryBuilder.getFindByNameQuery("Account Payable");
-        return super.findWithQuery(query);
-    }
-
     public Double getTotalCredit() {
         if (account != null) {
             query = JournalItemQueryBuilder.getFindCreditSumByAccountQuery(account.getId());
@@ -189,7 +164,7 @@ public class AccountController extends AbstractController {
         return 0d;
     }
 
-    protected void ItemNotFound() {
+    private void ItemNotFound() {
 
         currentForm = VIEW_URL;
         JsfUtil.addWarningMessage("ItemDoesNotExist");      
@@ -201,13 +176,11 @@ public class AccountController extends AbstractController {
         resetListAndCurrentItem();
     }
 
-    public void resetListAndCurrentItem() { 
+    private void resetListAndCurrentItem() { 
 
-        if (accounts != null && !accounts.isEmpty()) {
-            
+        if (accounts != null && !accounts.isEmpty()) {           
             account = accounts.get(0);
-        } else {
-            
+        } else {         
             query = AccountQueryBuilder.getFindAllQuery();
             accounts = super.findWithQuery(query);
             
