@@ -94,7 +94,7 @@ public class SupInvoiceController extends AbstractController {
             if (invoice != null) {
                 query = InvoiceQueryBuilder.getFindAllBillsQuery();
                 invoices = super.findWithQuery(query);
-                findOutstandingPayments();
+                findVendorOutstandingPayments();
                 return;
             }
         }
@@ -105,7 +105,7 @@ public class SupInvoiceController extends AbstractController {
             invoices = super.findWithQuery(query);
             if ((invoices != null) && (!invoices.isEmpty())) {
                 invoice = invoices.get(0);
-                findOutstandingPayments();
+                findVendorOutstandingPayments();
                 partialListType = "purchaseOrder";
                 return;
             }
@@ -117,7 +117,7 @@ public class SupInvoiceController extends AbstractController {
             invoices = super.findWithQuery(query);
             if (invoices != null && !invoices.isEmpty()) {
                 invoice = invoices.get(0);
-                findOutstandingPayments();
+                findVendorOutstandingPayments();
                 partialListType = "partner";
                 return;
             }
@@ -128,7 +128,7 @@ public class SupInvoiceController extends AbstractController {
 
         if (invoices != null && !invoices.isEmpty()) {
             invoice = invoices.get(0);
-            findOutstandingPayments();
+            findVendorOutstandingPayments();
         }
     }
 
@@ -147,7 +147,7 @@ public class SupInvoiceController extends AbstractController {
                 invoice.getPartner().setCredit(invoice.getPartner().getCredit() + invoice.getAmountTotal());
                 invoice = super.updateItem(invoice);
                 invoices.set(invoices.indexOf(invoice), invoice);
-                findOutstandingPayments();
+                findVendorOutstandingPayments();
 
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorValidate");
@@ -246,7 +246,7 @@ public class SupInvoiceController extends AbstractController {
         journalEntry = null;
     }
 
-    private void findOutstandingPayments() {
+    private void findVendorOutstandingPayments() {
 
         outstandingPayments = null;
 
@@ -329,7 +329,7 @@ public class SupInvoiceController extends AbstractController {
                 invoice = super.updateItem(invoice);
                 invoices.set(invoices.indexOf(invoice), invoice);
 
-                findOutstandingPayments();
+                findVendorOutstandingPayments();
 
                 if (invoice.getState().equals(BillStatus.PAID.value())) {
                     setPurchaseOrderStatus();
@@ -539,7 +539,7 @@ public class SupInvoiceController extends AbstractController {
                 if (invoice.getState().equals(BillStatus.PAID.value())) {
                     setPurchaseOrderStatus();
                 }
-                findOutstandingPayments();
+                findVendorOutstandingPayments();
             }
         }
     }
@@ -584,7 +584,7 @@ public class SupInvoiceController extends AbstractController {
 
         if (invoice != null) {
             if (invoiceExist(invoice.getId())) {
-                findOutstandingPayments();
+                findVendorOutstandingPayments();
                 currentForm = VIEW_URL;
             }
         }
@@ -604,7 +604,7 @@ public class SupInvoiceController extends AbstractController {
             } else {
                 invoice = invoices.get(invoices.indexOf(invoice) + 1);
             }
-            findOutstandingPayments();
+            findVendorOutstandingPayments();
         }
     }
 
@@ -615,7 +615,7 @@ public class SupInvoiceController extends AbstractController {
             } else {
                 invoice = invoices.get(invoices.indexOf(invoice) - 1);
             }
-            findOutstandingPayments();
+            findVendorOutstandingPayments();
         }
     }
 
@@ -1076,7 +1076,7 @@ public class SupInvoiceController extends AbstractController {
                         }
                     }
 
-                    findOutstandingPayments();
+                    findVendorOutstandingPayments();
                     JsfUtil.addSuccessMessage("ItemDeleted");
 
                 } else {
@@ -1142,7 +1142,7 @@ public class SupInvoiceController extends AbstractController {
                 invoice.setResidual(0d);
                 invoice = super.updateItem(invoice);
                 invoices.set(invoices.indexOf(invoice), invoice);
-                findOutstandingPayments();
+                findVendorOutstandingPayments();
 
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorAlreadyModified");
@@ -1257,6 +1257,36 @@ public class SupInvoiceController extends AbstractController {
         JasperExportManager.exportReportToPdfStream(jasperPrint, servletOutputStream);
         FacesContext.getCurrentInstance().responseComplete();
 
+    }
+    
+    
+     private void BillNotFound() {
+
+        JsfUtil.addWarningMessage("ItemDoesNotExist");
+        currentForm = VIEW_URL;
+
+        if (invoices != null && invoice != null) {
+            invoices.remove(invoice);
+        }
+
+        resetListAndCurrentItem();
+    }
+
+    private void resetListAndCurrentItem() {
+
+        if (invoices != null && !invoices.isEmpty()) {
+            invoice = invoices.get(0);
+        } else {
+            partialListType = null;
+            query = InvoiceQueryBuilder.getFindAllInvoicesQuery();
+            invoices = super.findWithQuery(query);
+
+            if ((invoices != null) && !invoices.isEmpty()) {
+                invoice = invoices.get(0);
+            }
+        }
+
+        findVendorOutstandingPayments();
     }
 
     public List<Partner> getTopNSuppliers() {
