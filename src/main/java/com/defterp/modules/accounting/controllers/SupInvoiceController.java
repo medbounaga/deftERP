@@ -65,8 +65,26 @@ public class SupInvoiceController extends AbstractController {
     public SupInvoiceController() {
         super("/sc/supInvoice/");
     }
-    
-     public void resolveRequestParams() {
+
+    private enum BillStatus {
+
+        DRAFT("Draft"),
+        OPEN("Open"),
+        CANCELLED("Cancelled"),
+        PAID("Paid");
+
+        private final String status;
+
+        BillStatus(String status) {
+            this.status = status;
+        }
+
+        public String value() {
+            return status;
+        }
+    }
+
+    public void resolveRequestParams() {
 
         currentForm = VIEW_URL;
 
@@ -116,13 +134,13 @@ public class SupInvoiceController extends AbstractController {
 
     public void validateInvoice() {
         if (invoiceExist(invoice.getId())) {
-            if (invoice.getState().equals("Draft")) {
+            if (invoice.getState().equals(BillStatus.DRAFT.value())) {
 
                 if (invoice.getAmountTotal() == 0d) {
-                    invoice.setState("Paid");
+                    invoice.setState(BillStatus.PAID.value());
                     setPurchaseOrderStatus();
                 } else {
-                    invoice.setState("Open");
+                    invoice.setState(BillStatus.OPEN.value());
                 }
 
                 generateInvoiceJournalEntry();
@@ -164,7 +182,7 @@ public class SupInvoiceController extends AbstractController {
                 0d,
                 0d,
                 Boolean.TRUE,
-                (Account)super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Account Payable")),
+                (Account) super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Account Payable")),
                 journalEntry,
                 journalEntry.getJournal(),
                 invoice.getPartner(),
@@ -187,7 +205,7 @@ public class SupInvoiceController extends AbstractController {
                             taxAmount,
                             0d,
                             Boolean.TRUE,
-                            (Account)super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Tax Paid")),
+                            (Account) super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Tax Paid")),
                             journalEntry,
                             journalEntry.getJournal(),
                             invoice.getPartner(),
@@ -211,7 +229,7 @@ public class SupInvoiceController extends AbstractController {
                     invoiceline.getPriceSubtotal(),
                     invoiceline.getQuantity(),
                     Boolean.TRUE,
-                    (Account)super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Product Purchases")),
+                    (Account) super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Product Purchases")),
                     journalEntry,
                     journalEntry.getJournal(),
                     invoice.getPartner(),
@@ -232,14 +250,14 @@ public class SupInvoiceController extends AbstractController {
 
         outstandingPayments = null;
 
-        if (invoice != null && invoice.getState().equals("Open")) {
+        if (invoice != null && invoice.getState().equals(BillStatus.OPEN.value())) {
             outstandingPayments = super.findWithQuery(PaymentQueryBuilder.getFindOutstandingByVendorQuery(invoice.getPartner().getId()));
         }
     }
 
     public void payInvoice(Integer id) {
         if (invoiceExist(id)) {
-            if (invoice.getState().equals("Open")) {
+            if (invoice.getState().equals(BillStatus.OPEN.value())) {
 
                 double paidAmount;
                 double outstandingPayment = 0d;
@@ -262,7 +280,7 @@ public class SupInvoiceController extends AbstractController {
                 if (differenceAmount < 0d) {
                     paidAmount = invoice.getResidual();
                     invoice.setResidual(0d);
-                    invoice.setState("Paid");
+                    invoice.setState(BillStatus.PAID.value());
                     if (paymentType.equals("keep open")) {
                         invoice.getPartner().setDebit(invoice.getPartner().getDebit() + Math.abs(differenceAmount));
                     }
@@ -272,14 +290,14 @@ public class SupInvoiceController extends AbstractController {
                     if (paymentType.equals("keep open")) {
                         invoice.setResidual(differenceAmount);
                     } else {
-                        invoice.setState("Paid");
+                        invoice.setState(BillStatus.PAID.value());
                         invoice.setResidual(0d);
                     }
 
                 } else {
                     paidAmount = payment.getAmount();
                     invoice.setResidual(0d);
-                    invoice.setState("Paid");
+                    invoice.setState(BillStatus.PAID.value());
                 }
 
                 invoice.getPartner().setCredit(JsfUtil.round(invoice.getPartner().getCredit() - paidAmount));
@@ -288,7 +306,7 @@ public class SupInvoiceController extends AbstractController {
                         payment.getPartner(),
                         payment.getJournal(),
                         "out", Boolean.TRUE,
-                        (Account)super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery(account)),
+                        (Account) super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery(account)),
                         null,
                         invoice,
                         "Posted",
@@ -313,7 +331,7 @@ public class SupInvoiceController extends AbstractController {
 
                 findOutstandingPayments();
 
-                if (invoice.getState().equals("Paid")) {
+                if (invoice.getState().equals(BillStatus.PAID.value())) {
                     setPurchaseOrderStatus();
                 }
 
@@ -340,7 +358,7 @@ public class SupInvoiceController extends AbstractController {
                 journalEntryReference,
                 payment.getDate(),
                 Boolean.TRUE,
-                (Journal)super.findSingleWithQuery(JournalQueryBuilder.getFindByCodeQuery(account)),
+                (Journal) super.findSingleWithQuery(JournalQueryBuilder.getFindByCodeQuery(account)),
                 payment.getPartner(),
                 payment,
                 null,
@@ -356,7 +374,7 @@ public class SupInvoiceController extends AbstractController {
                 0d,
                 0d,
                 Boolean.TRUE,
-                (Account)super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Account Payable")),
+                (Account) super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Account Payable")),
                 journalEntry,
                 journalEntry.getJournal(),
                 payment.getPartner(),
@@ -374,7 +392,7 @@ public class SupInvoiceController extends AbstractController {
                 0d,
                 0d,
                 Boolean.TRUE,
-                (Account)super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery(account)),
+                (Account) super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery(account)),
                 journalEntry,
                 journalEntry.getJournal(),
                 payment.getPartner(),
@@ -428,7 +446,7 @@ public class SupInvoiceController extends AbstractController {
                 payment.getInvoice().getOrigin(),
                 payment.getDate(),
                 Boolean.TRUE,
-                (Journal)super.findSingleWithQuery(JournalQueryBuilder.getFindByCodeQuery(account)),
+                (Journal) super.findSingleWithQuery(JournalQueryBuilder.getFindByCodeQuery(account)),
                 payment.getPartner(),
                 null,
                 null,
@@ -444,7 +462,7 @@ public class SupInvoiceController extends AbstractController {
                 0d,
                 0d,
                 Boolean.TRUE,
-                (Account)super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Account Payable")),
+                (Account) super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Account Payable")),
                 journalEntry,
                 journalEntry.getJournal(),
                 payment.getPartner(),
@@ -501,7 +519,7 @@ public class SupInvoiceController extends AbstractController {
                 if (payment.getOverpayment() >= invoice.getResidual()) {
                     paidAmount = invoice.getResidual();
                     newOverPayment = JsfUtil.round(payment.getOverpayment() - invoice.getResidual());
-                    invoice.setState("Paid");
+                    invoice.setState(BillStatus.PAID.value());
 
                 } else {
                     paidAmount = payment.getOverpayment();
@@ -518,7 +536,7 @@ public class SupInvoiceController extends AbstractController {
                 invoices.set(invoices.indexOf(invoice), invoice);
                 payment = null;
 
-                if (invoice.getState().equals("Paid")) {
+                if (invoice.getState().equals(BillStatus.PAID.value())) {
                     setPurchaseOrderStatus();
                 }
                 findOutstandingPayments();
@@ -540,7 +558,7 @@ public class SupInvoiceController extends AbstractController {
 
             if (purchaseOrderInvoiced == true) {
                 for (Invoice invoice : this.invoice.getPurchaseOrder().getInvoices()) {
-                    if (!invoice.getState().equals("Paid")) {
+                    if (!invoice.getState().equals(BillStatus.PAID.value())) {
                         billsPaid = false;
                     }
                 }
@@ -561,7 +579,6 @@ public class SupInvoiceController extends AbstractController {
             invoiceLines.remove(rowIndex);
         }
     }
- 
 
     public void prepareView() {
 
@@ -653,7 +670,7 @@ public class SupInvoiceController extends AbstractController {
 
     public void preparePayment() {
         if (invoiceExist(invoice.getId())) {
-            if (invoice.getState().equals("Open")) {
+            if (invoice.getState().equals(BillStatus.OPEN.value())) {
                 payment = new Payment();
                 if (invoice.getPurchaseOrder() != null) {
                     String paymentReference = ((invoice.getPurchaseOrder().getReference() == null) || (invoice.getPurchaseOrder().getReference().isEmpty())) ? invoice.getPurchaseOrder().getName() : invoice.getPurchaseOrder().getReference();
@@ -709,7 +726,7 @@ public class SupInvoiceController extends AbstractController {
         String invoiceStatus = getInvoiceStatus();
 
         if (invoiceStatus != null) {
-            if (!invoiceStatus.equals("Draft")) {
+            if (!invoiceStatus.equals(BillStatus.DRAFT.value())) {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorProceedEdit");
                 currentForm = VIEW_URL;
             } else if (invoiceLines.isEmpty()) {
@@ -748,13 +765,13 @@ public class SupInvoiceController extends AbstractController {
         } else {
 
             for (InvoiceLine invLine : invoiceLines) {
-                invLine.setAccount((Account)super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Product Purchases")));
+                invLine.setAccount((Account) super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Product Purchases")));
                 invLine.setPartner(invoice.getPartner());
                 invLine.setInvoice(invoice);
             }
 
             invoice.setType("Purchase");
-            invoice.setState("Draft");
+            invoice.setState(BillStatus.DRAFT.value());
             invoice.setActive(Boolean.TRUE);
             invoice.setResidual(invoice.getAmountTotal());
             invoice.setInvoiceLines(invoiceLines);
@@ -961,8 +978,8 @@ public class SupInvoiceController extends AbstractController {
         invoice = new Invoice();
         invoiceLines = new ArrayList<>();
         invoiceLine = new InvoiceLine();
-        invoice.setAccount((Account)super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Account Payable")));
-        invoice.setJournal((Journal)super.findSingleWithQuery(JournalQueryBuilder.getFindByCodeQuery("BILL")));
+        invoice.setAccount((Account) super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Account Payable")));
+        invoice.setJournal((Journal) super.findSingleWithQuery(JournalQueryBuilder.getFindByCodeQuery("BILL")));
 
         topNSuppliers = getTopNActiveVendors();
 
@@ -978,7 +995,7 @@ public class SupInvoiceController extends AbstractController {
     public void prepareEdit() {
 
         if (invoiceExist(invoice.getId())) {
-            if (invoice.getState().equals("Draft")) {
+            if (invoice.getState().equals(BillStatus.DRAFT.value())) {
                 invoiceLine = new InvoiceLine();
                 invoiceLines = invoice.getInvoiceLines();
                 topNSuppliers = getTopNActiveVendors();
@@ -1007,23 +1024,23 @@ public class SupInvoiceController extends AbstractController {
     }
 
     public void cancelEditInvoice() {
-        
+
         invoiceLine = null;
         invoiceLines = null;
         topNSuppliers = null;
-        topPurchasedNProducts = null; 
-        
+        topPurchasedNProducts = null;
+
         if (invoiceExist(invoice.getId())) {
             currentForm = VIEW_URL;
         }
     }
 
     public void cancelCreateInvoice() {
-        
+
         invoiceLine = null;
         invoiceLines = null;
         topNSuppliers = null;
-        topPurchasedNProducts = null; 
+        topPurchasedNProducts = null;
 
         if ((invoices != null) && (!invoices.isEmpty())) {
             invoice = invoices.get(0);
@@ -1040,7 +1057,7 @@ public class SupInvoiceController extends AbstractController {
 
     public void deleteInvoice() {
         if (invoiceExist(invoice.getId())) {
-            if (invoice.getState().equals("Cancelled")) {
+            if (invoice.getState().equals(BillStatus.CANCELLED.value())) {
                 cancelRelations();
 
                 boolean deleted = super.deleteItem(invoice);
@@ -1114,14 +1131,14 @@ public class SupInvoiceController extends AbstractController {
 
     public void cancelInvoice() {
         if (invoiceExist(invoice.getId())) {
-            if (!invoice.getState().equals("Cancelled")) {
+            if (!invoice.getState().equals(BillStatus.CANCELLED.value())) {
 
-                if (invoice.getState().equals("Open") || invoice.getState().equals("Paid")) {
+                if (invoice.getState().equals(BillStatus.OPEN.value()) || invoice.getState().equals(BillStatus.PAID.value())) {
                     cancelPaymentds();
                     invoice.getJournalEntry().setState("Unposted");
                     super.updateItem(invoice.getJournalEntry());
                 }
-                invoice.setState("Cancelled");
+                invoice.setState(BillStatus.CANCELLED.value());
                 invoice.setResidual(0d);
                 invoice = super.updateItem(invoice);
                 invoices.set(invoices.indexOf(invoice), invoice);
@@ -1169,7 +1186,7 @@ public class SupInvoiceController extends AbstractController {
             newInvoice.setSaleOrder(null);
             newInvoice.setReference(null);
             newInvoice.setSupplierInvoiceNumber(null);
-            newInvoice.setState("Draft");
+            newInvoice.setState(BillStatus.DRAFT.value());
             newInvoice.setResidual(newInvoice.getAmountTotal());
 
             for (InvoiceLine invLine : newInvoice.getInvoiceLines()) {
@@ -1256,7 +1273,7 @@ public class SupInvoiceController extends AbstractController {
         }
         return topPurchasedNProducts;
     }
-    
+
     public List<Account> getBillAccounts() {
         query = AccountQueryBuilder.getFindByNameQuery("Account Payable");
         return super.findWithQuery(query);
