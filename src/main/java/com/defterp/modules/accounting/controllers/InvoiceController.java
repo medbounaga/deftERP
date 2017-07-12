@@ -2,6 +2,7 @@ package com.defterp.modules.accounting.controllers;
 
 import com.defterp.modules.accounting.queryBuilders.*;
 import com.defterp.modules.accounting.entities.*;
+import com.defterp.modules.accounting.constants.InvoiceStatus;
 import com.defterp.modules.commonClasses.AbstractController;
 import com.defterp.modules.inventory.queryBuilders.ProductQueryBuilder;
 import com.defterp.modules.inventory.entities.Product;
@@ -77,24 +78,6 @@ public class InvoiceController extends AbstractController {
         super("/sc/invoice/");
     }
 
-    private enum InvoiceStatus {
-
-        DRAFT("Draft"),
-        OPEN("Open"),
-        CANCELLED("Cancelled"),
-        PAID("Paid");
-
-        private final String status;
-
-        InvoiceStatus(String status) {
-            this.status = status;
-        }
-
-        public String value() {
-            return status;
-        }
-    }
-    
     public void resolveRequestParams() {
 
         currentForm = VIEW_URL;
