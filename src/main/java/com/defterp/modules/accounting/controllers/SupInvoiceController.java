@@ -6,6 +6,7 @@ import com.defterp.modules.inventory.entities.Product;
 import com.defterp.modules.partners.entities.Partner;
 import com.defterp.modules.accounting.entities.Payment;
 import com.defterp.modules.accounting.entities.*;
+import com.defterp.modules.accounting.constants.BillStatus;
 import com.defterp.modules.accounting.queryBuilders.AccountQueryBuilder;
 import com.defterp.modules.accounting.queryBuilders.InvoiceQueryBuilder;
 import com.defterp.modules.accounting.queryBuilders.JournalQueryBuilder;
@@ -68,24 +69,6 @@ public class SupInvoiceController extends AbstractController {
 
     public SupInvoiceController() {
         super("/sc/supInvoice/");
-    }
-
-    private enum BillStatus {
-
-        DRAFT("Draft"),
-        OPEN("Open"),
-        CANCELLED("Cancelled"),
-        PAID("Paid");
-
-        private final String status;
-
-        BillStatus(String status) {
-            this.status = status;
-        }
-
-        public String value() {
-            return status;
-        }
     }
 
     public void resolveRequestParams() {
