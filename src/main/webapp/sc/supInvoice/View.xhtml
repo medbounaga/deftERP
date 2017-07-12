@@ -51,25 +51,25 @@
             <p:commandButton 
                 class="waves-effect waves-light btn btn-primary" 
                 value="#{messages.Edit}" 
-                actionListener="#{supInvoiceController.prepareEdit}"  
+                actionListener="#{supInvoiceController.prepareUpdateBill}"  
                 update=":mainForm:itemForm, :mainForm:itemList" 
                 rendered="#{(supInvoiceController.invoice.state != 'Cancelled')}" />               
             <p:commandButton 
                 class="waves-effect waves-light btn btn-primary" 
                 value="#{messages.Create}" 
-                actionListener="#{supInvoiceController.prepareCreate}" 
+                actionListener="#{supInvoiceController.prepareCreateBill}" 
                 update=":mainForm:itemForm, :mainForm:itemList" /> 
             <p:commandButton 
                 class="waves-effect waves-light btn btn-primary" 
                 value="#{messages.Delete}" 
-                actionListener="#{supInvoiceController.deleteInvoice}" 
+                actionListener="#{supInvoiceController.deleteBill}" 
                 update=":mainForm:itemForm, :mainForm:itemList">
                 <p:confirm header="#{messages.ConfirmationHeader}"  message="#{messages.ConfirmMessage}" icon="ui-icon-alert"/>
             </p:commandButton>
             <p:commandButton 
                 class="waves-effect waves-light btn btn-primary" 
                 value="#{messages.Duplicate}" 
-                actionListener="#{supInvoiceController.duplicateInvoice}" 
+                actionListener="#{supInvoiceController.duplicateBill}" 
                 update=":mainForm:itemForm, :mainForm:itemList"/>
             <p:commandButton  
                 value="#{messages.RegisterPayment}"
@@ -85,13 +85,13 @@
                 process="@this"
                 rendered="#{(supInvoiceController.invoice.state == 'Draft')}" 
                 class="waves-effect waves-light btn btn-primary"
-                actionListener="#{supInvoiceController.validateInvoice}" 
+                actionListener="#{supInvoiceController.validateBill}" 
                 update=":mainForm:itemForm, :mainForm:itemList"/>        
             <p:commandButton 
                 value="#{messages.CancelBill}" 
                 rendered="#{supInvoiceController.invoice.state != 'Cancelled'}" 
                 class="waves-effect waves-light btn btn-primary"
-                actionListener="#{supInvoiceController.cancelInvoice}" 
+                actionListener="#{supInvoiceController.cancelBill}" 
                 update=":mainForm:itemForm, :mainForm:itemList">
                 <p:confirm header="#{messages.ConfirmationHeader}"  message="#{messages.ConfirmMessage}" icon="ui-icon-alert"/>
             </p:commandButton>

@@ -12,11 +12,11 @@ import com.defterp.modules.accounting.queryBuilders.JournalQueryBuilder;
 import com.defterp.modules.accounting.queryBuilders.PaymentQueryBuilder;
 import com.defterp.modules.commonClasses.AbstractController;
 import com.defterp.modules.commonClasses.QueryWrapper;
-import com.defterp.modules.inventory.queryBuilders.ProductQueryBuilder;
-import com.defterp.modules.partners.queryBuilders.PartnerQueryBuilder;
 import com.defterp.util.JsfUtil;
 import com.defterp.translation.annotations.Status;
 import com.defterp.modules.commonClasses.IdGenerator;
+import com.defterp.modules.inventory.queryBuilders.ProductQueryBuilder;
+import com.defterp.modules.partners.queryBuilders.PartnerQueryBuilder;
 import net.sf.jasperreports.engine.*;
 import org.apache.commons.lang.SerializationUtils;
 import org.primefaces.context.RequestContext;
@@ -56,8 +56,12 @@ public class SupInvoiceController extends AbstractController {
     private String paymentType = "";
     private double differenceAmount;
     private int rowIndex;
-    private List<Partner> topNSuppliers;
-    private List<Product> topPurchasedNProducts;
+    private List<Partner> topNActiveVendors;
+    private List<Partner> activeVendors;
+    private List<Partner> filteredActiveVendors;
+    private List<Product> topNActivePurchasedProducts;
+    private List<Product> activePurchasedProducts;
+    private List<Product> filteredActivePurchasedProducts;
     private Partner supplier;
     private Product product;
     private QueryWrapper query;
@@ -132,8 +136,12 @@ public class SupInvoiceController extends AbstractController {
         }
     }
 
-    public void validateInvoice() {
-        if (invoiceExist(invoice.getId())) {
+    public void validateBill() {
+
+        invoice = super.findItemById(invoice.getId(), Invoice.class);
+
+        if (invoice != null) {
+
             if (invoice.getState().equals(BillStatus.DRAFT.value())) {
 
                 if (invoice.getAmountTotal() == 0d) {
@@ -152,6 +160,8 @@ public class SupInvoiceController extends AbstractController {
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorValidate");
             }
+        } else {
+            billNotFound();
         }
     }
 
@@ -256,7 +266,11 @@ public class SupInvoiceController extends AbstractController {
     }
 
     public void payInvoice(Integer id) {
-        if (invoiceExist(id)) {
+
+        invoice = super.findItemById(id, Invoice.class);
+
+        if (invoice != null) {
+
             if (invoice.getState().equals(BillStatus.OPEN.value())) {
 
                 double paidAmount;
@@ -338,6 +352,9 @@ public class SupInvoiceController extends AbstractController {
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "CannotProcessBillPayment");
             }
+
+        } else {
+            billNotFound();
         }
     }
 
@@ -582,94 +599,21 @@ public class SupInvoiceController extends AbstractController {
 
     public void prepareView() {
 
+        invoice = super.findItemById(invoice.getId(), invoice.getClass());
+
         if (invoice != null) {
-            if (invoiceExist(invoice.getId())) {
-                findVendorOutstandingPayments();
-                currentForm = VIEW_URL;
-            }
-        }
-    }
-
-    public int getInvoiceIndex() {
-        if (invoices != null && invoice != null) {
-            return invoices.indexOf(invoice) + 1;
-        }
-        return 0;
-    }
-
-    public void nextInvoice() {
-        if (invoices != null && invoice != null) {
-            if (invoices.indexOf(invoice) == (invoices.size() - 1)) {
-                invoice = invoices.get(0);
-            } else {
-                invoice = invoices.get(invoices.indexOf(invoice) + 1);
-            }
             findVendorOutstandingPayments();
-        }
-    }
-
-    public void previousInvoice() {
-        if (invoices != null && invoice != null) {
-            if (invoices.indexOf(invoice) == 0) {
-                invoice = invoices.get(invoices.size() - 1);
-            } else {
-                invoice = invoices.get(invoices.indexOf(invoice) - 1);
-            }
-            findVendorOutstandingPayments();
-        }
-    }
-
-    public String getStatus(String status) {
-        return statuses.get(status);
-    }
-
-    public String getStatusColor(String status) {
-        switch (status) {
-            case "Draft":
-                return "#009fd4";
-            case "Open":
-                return "#406098";
-            case "Paid":
-                return "#3477db";
-            default:
-                return "#6d8891";
-        }
-
-    }
-
-    private boolean invoiceExist(Integer id) {
-        if (id != null) {
-            invoice = super.findItemById(id, Invoice.class);
-            if (invoice == null) {
-
-                if ((invoices != null) && (invoices.size() > 1)) {
-                    invoices.remove(invoice);
-                    invoice = invoices.get(0);
-                } else {
-                    partialListType = null;
-                    query = InvoiceQueryBuilder.getFindAllBillsQuery();
-                    invoices = super.findWithQuery(query);
-
-                    if ((invoices != null) && (!invoices.isEmpty())) {
-                        invoice = invoices.get(0);
-                    }
-                }
-
-                currentForm = VIEW_URL;
-                JsfUtil.addWarningMessage("ItemDoesNotExist");
-
-                return false;
-            } else {
-                return true;
-            }
-
+            currentForm = VIEW_URL;
         } else {
-            return false;
+            billNotFound();
         }
     }
 
     public void preparePayment() {
-        if (invoiceExist(invoice.getId())) {
+
+        invoice = super.findItemById(invoice.getId(), invoice.getClass());
+
+        if (invoice != null) {
             if (invoice.getState().equals(BillStatus.OPEN.value())) {
                 payment = new Payment();
                 if (invoice.getPurchaseOrder() != null) {
@@ -686,6 +630,8 @@ public class SupInvoiceController extends AbstractController {
                 FacesContext.getCurrentInstance().validationFailed();
                 JsfUtil.addWarningMessageDialog("InvalidAction", "CannotProcessBillPayment");
             }
+        } else {
+            billNotFound();
         }
     }
 
@@ -716,17 +662,13 @@ public class SupInvoiceController extends AbstractController {
         }
     }
 
-    public void setRowIndex() {
-        Map<String, String> params = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap();
-        rowIndex = Integer.valueOf(params.get("rowIndex"));
-    }
+    public void updateBill(Integer id) {
 
-    public void updateOrder(Integer id) {
+        String billCurrentStatus = getBillCurrentStatus();
 
-        String invoiceStatus = getInvoiceStatus();
+        if (billCurrentStatus != null) {
 
-        if (invoiceStatus != null) {
-            if (!invoiceStatus.equals(BillStatus.DRAFT.value())) {
+            if (!billCurrentStatus.equals(BillStatus.DRAFT.value())) {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorProceedEdit");
                 currentForm = VIEW_URL;
             } else if (invoiceLines.isEmpty()) {
@@ -755,10 +697,12 @@ public class SupInvoiceController extends AbstractController {
 
                 currentForm = VIEW_URL;
             }
+        } else {
+            billNotFound();
         }
     }
 
-    public void createInvoice() {
+    public void createBill() {
 
         if (invoiceLines.isEmpty()) {
             JsfUtil.addWarningMessageDialog("InvalidAction", "AtLeastOneInvoiceLineCreate");
@@ -795,6 +739,20 @@ public class SupInvoiceController extends AbstractController {
         }
     }
 
+    public void cancelCreateBill() {
+
+        invoiceLine = null;
+        invoiceLines = null;
+        invoice = null;
+
+        loadActivePurchasedProducts();
+        loadActiveVendors();
+
+        currentForm = VIEW_URL;
+
+        resetListAndCurrentItem();
+    }
+
     private void generateInvoiceTaxes() {
 
         List<InvoiceTax> invoiceTaxes = new ArrayList<>();
@@ -815,16 +773,6 @@ public class SupInvoiceController extends AbstractController {
         }
 
         invoice.setInvoiceTaxes(invoiceTaxes);
-    }
-
-    public List<Partner> getTopNActiveVendors() {
-        query = PartnerQueryBuilder.getFindActiveVendorsQuery();
-        return super.findWithQuery(query, MAX_DROPDOWN_ITEMS);
-    }
-
-    public List<Product> getTopNActivePurchasedProducts() {
-        query = ProductQueryBuilder.getFindActivePurchasedProductsQuery();
-        return super.findWithQuery(query, MAX_DROPDOWN_ITEMS);
     }
 
     public void onRowEditInit(InvoiceLine orderLine) {
@@ -875,8 +823,8 @@ public class SupInvoiceController extends AbstractController {
             invoiceLines.remove(index);
             invoiceLines.add(index, invoiceLine);
             invoiceLine = new InvoiceLine();
-            if (topPurchasedNProducts != null && !topPurchasedNProducts.isEmpty()) {
-                invoiceLine.setProduct(topPurchasedNProducts.get(0));
+            if (topNActivePurchasedProducts != null && !topNActivePurchasedProducts.isEmpty()) {
+                invoiceLine.setProduct(topNActivePurchasedProducts.get(0));
                 invoiceLine.setPrice(invoiceLine.getProduct().getPurchasePrice());
                 invoiceLine.setUom(invoiceLine.getProduct().getUom().getName());
             }
@@ -885,8 +833,8 @@ public class SupInvoiceController extends AbstractController {
 
     public void onRowCancel() {
         invoiceLine = new InvoiceLine();
-        if (topPurchasedNProducts != null && !topPurchasedNProducts.isEmpty()) {
-            invoiceLine.setProduct(topPurchasedNProducts.get(0));
+        if (topNActivePurchasedProducts != null && !topNActivePurchasedProducts.isEmpty()) {
+            invoiceLine.setProduct(topNActivePurchasedProducts.get(0));
             invoiceLine.setPrice(invoiceLine.getProduct().getPurchasePrice());
             invoiceLine.setUom(invoiceLine.getProduct().getUom().getName());
         }
@@ -930,26 +878,29 @@ public class SupInvoiceController extends AbstractController {
         invoiceLines.add(invoiceLine);
         SumUpOrder();
         invoiceLine = new InvoiceLine();
-        if (topPurchasedNProducts != null && !topPurchasedNProducts.isEmpty()) {
-            invoiceLine.setProduct(topPurchasedNProducts.get(0));
-            invoiceLine.setPrice(topPurchasedNProducts.get(0).getPurchasePrice());
-            invoiceLine.setUom(topPurchasedNProducts.get(0).getUom().getName());
+        if (topNActivePurchasedProducts != null && !topNActivePurchasedProducts.isEmpty()) {
+            invoiceLine.setProduct(topNActivePurchasedProducts.get(0));
+            invoiceLine.setPrice(topNActivePurchasedProducts.get(0).getPurchasePrice());
+            invoiceLine.setUom(topNActivePurchasedProducts.get(0).getUom().getName());
         }
 
     }
 
     public void onSelectSupplier() {
-        if ((supplier != null) && (!topNSuppliers.contains(supplier))) {
-            topNSuppliers.add(supplier);
+        
+        if (supplier != null) {
+            if (topNActiveVendors != null && !topNActiveVendors.contains(supplier)) {
+                topNActiveVendors.add(supplier);
+            }
+            invoice.setPartner(supplier);
         }
-        invoice.setPartner(supplier);
     }
 
     public void onSelectProduct() {
 
-        if ((product != null)) {
-            if (!topPurchasedNProducts.contains(product)) {
-                topPurchasedNProducts.add(product);
+        if (product != null) {
+            if (!topNActivePurchasedProducts.contains(product)) {
+                topNActivePurchasedProducts.add(product);
             }
 
             if (rowIndex < 0) {
@@ -958,8 +909,8 @@ public class SupInvoiceController extends AbstractController {
                 invoiceLine.setPrice(product.getPurchasePrice());
                 invoiceLine.setUom(product.getUom().getName());
 
-                RequestContext.getCurrentInstance().update("InvoiceForm:productMenuTwo");
-                RequestContext.getCurrentInstance().update("InvoiceForm:price");
+                RequestContext.getCurrentInstance().update("mainForm:productMenuTwo");
+                RequestContext.getCurrentInstance().update("mainForm:price");
 
             } else {
 
@@ -967,13 +918,13 @@ public class SupInvoiceController extends AbstractController {
                 invoiceLines.get(rowIndex).setPrice(product.getPurchasePrice());
                 invoiceLines.get(rowIndex).setUom(product.getUom().getName());
 
-                RequestContext.getCurrentInstance().update("InvoiceForm:datalist:" + rowIndex + ":productMenu");
-                RequestContext.getCurrentInstance().update("InvoiceForm:datalist:" + rowIndex + ":pricee");
+                RequestContext.getCurrentInstance().update("mainForm:datalist:" + rowIndex + ":productMenu");
+                RequestContext.getCurrentInstance().update("mainForm:datalist:" + rowIndex + ":pricee");
             }
         }
     }
 
-    public void prepareCreate() {
+    public void prepareCreateBill() {
 
         invoice = new Invoice();
         invoiceLines = new ArrayList<>();
@@ -981,38 +932,43 @@ public class SupInvoiceController extends AbstractController {
         invoice.setAccount((Account) super.findSingleWithQuery(AccountQueryBuilder.getFindByNameQuery("Account Payable")));
         invoice.setJournal((Journal) super.findSingleWithQuery(JournalQueryBuilder.getFindByCodeQuery("BILL")));
 
-        topNSuppliers = getTopNActiveVendors();
+        loadActivePurchasedProducts();
+        loadActiveVendors();
 
-        topPurchasedNProducts = getTopNActivePurchasedProducts();
-        if (topPurchasedNProducts != null && !topPurchasedNProducts.isEmpty()) {
-            invoiceLine.setProduct(topPurchasedNProducts.get(0));
+        if (topNActivePurchasedProducts != null && !topNActivePurchasedProducts.isEmpty()) {
+            invoiceLine.setProduct(topNActivePurchasedProducts.get(0));
             invoiceLine.setPrice(invoiceLine.getProduct().getPurchasePrice());
             invoiceLine.setUom(invoiceLine.getProduct().getUom().getName());
         }
         currentForm = CREATE_URL;
     }
 
-    public void prepareEdit() {
+    public void prepareUpdateBill() {
 
-        if (invoiceExist(invoice.getId())) {
+        invoice = super.findItemById(invoice.getId(), Invoice.class);
+
+        if (invoice != null) {
+
             if (invoice.getState().equals(BillStatus.DRAFT.value())) {
                 invoiceLine = new InvoiceLine();
                 invoiceLines = invoice.getInvoiceLines();
-                topNSuppliers = getTopNActiveVendors();
-                topPurchasedNProducts = getTopNActivePurchasedProducts();
-                if (topPurchasedNProducts != null && !topPurchasedNProducts.isEmpty()) {
-                    invoiceLine.setProduct(topPurchasedNProducts.get(0));
+
+                loadActivePurchasedProducts();
+                loadActiveVendors();
+
+                if (topNActivePurchasedProducts != null && !topNActivePurchasedProducts.isEmpty()) {
+                    invoiceLine.setProduct(topNActivePurchasedProducts.get(0));
                     invoiceLine.setPrice(invoiceLine.getProduct().getPurchasePrice());
                     invoiceLine.setUom(invoiceLine.getProduct().getUom().getName());
                 }
 
-                if (!topNSuppliers.contains(invoice.getPartner())) {
-                    topNSuppliers.add(invoice.getPartner());
+                if (!topNActiveVendors.contains(invoice.getPartner())) {
+                    topNActiveVendors.add(invoice.getPartner());
                 }
 
                 for (InvoiceLine orderLine : invoiceLines) {
-                    if (!topPurchasedNProducts.contains(orderLine.getProduct())) {
-                        topPurchasedNProducts.add(orderLine.getProduct());
+                    if (!topNActivePurchasedProducts.contains(orderLine.getProduct())) {
+                        topNActivePurchasedProducts.add(orderLine.getProduct());
                     }
                 }
                 currentForm = EDIT_URL;
@@ -1020,18 +976,25 @@ public class SupInvoiceController extends AbstractController {
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorEdit");
             }
+
+        } else {
+            billNotFound();
         }
     }
 
-    public void cancelEditInvoice() {
+    public void cancelUpdateBill() {
 
         invoiceLine = null;
         invoiceLines = null;
-        topNSuppliers = null;
-        topPurchasedNProducts = null;
+        topNActiveVendors = null;
+        topNActivePurchasedProducts = null;
 
-        if (invoiceExist(invoice.getId())) {
+        invoice = super.findItemById(invoice.getId(), invoice.getClass());
+
+        if (invoice != null) {
             currentForm = VIEW_URL;
+        } else {
+            billNotFound();
         }
     }
 
@@ -1039,45 +1002,36 @@ public class SupInvoiceController extends AbstractController {
 
         invoiceLine = null;
         invoiceLines = null;
-        topNSuppliers = null;
-        topPurchasedNProducts = null;
+        invoice = null;
+        topNActiveVendors = null;
+        topNActivePurchasedProducts = null;
 
-        if ((invoices != null) && (!invoices.isEmpty())) {
-            invoice = invoices.get(0);
-            currentForm = VIEW_URL;
-        } else {
-            query = InvoiceQueryBuilder.getFindAllBillsQuery();
-            invoices = super.findWithQuery(query);
-            if ((invoices != null) && (!invoices.isEmpty())) {
-                invoice = invoices.get(0);
-                currentForm = VIEW_URL;
-            }
-        }
+        currentForm = VIEW_URL;
+
+        resetListAndCurrentItem();
     }
 
-    public void deleteInvoice() {
-        if (invoiceExist(invoice.getId())) {
+    public void deleteBill() {
+
+        invoice = super.findItemById(invoice.getId(), invoice.getClass());
+
+        if (invoice != null) {
+
             if (invoice.getState().equals(BillStatus.CANCELLED.value())) {
-                cancelRelations();
+                cancelBillRelations();
 
                 boolean deleted = super.deleteItem(invoice);
 
                 if (deleted) {
 
-                    if ((invoices != null) && (invoices.size() > 1)) {
+                    JsfUtil.addSuccessMessage("ItemDeleted");
+                    currentForm = VIEW_URL;
+
+                    if (invoices != null && invoice != null) {
                         invoices.remove(invoice);
-                        invoice = invoices.get(0);
-                    } else {
-                        partialListType = null;
-                        query = InvoiceQueryBuilder.getFindAllBillsQuery();
-                        invoices = super.findWithQuery(query);
-                        if ((invoices != null) && (!invoices.isEmpty())) {
-                            invoice = invoices.get(0);
-                        }
                     }
 
-                    findVendorOutstandingPayments();
-                    JsfUtil.addSuccessMessage("ItemDeleted");
+                    resetListAndCurrentItem();
 
                 } else {
                     JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
@@ -1086,10 +1040,13 @@ public class SupInvoiceController extends AbstractController {
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete");
             }
+
+        } else {
+            billNotFound();
         }
     }
 
-    private void cancelRelations() {
+    private void cancelBillRelations() {
 
         if (invoice.getPurchaseOrder() != null) {
             PurchaseOrder purchaseOrder = super.findItemById(invoice.getPurchaseOrder().getId(), PurchaseOrder.class);
@@ -1100,37 +1057,27 @@ public class SupInvoiceController extends AbstractController {
         }
     }
 
-    private String getInvoiceStatus() {
+    private String getBillCurrentStatus() {
 
         if (invoice != null) {
+
             Invoice tempItem = super.findItemById(invoice.getId(), invoice.getClass());
+
             if (tempItem != null) {
                 return tempItem.getState();
-            }
-
-            if ((invoices != null) && (invoices.size() > 1)) {
-                invoices.remove(invoice);
-                invoice = invoices.get(0);
             } else {
-                partialListType = null;
-                query = InvoiceQueryBuilder.getFindAllBillsQuery();
-                invoices = super.findWithQuery(query);
-
-                if ((invoices != null) && (!invoices.isEmpty())) {
-                    invoice = invoices.get(0);
-                }
+                return null;
             }
-
-            JsfUtil.addWarningMessage("ItemDoesNotExist");
-            currentForm = VIEW_URL;
-
-            return null;
         }
         return null;
     }
 
-    public void cancelInvoice() {
-        if (invoiceExist(invoice.getId())) {
+    public void cancelBill() {
+
+        invoice = super.findItemById(invoice.getId(), invoice.getClass());
+
+        if (invoice != null) {
+
             if (!invoice.getState().equals(BillStatus.CANCELLED.value())) {
 
                 if (invoice.getState().equals(BillStatus.OPEN.value()) || invoice.getState().equals(BillStatus.PAID.value())) {
@@ -1147,6 +1094,9 @@ public class SupInvoiceController extends AbstractController {
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorAlreadyModified");
             }
+
+        } else {
+            billNotFound();
         }
     }
 
@@ -1166,8 +1116,11 @@ public class SupInvoiceController extends AbstractController {
         }
     }
 
-    public void duplicateInvoice() {
-        if (invoiceExist(invoice.getId())) {
+    public void duplicateBill() {
+
+        invoice = super.findItemById(invoice.getId(), invoice.getClass());
+
+        if (invoice != null) {
 
             invoice.getInvoiceLines().size();
             invoice.getInvoiceTaxes().size();
@@ -1202,29 +1155,34 @@ public class SupInvoiceController extends AbstractController {
             invoice = newInvoice;
             invoiceLine = new InvoiceLine();
             invoiceLines = invoice.getInvoiceLines();
-            topNSuppliers = getTopNActiveVendors();
-            topPurchasedNProducts = getTopNActivePurchasedProducts();
-            if (topPurchasedNProducts != null && !topPurchasedNProducts.isEmpty()) {
-                invoiceLine.setProduct(topPurchasedNProducts.get(0));
+
+            loadActivePurchasedProducts();
+            loadActiveVendors();
+
+            if (topNActivePurchasedProducts != null && !topNActivePurchasedProducts.isEmpty()) {
+                invoiceLine.setProduct(topNActivePurchasedProducts.get(0));
                 invoiceLine.setPrice(invoiceLine.getProduct().getPurchasePrice());
                 invoiceLine.setUom(invoiceLine.getProduct().getUom().getName());
             }
 
-            if (!topNSuppliers.contains(invoice.getPartner())) {
-                topNSuppliers.add(invoice.getPartner());
+            if (!topNActiveVendors.contains(invoice.getPartner())) {
+                topNActiveVendors.add(invoice.getPartner());
             }
 
             for (InvoiceLine orderLine : invoiceLines) {
-                if (!topPurchasedNProducts.contains(orderLine.getProduct())) {
-                    topPurchasedNProducts.add(orderLine.getProduct());
+                if (!topNActivePurchasedProducts.contains(orderLine.getProduct())) {
+                    topNActivePurchasedProducts.add(orderLine.getProduct());
                 }
             }
 
             currentForm = CREATE_URL;
+
+        } else {
+            billNotFound();
         }
     }
 
-    public void printBill(ActionEvent actionEvent) throws IOException, JRException {
+    public void printBill() throws IOException, JRException {
 
         for (InvoiceLine orderLine : invoice.getInvoiceLines()) {
             orderLine.setProductName(orderLine.getProduct().getName());
@@ -1258,9 +1216,8 @@ public class SupInvoiceController extends AbstractController {
         FacesContext.getCurrentInstance().responseComplete();
 
     }
-    
-    
-     private void BillNotFound() {
+
+    private void billNotFound() {
 
         JsfUtil.addWarningMessage("ItemDoesNotExist");
         currentForm = VIEW_URL;
@@ -1278,7 +1235,7 @@ public class SupInvoiceController extends AbstractController {
             invoice = invoices.get(0);
         } else {
             partialListType = null;
-            query = InvoiceQueryBuilder.getFindAllInvoicesQuery();
+            query = InvoiceQueryBuilder.getFindAllBillsQuery();
             invoices = super.findWithQuery(query);
 
             if ((invoices != null) && !invoices.isEmpty()) {
@@ -1289,19 +1246,80 @@ public class SupInvoiceController extends AbstractController {
         findVendorOutstandingPayments();
     }
 
-    public List<Partner> getTopNSuppliers() {
-        if (topNSuppliers == null) {
-            topNSuppliers = getTopNActiveVendors();
+    public String getStatus(String status) {
+        return statuses.get(status);
+    }
+
+    public String getStatusColor(String status) {
+        switch (status) {
+            case "Draft":
+                return "#009fd4";
+            case "Open":
+                return "#406098";
+            case "Paid":
+                return "#3477db";
+            default:
+                return "#6d8891";
         }
-        return topNSuppliers;
 
     }
 
-    public List<Product> getTopPurchasedNProducts() {
-        if (topPurchasedNProducts == null) {
-            topPurchasedNProducts = getTopNActivePurchasedProducts();
+    public int getInvoiceIndex() {
+        if (invoices != null && invoice != null) {
+            return invoices.indexOf(invoice) + 1;
         }
-        return topPurchasedNProducts;
+        return 0;
+    }
+
+    public void nextInvoice() {
+        if (invoices != null && invoice != null) {
+            if (invoices.indexOf(invoice) == (invoices.size() - 1)) {
+                invoice = invoices.get(0);
+            } else {
+                invoice = invoices.get(invoices.indexOf(invoice) + 1);
+            }
+            findVendorOutstandingPayments();
+        }
+    }
+
+    public void previousInvoice() {
+        if (invoices != null && invoice != null) {
+            if (invoices.indexOf(invoice) == 0) {
+                invoice = invoices.get(invoices.size() - 1);
+            } else {
+                invoice = invoices.get(invoices.indexOf(invoice) - 1);
+            }
+            findVendorOutstandingPayments();
+        }
+    }
+
+    public void setRowIndex() {
+        Map<String, String> params = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap();
+        rowIndex = Integer.valueOf(params.get("rowIndex"));
+    }
+
+    private void loadActiveVendors() {
+        
+        query = PartnerQueryBuilder.getFindActiveVendorsQuery();
+        activeVendors = super.findWithQuery(query);
+
+        if (activeVendors != null && activeVendors.size() > MAX_DROPDOWN_ITEMS) {
+            topNActiveVendors = activeVendors.subList(0, MAX_DROPDOWN_ITEMS);
+        } else {
+            topNActiveVendors = activeVendors;
+        }
+    }
+
+    private void loadActivePurchasedProducts() {
+        
+        query = ProductQueryBuilder.getFindActivePurchasedProductsQuery();
+        activePurchasedProducts = super.findWithQuery(query);
+
+        if (activePurchasedProducts != null && activePurchasedProducts.size() > MAX_DROPDOWN_ITEMS) {
+            topNActivePurchasedProducts = activePurchasedProducts.subList(0, MAX_DROPDOWN_ITEMS);
+        } else {
+            topNActivePurchasedProducts = activePurchasedProducts;
+        }
     }
 
     public List<Account> getBillAccounts() {
@@ -1310,9 +1328,6 @@ public class SupInvoiceController extends AbstractController {
     }
 
     public Invoice getInvoice() {
-        if (invoice == null) {
-            return invoice = new Invoice();
-        }
         return invoice;
     }
 
@@ -1321,9 +1336,6 @@ public class SupInvoiceController extends AbstractController {
     }
 
     public InvoiceLine getInvoiceLine() {
-        if (invoiceLine == null) {
-            invoiceLine = new InvoiceLine();
-        }
         return invoiceLine;
     }
 
@@ -1340,9 +1352,6 @@ public class SupInvoiceController extends AbstractController {
     }
 
     public List<InvoiceLine> getInvoiceLines() {
-        if (invoiceLines == null) {
-            invoiceLines = new ArrayList<>();
-        }
         return invoiceLines;
     }
 
@@ -1424,6 +1433,30 @@ public class SupInvoiceController extends AbstractController {
 
     public void setProduct(Product product) {
         this.product = product;
+    }
+
+    public List<Partner> getTopNActiveVendors() {
+        return topNActiveVendors;
+    }
+
+    public List<Partner> getActiveVendors() {
+        return activeVendors;
+    }
+
+    public List<Partner> getFilteredActiveVendors() {
+        return filteredActiveVendors;
+    }
+
+    public List<Product> getTopNActivePurchasedProducts() {
+        return topNActivePurchasedProducts;
+    }
+
+    public List<Product> getActivePurchasedProducts() {
+        return activePurchasedProducts;
+    }
+
+    public List<Product> getFilteredActivePurchasedProducts() {
+        return filteredActivePurchasedProducts;
     }
 
     public Account getWriteOffAccount() {

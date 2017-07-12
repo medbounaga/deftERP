@@ -19,8 +19,8 @@
     </div> 
     <div class="row form-header-3" >
         <div class="col-md-6 record-status-buttons">             
-            <p:commandButton class="btnn btnn-primary" value="#{messages.Save}" process=":InvoiceForm:content" actionListener="#{supInvoiceController.createInvoice}"  update=":InvoiceForm:content" /> 
-            <p:commandButton class="btnn btnn-default" value="#{messages.Discard}" process="@this" actionListener="#{supInvoiceController.showInvoiceList}"  update=":InvoiceForm:content" /> 
+            <p:commandButton class="btnn btnn-primary" value="#{messages.Save}" process=":InvoiceForm:content" actionListener="#{supInvoiceController.createBill}"  update=":InvoiceForm:content" /> 
+            <p:commandButton class="btnn btnn-default" value="#{messages.Discard}" process="@this" actionListener="#{supInvoiceController.cancelCreateBill}"  update=":InvoiceForm:content" /> 
         </div>
         <div class="col-md-6 bread-crumb" >    
             <div class="breadcrumbs flat">              
