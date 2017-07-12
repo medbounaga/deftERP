@@ -94,10 +94,56 @@ public class InvoiceController extends AbstractController {
             return status;
         }
     }
+    
+    public void resolveRequestParams() {
 
-    public String getCountry() {
-        return countries.get(invoice.getPartner().getCountry());
+        currentForm = VIEW_URL;
+
+        if (JsfUtil.isNumeric(invoiceId)) {
+            Integer InvId = Integer.valueOf(invoiceId);
+            invoice = super.findItemById(InvId, Invoice.class);
+            if (invoice != null) {
+                query = InvoiceQueryBuilder.getFindAllInvoicesQuery();
+                invoices = super.findWithQuery(query);
+                findCustomerOutstandingPayments();
+                return;
+            }
+        }
+
+        if (JsfUtil.isNumeric(saleId)) {
+            Integer id = Integer.valueOf(saleId);
+            query = InvoiceQueryBuilder.getFindBySaleOrderQuery(id);
+            invoices = super.findWithQuery(query);
+            if ((invoices != null) && (!invoices.isEmpty())) {
+                invoice = invoices.get(0);
+                findCustomerOutstandingPayments();
+                partialListType = "saleOrder";
+                return;
+            }
+        }
+
+        if (JsfUtil.isNumeric(partnerId)) {
+            Integer id = Integer.valueOf(partnerId);
+
+            query = InvoiceQueryBuilder.getFindByCustomerQuery(id);
+            invoices = super.findWithQuery(query);
+            if ((invoices != null) && (!invoices.isEmpty())) {
+                invoice = invoices.get(0);
+                findCustomerOutstandingPayments();
+                partialListType = "partner";
+                return;
+            }
+        }
+
+        query = InvoiceQueryBuilder.getFindAllInvoicesQuery();
+        invoices = super.findWithQuery(query);
+
+        if (invoices != null && !invoices.isEmpty()) {
+            invoice = invoices.get(0);
+            findCustomerOutstandingPayments();
+        }
     }
+
 
     public void validateInvoice() {
 
@@ -115,7 +161,7 @@ public class InvoiceController extends AbstractController {
                 invoice.getPartner().setDebit(invoice.getPartner().getDebit() + invoice.getAmountTotal());
                 invoice = super.updateItem(invoice);
                 invoices.set(invoices.indexOf(invoice), invoice);
-                findOutstandingPayments();
+                findCustomerOutstandingPayments();
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorValidate");
             }
@@ -298,7 +344,7 @@ public class InvoiceController extends AbstractController {
                 invoice.getPayments().add(payment);
                 invoice = super.updateItem(invoice);
                 invoices.set(invoices.indexOf(invoice), invoice);
-                findOutstandingPayments();
+                findCustomerOutstandingPayments();
                 if (invoice.getState().equals(InvoiceStatus.PAID.value())) {
                     updateSaleOrderStatus();
                 }
@@ -522,7 +568,7 @@ public class InvoiceController extends AbstractController {
         }
     }
 
-    public void payOutstandingPayment(Integer paymentId) {
+    public void payUsingOutstandingPayment(Integer paymentId) {
 
         invoice = super.findItemById(invoice.getId(), Invoice.class);
 
@@ -556,7 +602,7 @@ public class InvoiceController extends AbstractController {
                 if (invoice.getState().equals(InvoiceStatus.PAID.value())) {
                     updateSaleOrderStatus();
                 }
-                findOutstandingPayments();
+                findCustomerOutstandingPayments();
             }
         } else {
             invoiceNotFound();
@@ -569,56 +615,8 @@ public class InvoiceController extends AbstractController {
         }
     }
 
-    public void resolveRequestParams() {
 
-        currentForm = VIEW_URL;
-
-        if (JsfUtil.isNumeric(invoiceId)) {
-            Integer InvId = Integer.valueOf(invoiceId);
-            invoice = super.findItemById(InvId, Invoice.class);
-            if (invoice != null) {
-                query = InvoiceQueryBuilder.getFindAllInvoicesQuery();
-                invoices = super.findWithQuery(query);
-                findOutstandingPayments();
-                return;
-            }
-        }
-
-        if (JsfUtil.isNumeric(saleId)) {
-            Integer id = Integer.valueOf(saleId);
-            query = InvoiceQueryBuilder.getFindBySaleOrderQuery(id);
-            invoices = super.findWithQuery(query);
-            if ((invoices != null) && (!invoices.isEmpty())) {
-                invoice = invoices.get(0);
-                findOutstandingPayments();
-                partialListType = "saleOrder";
-                return;
-            }
-        }
-
-        if (JsfUtil.isNumeric(partnerId)) {
-            Integer id = Integer.valueOf(partnerId);
-
-            query = InvoiceQueryBuilder.getFindByCustomerQuery(id);
-            invoices = super.findWithQuery(query);
-            if ((invoices != null) && (!invoices.isEmpty())) {
-                invoice = invoices.get(0);
-                findOutstandingPayments();
-                partialListType = "partner";
-                return;
-            }
-        }
-
-        query = InvoiceQueryBuilder.getFindAllInvoicesQuery();
-        invoices = super.findWithQuery(query);
-
-        if (invoices != null && !invoices.isEmpty()) {
-            invoice = invoices.get(0);
-            findOutstandingPayments();
-        }
-    }
-
-    private void findOutstandingPayments() {
+    private void findCustomerOutstandingPayments() {
 
         outstandingPayments = null;
 
@@ -631,7 +629,7 @@ public class InvoiceController extends AbstractController {
     public void prepareViewInvoice() {
         invoice = super.findItemById(invoice.getId(), invoice.getClass());
         if (invoice != null) {
-            findOutstandingPayments();
+            findCustomerOutstandingPayments();
             currentForm = VIEW_URL;
         }
     }
@@ -720,10 +718,10 @@ public class InvoiceController extends AbstractController {
 
     public void updateInvoice() {
 
-        String invoiceStatus = getInvoiceStatus();
+        String invoiceCurrentStatus = getInvoiceCurrentStatus();
 
-        if (invoiceStatus != null) {
-            if (!invoiceStatus.equals(InvoiceStatus.DRAFT.value())) {
+        if (invoiceCurrentStatus != null) {
+            if (!invoiceCurrentStatus.equals(InvoiceStatus.DRAFT.value())) {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorProceedEdit");
                 currentForm = VIEW_URL;
             } else if (invoiceLines.isEmpty()) {
@@ -749,6 +747,9 @@ public class InvoiceController extends AbstractController {
 
                 currentForm = VIEW_URL;
             }
+
+        } else {
+            invoiceNotFound();
         }
     }
 
@@ -1066,27 +1067,27 @@ public class InvoiceController extends AbstractController {
     }
 
     public void deleteInvoice() {
+
         invoice = super.findItemById(invoice.getId(), invoice.getClass());
+
         if (invoice != null) {
             if (invoice.getState().equals(InvoiceStatus.CANCELLED.value())) {
+
                 cancelRelations();
+
                 boolean deleted = super.deleteItem(invoice);
+
                 if (deleted) {
 
-                    if ((invoices != null) && (invoices.size() > 1)) {
+                    JsfUtil.addSuccessMessage("ItemDeleted");
+                    currentForm = VIEW_URL;
+
+                    if (invoices != null && invoice != null) {
                         invoices.remove(invoice);
-                        invoice = invoices.get(0);
-                    } else {
-                        partialListType = null;
-                        query = InvoiceQueryBuilder.getFindAllInvoicesQuery();
-                        invoices = super.findWithQuery(query);
-                        if ((invoices != null) && (!invoices.isEmpty())) {
-                            invoice = invoices.get(0);
-                        }
                     }
 
-                    findOutstandingPayments();
-                    JsfUtil.addSuccessMessage("ItemDeleted");
+                    resetListAndCurrentItem();
+
                 } else {
                     JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
                 }
@@ -1108,7 +1109,7 @@ public class InvoiceController extends AbstractController {
         }
     }
 
-    private String getInvoiceStatus() {
+    private String getInvoiceCurrentStatus() {
         if (invoice != null) {
 
             Invoice tempItem = super.findItemById(invoice.getId(), invoice.getClass());
@@ -1116,7 +1117,6 @@ public class InvoiceController extends AbstractController {
             if (tempItem != null) {
                 return tempItem.getState();
             } else {
-                invoiceNotFound();
                 return null;
             }
         }
@@ -1136,7 +1136,7 @@ public class InvoiceController extends AbstractController {
                 invoice.setResidual(0d);
                 invoice = super.updateItem(invoice);
                 invoices.set(invoices.indexOf(invoice), invoice);
-                findOutstandingPayments();
+                findCustomerOutstandingPayments();
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorAlreadyModified");
             }
@@ -1265,20 +1265,35 @@ public class InvoiceController extends AbstractController {
         JsfUtil.addWarningMessage("ItemDoesNotExist");
         currentForm = VIEW_URL;
 
-        if ((invoices != null) && (invoices.size() > 1)) {
+        if (invoices != null && invoice != null) {
             invoices.remove(invoice);
+        }
+
+        resetListAndCurrentItem();
+    }
+
+    private void resetListAndCurrentItem() {
+
+        if (invoices != null && !invoices.isEmpty()) {
             invoice = invoices.get(0);
         } else {
             partialListType = null;
             query = InvoiceQueryBuilder.getFindAllInvoicesQuery();
             invoices = super.findWithQuery(query);
-            if ((invoices != null) && (invoices.size() > 1)) {
+
+            if ((invoices != null) && !invoices.isEmpty()) {
                 invoice = invoices.get(0);
             }
         }
 
-        findOutstandingPayments();
+        findCustomerOutstandingPayments();
     }
+    
+    
+    public String getCountry() {
+        return countries.get(invoice.getPartner().getCountry());
+    }
+    
 
     public int getInvoiceIndex() {
         if ((invoices != null) && (invoice != null)) {
@@ -1293,7 +1308,7 @@ public class InvoiceController extends AbstractController {
         } else {
             invoice = invoices.get(invoices.indexOf(invoice) + 1);
         }
-        findOutstandingPayments();
+        findCustomerOutstandingPayments();
     }
 
     public void previousInvoice() {
@@ -1302,7 +1317,7 @@ public class InvoiceController extends AbstractController {
         } else {
             invoice = invoices.get(invoices.indexOf(invoice) - 1);
         }
-        findOutstandingPayments();
+        findCustomerOutstandingPayments();
     }
 
     private void loadActiveCustomers() {
@@ -1326,7 +1341,7 @@ public class InvoiceController extends AbstractController {
             topNActiveSoldProducts = activeSoldProducts;
         }
     }
-    
+
     public List<Account> getInvoiceAccounts() {
         query = AccountQueryBuilder.getFindByNameQuery("Account Receivable");
         return super.findWithQuery(query);

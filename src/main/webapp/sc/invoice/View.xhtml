@@ -410,7 +410,7 @@
                                             <div class="row">
                                                 <ui:repeat value="#{invoiceController.outstandingPayments}" var="item">
                                                     <div class="col-md-2 outstanding-payments-add">
-                                                        <p:commandLink class="left form-link"  value="#{messages.Add}" actionListener="#{invoiceController.payOutstandingPayment(item.id)}" process="@this" update=":mainForm:itemForm, :mainForm:itemList"/>  
+                                                        <p:commandLink class="left form-link"  value="#{messages.Add}" actionListener="#{invoiceController.payUsingOutstandingPayment(item.id)}" process="@this" update=":mainForm:itemForm, :mainForm:itemList"/>  
                                                     </div>
                                                     <div class="col-md-5">                    
                                                         <h:outputText class="left" value="#{item.name}"/>

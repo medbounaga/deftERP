@@ -29,6 +29,7 @@ public class AccountController extends AbstractController {
 
     @PostConstruct
     public void init() {
+
         accountTypes = new ArrayList();
         accountTypes.add("Receivable");
         accountTypes.add("Payable");
@@ -112,20 +113,24 @@ public class AccountController extends AbstractController {
     }
 
     public void deleteAccount() {
+        
         account = super.findItemById(account.getId(), account.getClass());
+        
         if (account != null) {
+            
             boolean deleted = super.deleteItem(account);
+            
             if (deleted) {
-                
+
                 JsfUtil.addSuccessMessage("ItemDeleted");
                 currentForm = VIEW_URL;
 
-                if (accounts != null) {
+                if (accounts != null && account != null) {
                     accounts.remove(account);
                 }
 
                 resetListAndCurrentItem();
-                            
+
             } else {
                 JsfUtil.addWarningMessageDialog("InvalidAction", "ErrorDelete3");
             }
@@ -135,8 +140,8 @@ public class AccountController extends AbstractController {
     }
 
     public void updateAccount() {
-        account = super.findItemById(account.getId(), account.getClass());
-        if (account != null) {
+        Account tempAcc = super.findItemById(account.getId(), account.getClass());
+        if (tempAcc != null) {
             account.setName(account.getCode() + " " + account.getTitle());
             account = super.updateItem(account);
             accounts.set(accounts.indexOf(account), account);
@@ -167,23 +172,23 @@ public class AccountController extends AbstractController {
     private void ItemNotFound() {
 
         currentForm = VIEW_URL;
-        JsfUtil.addWarningMessage("ItemDoesNotExist");      
+        JsfUtil.addWarningMessage("ItemDoesNotExist");
 
-        if (accounts != null) {
+        if (accounts != null && account != null) {
             accounts.remove(account);
         }
 
         resetListAndCurrentItem();
     }
 
-    private void resetListAndCurrentItem() { 
+    private void resetListAndCurrentItem() {
 
-        if (accounts != null && !accounts.isEmpty()) {           
+        if (accounts != null && !accounts.isEmpty()) {
             account = accounts.get(0);
-        } else {         
+        } else {
             query = AccountQueryBuilder.getFindAllQuery();
             accounts = super.findWithQuery(query);
-            
+
             if ((accounts != null) && !accounts.isEmpty()) {
                 account = accounts.get(0);
             }

@@ -65,6 +65,54 @@ public class SupInvoiceController extends AbstractController {
     public SupInvoiceController() {
         super("/sc/supInvoice/");
     }
+    
+     public void resolveRequestParams() {
+
+        currentForm = VIEW_URL;
+
+        if (JsfUtil.isNumeric(invoiceId)) {
+            Integer id = Integer.valueOf(invoiceId);
+            invoice = super.findItemById(id, Invoice.class);
+            if (invoice != null) {
+                query = InvoiceQueryBuilder.getFindAllBillsQuery();
+                invoices = super.findWithQuery(query);
+                findOutstandingPayments();
+                return;
+            }
+        }
+
+        if (JsfUtil.isNumeric(purchaseId)) {
+            Integer id = Integer.valueOf(purchaseId);
+            query = InvoiceQueryBuilder.getFindByPurchaseOrderQuery(id);
+            invoices = super.findWithQuery(query);
+            if ((invoices != null) && (!invoices.isEmpty())) {
+                invoice = invoices.get(0);
+                findOutstandingPayments();
+                partialListType = "purchaseOrder";
+                return;
+            }
+        }
+
+        if (JsfUtil.isNumeric(partnerId)) {
+            Integer id = Integer.valueOf(partnerId);
+            query = InvoiceQueryBuilder.getFindByVendorQuery(id);
+            invoices = super.findWithQuery(query);
+            if (invoices != null && !invoices.isEmpty()) {
+                invoice = invoices.get(0);
+                findOutstandingPayments();
+                partialListType = "partner";
+                return;
+            }
+        }
+
+        query = InvoiceQueryBuilder.getFindAllBillsQuery();
+        invoices = super.findWithQuery(query);
+
+        if (invoices != null && !invoices.isEmpty()) {
+            invoice = invoices.get(0);
+            findOutstandingPayments();
+        }
+    }
 
     public void validateInvoice() {
         if (invoiceExist(invoice.getId())) {
@@ -440,7 +488,7 @@ public class SupInvoiceController extends AbstractController {
         }
     }
 
-    public void payOutstandingPayment(Integer paymentId) {
+    public void payUsingOutstandingPayment(Integer paymentId) {
 
         payment = super.findItemById(paymentId, Payment.class);
         invoice = super.findItemById(invoice.getId(), Invoice.class);
@@ -513,54 +561,7 @@ public class SupInvoiceController extends AbstractController {
             invoiceLines.remove(rowIndex);
         }
     }
-
-    public void resolveRequestParams() {
-
-        currentForm = VIEW_URL;
-
-        if (JsfUtil.isNumeric(invoiceId)) {
-            Integer id = Integer.valueOf(invoiceId);
-            invoice = super.findItemById(id, Invoice.class);
-            if (invoice != null) {
-                query = InvoiceQueryBuilder.getFindAllBillsQuery();
-                invoices = super.findWithQuery(query);
-                findOutstandingPayments();
-                return;
-            }
-        }
-
-        if (JsfUtil.isNumeric(purchaseId)) {
-            Integer id = Integer.valueOf(purchaseId);
-            query = InvoiceQueryBuilder.getFindByPurchaseOrderQuery(id);
-            invoices = super.findWithQuery(query);
-            if ((invoices != null) && (!invoices.isEmpty())) {
-                invoice = invoices.get(0);
-                findOutstandingPayments();
-                partialListType = "purchaseOrder";
-                return;
-            }
-        }
-
-        if (JsfUtil.isNumeric(partnerId)) {
-            Integer id = Integer.valueOf(partnerId);
-            query = InvoiceQueryBuilder.getFindByVendorQuery(id);
-            invoices = super.findWithQuery(query);
-            if (invoices != null && !invoices.isEmpty()) {
-                invoice = invoices.get(0);
-                findOutstandingPayments();
-                partialListType = "partner";
-                return;
-            }
-        }
-
-        query = InvoiceQueryBuilder.getFindAllBillsQuery();
-        invoices = super.findWithQuery(query);
-
-        if (invoices != null && !invoices.isEmpty()) {
-            invoice = invoices.get(0);
-            findOutstandingPayments();
-        }
-    }
+ 
 
     public void prepareView() {
 

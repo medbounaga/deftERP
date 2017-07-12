@@ -14,21 +14,23 @@ import javax.validation.ConstraintViolationException;
 
 
 
-public abstract class AbstractController
-        implements Serializable {
+public abstract class AbstractController implements Serializable {
 
     private static final long serialVersionUID = 1;
+    
     @Inject
     private GenericDAO dataAccess;
+    
     protected String currentForm;
     protected String currentList;
+    protected String BASE_URL;
+    protected String LIST_URL;
+    protected String GRID_URL;
+    protected String VIEW_URL;
+    protected String EDIT_URL;
+    protected String CREATE_URL;
+    
     protected Integer MAX_DROPDOWN_ITEMS;
-    protected final String BASE_URL;
-    protected final String LIST_URL;
-    protected final String GRID_URL;
-    protected final String VIEW_URL;
-    protected final String EDIT_URL;
-    protected final String CREATE_URL;
 
     public AbstractController(String moduleURL) {       
         BASE_URL = moduleURL;
@@ -126,18 +128,9 @@ public abstract class AbstractController
         return this.currentForm;
     }   
 
-    public void setCurrentForm(String currentForm) {
-        this.currentForm = currentForm;
-    }
-
     public String getCurrentList() {
         return currentList;
-    }
-
-    public void setCurrentList(String currentList) {
-        this.currentList = currentList;
-    }
-    
+    } 
     
 
     private void displayPersistenceError(Exception ex) {
