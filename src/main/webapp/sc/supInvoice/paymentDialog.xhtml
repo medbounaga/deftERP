@@ -15,7 +15,7 @@
                     <p:outputLabel value="#{messages.PaymentMethod}" for="paymentJournal"/>
                 </div> 
                 <div class="col-md-3point5">
-                    <p:selectOneMenu id="paymentJournal" styleClass="required" value="#{supInvoiceController.payment.journal}" style="width: 70%;"  required="true" requiredMessage="#{messages.PaymentMethodRequired}" converter="journalConverter">
+                    <p:selectOneMenu id="paymentJournal" styleClass="required" value="#{billController.payment.journal}" style="width: 70%;"  required="true" requiredMessage="#{messages.PaymentMethodRequired}" converter="journalConverter">
                         <f:selectItem  itemLabel="&#160;"/>
                         <f:selectItems value="#{journalController.paymentJournals}"
                                        var="journal"
@@ -28,7 +28,7 @@
                     <p:outputLabel value="#{messages.PaymentDate}" for="paymentDate"/>
                 </div>
                 <div class="col-md-3point5 ">
-                    <p:calendar id="paymentDate" class="required"  pattern="MM-dd-yyyy" value="#{supInvoiceController.payment.date}"  required="true" requiredMessage="#{messages.DateRequired}" converterMessage="#{messages.InvalidDate}" locale="#{messages.CalendarLanguage}" />                                           
+                    <p:calendar id="paymentDate" class="required"  pattern="MM-dd-yyyy" value="#{billController.payment.date}"  required="true" requiredMessage="#{messages.DateRequired}" converterMessage="#{messages.InvalidDate}" locale="#{messages.CalendarLanguage}" />                                           
                 </div>
             </div>
 
@@ -40,7 +40,7 @@
                 <div class="col-md-3point5">
                     #{messages.Currency}
                         
-                        <p:spinner value="#{supInvoiceController.payment.amount}" 
+                        <p:spinner value="#{billController.payment.amount}" 
                                                        id="amount"
                                                        class="required"
                                                        required="true" 
@@ -49,14 +49,14 @@
                                                        size="12"                                                        
                                                        requiredMessage="#{messages.PaidAmountRequired}" 
                                                        converterMessage="#{messages.InvalidPaidAmount}">                      
-                        <p:ajax event="blur" resetValues="true" global="false" process="@this" listener="#{supInvoiceController.updateDifferenceAmount}" update=":paymentForm:paymentDetails, :paymentForm:amount"/>
+                        <p:ajax event="blur" resetValues="true" global="false" process="@this" listener="#{billController.updateDifferenceAmount}" update=":paymentForm:paymentDetails, :paymentForm:amount"/>
                     </p:spinner> 
                 </div> 
                 <div class="col-md-2point5 form-label">
                     <p:outputLabel value="#{messages.PaymentRef}"/>
                 </div>
                 <div class="col-md-3point5 ">
-                    <p:inputText id="paymentRef" value="#{supInvoiceController.payment.reference}" style="width: 70%;" maxlength="30"/>
+                    <p:inputText id="paymentRef" value="#{billController.payment.reference}" style="width: 70%;" maxlength="30"/>
                 </div>
             </div>
             <div jsf:id="paymentDetails">
@@ -66,27 +66,27 @@
                     </div>
                     <div class="col-md-9point5">
                         #{messages.Currency}
-                        <h:outputText value="#{supInvoiceController.differenceAmount}"/>
+                        <h:outputText value="#{billController.differenceAmount}"/>
                         <br></br>
                     </div> 
                 </div>            
-                <div class="row" style="padding-bottom: 15px; padding-left: 20px;" jsf:rendered="#{supInvoiceController.differenceAmount != 0}" >
+                <div class="row" style="padding-bottom: 15px; padding-left: 20px;" jsf:rendered="#{billController.differenceAmount != 0}" >
                     <div class="col-md-offset-2point5 col-md-9point5">
-                        <h:selectOneRadio value="#{supInvoiceController.paymentType}" layout="pageDirection">
-                            <f:ajax event="change" execute="@this" render=":paymentForm:paymentDetails" listener="#{supInvoiceController.onPaymentDifferenceStrategyChange}"/>
+                        <h:selectOneRadio value="#{billController.paymentType}" layout="pageDirection">
+                            <f:ajax event="change" execute="@this" render=":paymentForm:paymentDetails" listener="#{billController.onPaymentDifferenceStrategyChange}"/>
                             <f:selectItem itemLabel="#{messages.KeepOpen}" itemValue="keep open" />
                             <f:selectItem itemLabel="#{messages.FullyPaid}" itemValue="fully paid" />
                         </h:selectOneRadio>  
                     </div>         
                 </div>
-                <div jsf:rendered="#{(supInvoiceController.paymentType == 'fully paid') and (supInvoiceController.differenceAmount != 0)}" class="row" style="padding-bottom: 15px; padding-left: 20px;">
+                <div jsf:rendered="#{(billController.paymentType == 'fully paid') and (billController.differenceAmount != 0)}" class="row" style="padding-bottom: 15px; padding-left: 20px;">
                     <div class="col-md-2point5 form-label">
                         <p:outputLabel value="#{messages.PostDifferenceIn}" for="writeOff"/>
                     </div> 
                     <div class="col-md-3point5">
-                        <p:selectOneMenu id="writeOff" styleClass="required" value="#{supInvoiceController.writeOffAccount}" style="width: 70%;"  required="true" requiredMessage="#{messages.DifferenceAmountAccountRequired}" converter="accountConverter">
+                        <p:selectOneMenu id="writeOff" styleClass="required" value="#{billController.writeOffAccount}" style="width: 70%;"  required="true" requiredMessage="#{messages.DifferenceAmountAccountRequired}" converter="accountConverter">
                             <f:selectItem  itemLabel="&#160;"/>
-                            <f:selectItems value="#{supInvoiceController.paymentWriteOffAccounts}"
+                            <f:selectItems value="#{billController.paymentWriteOffAccounts}"
                                            var="account"
                                            itemValue="#{account}"
                                            itemLabel="#{account.name.toString()}"
@@ -97,7 +97,7 @@
             </div>
             <div class="row dialog-footer">
                 <div class="col-md-12">
-                    <p:commandButton class="waves-effect waves-light btn btn-primary" value="#{messages.Validate}" process="@form"  actionListener="#{supInvoiceController.payInvoice(supInvoiceController.invoice.id)}"  update=":mainForm:itemForm, :mainForm:itemList, :paymentForm " oncomplete="handleSubmit(xhr,status,args,PF('PaymentDialog'));"/>
+                    <p:commandButton class="waves-effect waves-light btn btn-primary" value="#{messages.Validate}" process="@form"  actionListener="#{billController.makePayment(billController.invoice.id)}"  update=":mainForm:itemForm, :mainForm:itemList, :paymentForm " oncomplete="handleSubmit(xhr,status,args,PF('PaymentDialog'));"/>
                     <a class="waves-effect waves-light btn link-btn btn-primary"  onclick="PF('PaymentDialog').hide();">#{messages.Cancel}</a>
                 </div> 
             </div>   

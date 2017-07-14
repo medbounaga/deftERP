@@ -8,24 +8,24 @@
 
 
     <div class="row">
-        <div class="col-md-12 card z-depth-1 tool-bar" jsf:rendered="#{empty supInvoiceController.partialListType}">          
+        <div class="col-md-12 card z-depth-1 tool-bar" jsf:rendered="#{empty billController.partialListType}">          
             <div class="form-nav">
                 <span class="form-nav-item"> #{messages.VendorBills}</span>  
             </div>
         </div>
-        <div class="col-md-12 card z-depth-1 tool-bar" jsf:rendered="#{supInvoiceController.partialListType == 'partner'}">          
+        <div class="col-md-12 card z-depth-1 tool-bar" jsf:rendered="#{billController.partialListType == 'partner'}">          
             <div class="form-nav">
-                <p:link  class="form-nav-item form-link" value="#{supInvoiceController.invoices[0].partner.name}"  outcome="/sc/supplier/index">
-                    <f:param name="id" value="#{supInvoiceController.partnerId}"/>
+                <p:link  class="form-nav-item form-link" value="#{billController.invoices[0].partner.name}"  outcome="/sc/supplier/index">
+                    <f:param name="id" value="#{billController.partnerId}"/>
                 </p:link>
                 <i class="fa fa-chevron-circle-right form-nav-icon" aria-hidden="true"></i> 
                 <span class="form-nav-item"> #{messages.VendorBills}</span> 
             </div>
         </div>
-        <div class="col-md-12 card z-depth-1 tool-bar" jsf:rendered="#{supInvoiceController.partialListType == 'purchaseOrder'}">          
+        <div class="col-md-12 card z-depth-1 tool-bar" jsf:rendered="#{billController.partialListType == 'purchaseOrder'}">          
             <div class="form-nav">
-                <p:link  class="form-nav-item form-link" value="#{supInvoiceController.invoices[0].origin}"  outcome="/sc/purchaseOrder/index">
-                    <f:param name="id" value="#{supInvoiceController.purchaseId}"/>
+                <p:link  class="form-nav-item form-link" value="#{billController.invoices[0].origin}"  outcome="/sc/purchaseOrder/index">
+                    <f:param name="id" value="#{billController.purchaseId}"/>
                 </p:link>
                 <i class="fa fa-chevron-circle-right form-nav-icon" aria-hidden="true"></i> 
                 <span class="form-nav-item"> #{messages.Bills}</span> 
@@ -38,10 +38,10 @@
         <p:dataTable id="supplierBills"
                      binding="#{supplierBills}"
                      class="fit-content-table"
-                     value="#{supInvoiceController.invoices}"
+                     value="#{billController.invoices}"
                      var="item"
-                     selection="#{supInvoiceController.invoice}"
-                     filteredValue="#{supInvoiceController.filteredInvoices}"
+                     selection="#{billController.invoice}"
+                     filteredValue="#{billController.filteredInvoices}"
                      sortBy="#{item.date}"
                      sortOrder="descending"
                      rowKey="#{item.id}"
@@ -53,7 +53,7 @@
 
             <f:facet name="header" class="card z-depth-1">
                 <p:outputPanel>
-                    <p:commandButton process="@this" class="waves-effect waves-light btn btn-primary" value="#{messages.Create}" actionListener="#{supInvoiceController.prepareCreate}" update=":mainForm:itemForm, :mainForm:itemList" onstart="hideItemsList();" />           
+                    <p:commandButton process="@this" class="waves-effect waves-light btn btn-primary" value="#{messages.Create}" actionListener="#{billController.prepareCreate}" update=":mainForm:itemForm, :mainForm:itemList" onstart="hideItemsList();" />           
                     <div class="searchLoader">
                         <p:graphicImage  name="/img/search-loader.gif"/>
                     </div>
@@ -63,7 +63,7 @@
             <p:ajax event="page" oncomplete="updateTableTotals();"/>
             <p:ajax event="sort" oncomplete="updateTableTotals();"/>
             <p:ajax event="filter" global="false" onstart="showSearchLoader();" oncomplete="updateTableTotals(); hideSearchLoader();"/>
-            <p:ajax event="rowSelect" listener="#{supInvoiceController.prepareView}" update=":mainForm:itemForm, :mainForm:itemList" onstart="hideItemsList();"/>
+            <p:ajax event="rowSelect" listener="#{billController.prepareViewBill}" update=":mainForm:itemForm, :mainForm:itemList" onstart="hideItemsList();"/>
 
             <p:column>
                 <f:facet name="header">
@@ -121,7 +121,7 @@
                 <f:facet name="header">
                     <h:outputText value="#{messages.Status}"/>
                 </f:facet>              
-                <h:outputText value="#{supInvoiceController.getStatus(item.state)}" styleClass="row-status" style="background-color: #{supInvoiceController.getStatusColor(item.state)}"/>
+                <h:outputText value="#{billController.getStatus(item.state)}" styleClass="row-status" style="background-color: #{billController.getStatusColor(item.state)}"/>
             </p:column>
 
             <p:columnGroup type="footer">

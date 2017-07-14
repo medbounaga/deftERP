@@ -6,51 +6,51 @@
                 xmlns:jsf="http://xmlns.jcp.org/jsf"
                 xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
 
-    <p:remoteCommand name="setRowIndex" process="@this" global="false" actionListener="#{supInvoiceController.setRowIndex}"/> 
+    <p:remoteCommand name="setRowIndex" process="@this" global="false" actionListener="#{billController.setRowIndex}"/> 
 
     <!-- page start-->
     <p:growl id="msgs" widgetVar="growl"/>
     <div class="row form-header-1">
-        <div class="col-md-12" jsf:rendered="#{empty supInvoiceController.partialListType}" >
-            <p:commandLink update=":InvoiceForm:content" process="@this" class="form-nav" actionListener="#{supInvoiceController.showInvoiceList}">
+        <div class="col-md-12" jsf:rendered="#{empty billController.partialListType}" >
+            <p:commandLink update=":InvoiceForm:content" process="@this" class="form-nav" actionListener="#{billController.showInvoiceList}">
                 <h:outputText   value="#{messages.VendorBills}"/>
             </p:commandLink> 
             <span> / </span>
-            <p:outputLabel value="#{supInvoiceController.invoice.name}" /> 
+            <p:outputLabel value="#{billController.invoice.name}" /> 
             <span> / </span>
             <span>#{messages.Edit}</span>
         </div>
-        <div class="col-md-12" jsf:rendered="#{supInvoiceController.partialListType == 'partner'}"> 
-            <p:link  class="form-nav" value="#{supInvoiceController.invoice.partner.name}"  outcome="/sc/supplier/index">
-                <f:param name="id" value="#{supInvoiceController.invoice.partner.id}"/>
+        <div class="col-md-12" jsf:rendered="#{billController.partialListType == 'partner'}"> 
+            <p:link  class="form-nav" value="#{billController.invoice.partner.name}"  outcome="/sc/supplier/index">
+                <f:param name="id" value="#{billController.invoice.partner.id}"/>
             </p:link>
             <span> / </span> 
-            <p:commandLink update=":InvoiceForm:content" process="@this" class="form-nav" actionListener="#{supInvoiceController.showInvoiceList}">
+            <p:commandLink update=":InvoiceForm:content" process="@this" class="form-nav" actionListener="#{billController.showInvoiceList}">
                 <h:outputText   value="#{messages.Bills}"/>
             </p:commandLink>
             <span> / </span> 
-            <p:outputLabel value="#{supInvoiceController.invoice.name}"/> 
+            <p:outputLabel value="#{billController.invoice.name}"/> 
             <span> / </span>
             <span>#{messages.Edit}</span>
         </div>
-        <div class="col-md-12" jsf:rendered="#{supInvoiceController.partialListType == 'purchaseOrder'}"> 
-            <p:link  class="form-nav" value="#{supInvoiceController.invoice.purchaseOrder.name}"  outcome="/sc/purchaseOrder/index">
-                <f:param name="id" value="#{supInvoiceController.invoice.purchaseOrder.id}"/>
+        <div class="col-md-12" jsf:rendered="#{billController.partialListType == 'purchaseOrder'}"> 
+            <p:link  class="form-nav" value="#{billController.invoice.purchaseOrder.name}"  outcome="/sc/purchaseOrder/index">
+                <f:param name="id" value="#{billController.invoice.purchaseOrder.id}"/>
             </p:link>
             <span> / </span> 
-            <p:commandLink update=":InvoiceForm:content" process="@this" class="form-nav" actionListener="#{supInvoiceController.showInvoiceList}">
+            <p:commandLink update=":InvoiceForm:content" process="@this" class="form-nav" actionListener="#{billController.showInvoiceList}">
                 <h:outputText   value="#{messages.Bills}"/>
             </p:commandLink>
             <span> / </span> 
-            <p:outputLabel value="#{supInvoiceController.invoice.name}"/> 
+            <p:outputLabel value="#{billController.invoice.name}"/> 
             <span> / </span>
             <span>#{messages.Edit}</span>
         </div>       
     </div> 
     <div class="row form-header-3" >
         <div class="col-md-6 record-status-buttons">             
-            <p:commandButton class="btnn btnn-primary" value="#{messages.Save}" process=":InvoiceForm:content" actionListener="#{supInvoiceController.updateBill(supInvoiceController.invoice.id)}"  update=":InvoiceForm:content" /> 
-            <p:commandButton class="btnn btnn-default" value="#{messages.Discard}" process="@this" actionListener="#{supInvoiceController.cancelUpdateBill(supInvoiceController.invoice.id)}"  update=":InvoiceForm:content" /> 
+            <p:commandButton class="btnn btnn-primary" value="#{messages.Save}" process=":InvoiceForm:content" actionListener="#{billController.updateBill(billController.invoice.id)}"  update=":InvoiceForm:content" /> 
+            <p:commandButton class="btnn btnn-default" value="#{messages.Discard}" process="@this" actionListener="#{billController.cancelUpdateBill(billController.invoice.id)}"  update=":InvoiceForm:content" /> 
         </div>
         <div class="col-md-6 bread-crumb" >    
             <div class="breadcrumbs flat">              
@@ -63,7 +63,7 @@
     <div class="row form-body">                   
         <div class="row form-line-1">
             <div class="col-md-12" >
-                <h:outputText id="name" value="#{supInvoiceController.invoice.name}"/> 
+                <h:outputText id="name" value="#{billController.invoice.name}"/> 
             </div>
         </div>
         <div class="row form-row">
@@ -71,9 +71,9 @@
                 <p:outputLabel value="#{messages.Vendor}" for="partnerMenu" />
             </div> 
             <div class="col-md-4">
-                <p:selectOneMenu class="fullWidth required" onchange="showPartnerList();" id="partnerMenu" widgetVar="partnerMenu" value="#{supInvoiceController.invoice.partner}" required="true" requiredMessage="#{messages.VendorRequired}" converter="partnerConverter">   
+                <p:selectOneMenu class="fullWidth required" onchange="showPartnerList();" id="partnerMenu" widgetVar="partnerMenu" value="#{billController.invoice.partner}" required="true" requiredMessage="#{messages.VendorRequired}" converter="partnerConverter">   
                     <f:selectItem  itemLabel="&#160;" />
-                    <f:selectItems value="#{supInvoiceController.topNSuppliers}"
+                    <f:selectItems value="#{billController.topNSuppliers}"
                                    var="partner"
                                    itemValue="#{partner}"
                                    itemLabel="#{partner.name.toString()}"/>
@@ -84,7 +84,7 @@
                 <p:outputLabel value="#{messages.BillDate}" for="orderDate" />
             </div>
             <div class="col-md-3point5 ">
-                <p:calendar id="orderDate" class="required" widgetVar="orderDate" pattern="MM-dd-yyyy" value="#{supInvoiceController.invoice.date}"  required="true" requiredMessage="#{messages.DateRequired}" converterMessage="#{messages.InvalidDate}" locale="#{messages.CalendarLanguage}"/>
+                <p:calendar id="orderDate" class="required" widgetVar="orderDate" pattern="MM-dd-yyyy" value="#{billController.invoice.date}"  required="true" requiredMessage="#{messages.DateRequired}" converterMessage="#{messages.InvalidDate}" locale="#{messages.CalendarLanguage}"/>
             </div>
         </div>
         <div class="row form-row">
@@ -92,7 +92,7 @@
                 <p:outputLabel value="#{messages.VendorReference}"/>
             </div> 
             <div class="col-md-4">
-                <p:inputText value="#{supInvoiceController.invoice.reference}" maxlength="30"/>
+                <p:inputText value="#{billController.invoice.reference}" maxlength="30"/>
             </div>
         </div>
         <div class="row"  style="padding-left: 15px;padding-right: 15px; margin-bottom:10px">
@@ -109,16 +109,16 @@
                                          rowStyleClass="no-color"
                                          id="datalist" 
                                          var="item" 
-                                         value="#{supInvoiceController.invoiceLines}" 
+                                         value="#{billController.invoiceLines}" 
                                          editable="true">
 
-                                <p:ajax event="rowEditInit" global="false"  listener="#{supInvoiceController.onRowEditInit(item)}" onstart="hideTableButtons(); hideAdd();" />  
-                                <p:ajax event="rowEdit" listener="#{supInvoiceController.onRowEdit(rowIndex)}"  update=":InvoiceForm:OrderTotal :InvoiceForm:msgs" oncomplete="if(args.validationFailed){hideTableButtons(); hideAdd();}else{showTableButtons(); showAdd();}"/>
-                                <p:ajax event="rowEditCancel" listener="#{supInvoiceController.onRowCancel(rowIndex)}" oncomplete="showTableButtons(); showAdd();" />
+                                <p:ajax event="rowEditInit" global="false"  listener="#{billController.onRowEditInit(item)}" onstart="hideTableButtons(); hideAdd();" />  
+                                <p:ajax event="rowEdit" listener="#{billController.onRowEdit(rowIndex)}"  update=":InvoiceForm:OrderTotal :InvoiceForm:msgs" oncomplete="if(args.validationFailed){hideTableButtons(); hideAdd();}else{showTableButtons(); showAdd();}"/>
+                                <p:ajax event="rowEditCancel" listener="#{billController.onRowCancel(rowIndex)}" oncomplete="showTableButtons(); showAdd();" />
 
                                 <p:column style="width:55px;"> 
                                     <div style="display: inline-block;">
-                                        <p:commandLink styleClass="ui-icon ui-icon-trash" process="@this"  update=":InvoiceForm:orderLines" actionListener="#{supInvoiceController.onRowDelete(rowIndex)}"/> 
+                                        <p:commandLink styleClass="ui-icon ui-icon-trash" process="@this"  update=":InvoiceForm:orderLines" actionListener="#{billController.onRowDelete(rowIndex)}"/> 
                                     </div>
                                     <p:rowEditor/>
                                 </p:column>
@@ -127,9 +127,9 @@
                                     <p:cellEditor>
                                         <f:facet name="output"><h:outputText value="#{item.product.description}"/></f:facet>
                                         <f:facet name="input"><p:selectOneMenu styleClass="required" onchange="showProductList('#{rowIndex}');" id="productMenu"  widgetVar="productMenu_#{rowIndex}" value="#{item.product}"  required="true" requiredMessage="#{messages.ProductRequired}"  converter="productConverter" style="width:100%">
-                                                <p:ajax resetValues="true" global="false" process="@this" listener="#{supInvoiceController.onProductChange(rowIndex)}" update=":InvoiceForm:datalist:pricee" />
+                                                <p:ajax resetValues="true" global="false" process="@this" listener="#{billController.onProductChange(rowIndex)}" update=":InvoiceForm:datalist:pricee" />
                                                 <f:selectItem itemLabel="&#160;"/>
-                                                <f:selectItems value="#{supInvoiceController.topPurchasedNProducts}"
+                                                <f:selectItems value="#{billController.topPurchasedNProducts}"
                                                                var="product"
                                                                itemValue="#{product}"
                                                                itemLabel="#{product.description.toString()}"/>
@@ -215,21 +215,21 @@
                                                 <td role="gridcell" style="width:55px">
                                                     <div  class="ui-row-editor ui-helper-clearfix">
                                                         <div style="display: inline-block; ">
-                                                            <p:commandLink styleClass="ui-icon ui-icon-check" process=":InvoiceForm:row" update=":InvoiceForm:orderLines :InvoiceForm:msgs" actionListener="#{supInvoiceController.onRowAdd}" oncomplete="hiderow('addrow','add',args);"/>
+                                                            <p:commandLink styleClass="ui-icon ui-icon-check" process=":InvoiceForm:row" update=":InvoiceForm:orderLines :InvoiceForm:msgs" actionListener="#{billController.onRowAdd}" oncomplete="hiderow('addrow','add',args);"/>
                                                         </div>
                                                         <div style="display: inline-block; margin-left: -5px">  
                                                             <p:commandLink styleClass="ui-icon ui-icon-close" global="false"  resetValues="true"  process="@this" update=":InvoiceForm:row" onclick="hiderow('addrow', 'add');
-                                                                    showTableButtons();" actionListener="#{supInvoiceController.onRowCancel}"/>
+                                                                    showTableButtons();" actionListener="#{billController.onRowCancel}"/>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td role="gridcell" class="ui-editable-column">
                                                     <div  class="ui-cell-editor">
                                                         <div class="ui-cell-editor-input">
-                                                            <p:selectOneMenu onchange="showProductListTwo();" styleClass="required" id="productMenuTwo" widgetVar="productMenuTwo" value="#{supInvoiceController.invoiceLine.product}" required="true" requiredMessage="#{messages.ProductRequired}"  converter="productConverter" style="width:100%">
-                                                                <p:ajax resetValues="true" global="false" listener="#{supInvoiceController.onProductChange}" process="@this" update=":InvoiceForm:price" />
+                                                            <p:selectOneMenu onchange="showProductListTwo();" styleClass="required" id="productMenuTwo" widgetVar="productMenuTwo" value="#{billController.invoiceLine.product}" required="true" requiredMessage="#{messages.ProductRequired}"  converter="productConverter" style="width:100%">
+                                                                <p:ajax resetValues="true" global="false" listener="#{billController.onProductChange}" process="@this" update=":InvoiceForm:price" />
                                                                 <f:selectItem itemLabel="&#160;"/>
-                                                                <f:selectItems value="#{supInvoiceController.topPurchasedNProducts}"
+                                                                <f:selectItems value="#{billController.topPurchasedNProducts}"
                                                                                var="product"
                                                                                itemValue="#{product}"
                                                                                itemLabel="#{product.description.toString()}"/>
@@ -241,7 +241,7 @@
                                                 <td role="gridcell" class="ui-editable-column">
                                                     <div  class="ui-cell-editor">
                                                         <div class="ui-cell-editor-input">
-                                                            <p:spinner value="#{supInvoiceController.invoiceLine.quantity}" 
+                                                            <p:spinner value="#{billController.invoiceLine.quantity}" 
                                                                        styleClass="required" 
                                                                        id="secondQuantity"  
                                                                        min="0" 
@@ -256,7 +256,7 @@
                                                 <td role="gridcell" class="ui-editable-column">
                                                     <div  class="ui-cell-editor">
                                                         <div class="ui-cell-editor-input">
-                                                            <p:spinner value="#{supInvoiceController.invoiceLine.price}" 
+                                                            <p:spinner value="#{billController.invoiceLine.price}" 
                                                                        id="price"
                                                                        class="required"
                                                                        required="true" 
@@ -271,7 +271,7 @@
                                                 <td role="gridcell" class="ui-editable-column">
                                                     <div  class="ui-cell-editor">
                                                         <div class="ui-cell-editor-input">
-                                                            <p:selectOneMenu id="tax"  value="#{supInvoiceController.invoiceLine.tax}" converter="taxConverter" style="width:100%">
+                                                            <p:selectOneMenu id="tax"  value="#{billController.invoiceLine.tax}" converter="taxConverter" style="width:100%">
                                                                 <f:selectItem  itemLabel="&#160;" />
                                                                 <f:selectItems value="#{taxController.purchaseTaxes}"
                                                                                var="tax"
@@ -286,7 +286,7 @@
                                                     <div  class="ui-cell-editor">
                                                         <div class="ui-cell-editor-input">
                                                             #{messages.Currency}
-                                                            <h:outputText id="subTotal" value="#{supInvoiceController.invoiceLine.priceSubtotal}" style="width:100%"/>     
+                                                            <h:outputText id="subTotal" value="#{billController.invoiceLine.priceSubtotal}" style="width:100%"/>     
                                                         </div>
                                                     </div>
                                                 </td>
@@ -305,7 +305,7 @@
                                                         &#160;
                                                     </td>
                                                 </tr>
-                                                <tr jsf:rendered="#{supInvoiceController.invoiceLines.size() lt 3}">
+                                                <tr jsf:rendered="#{billController.invoiceLines.size() lt 3}">
                                                     <td>&#160;</td>
                                                 </tr>
                                             </tbody>
@@ -320,7 +320,7 @@
                                     </div> 
                                     <div class="col-md-2" style="padding-right:0px; ">
                                         #{messages.Currency}
-                                        <h:outputText id="amountUntaxed" value="#{supInvoiceController.invoice.amountUntaxed}"/>                      
+                                        <h:outputText id="amountUntaxed" value="#{billController.invoice.amountUntaxed}"/>                      
                                     </div>
                                 </div>
                                 <div class="row" style="font-size: 15px; padding-bottom:5px;">
@@ -329,7 +329,7 @@
                                     </div> 
                                     <div class="col-md-2" style="padding-right:0px;">
                                         #{messages.Currency}
-                                        <h:outputText id="amountTax" value="#{supInvoiceController.invoice.amountTax}"/>
+                                        <h:outputText id="amountTax" value="#{billController.invoice.amountTax}"/>
                                     </div>
                                 </div>
                                 <div class="row" style="font-size: 20px;">
@@ -338,14 +338,14 @@
                                     </div> 
                                     <div class="col-md-2 form-label-2" style="padding-right:0px">
                                         #{messages.Currency}
-                                        <h:outputText id="amountTotal" value="#{supInvoiceController.invoice.amountTotal}"/>
+                                        <h:outputText id="amountTotal" value="#{billController.invoice.amountTotal}"/>
                                     </div>
                                 </div> 
                             </div>
                         </div>                     
                         <div class="row">
                             <div class="col-md-12">
-                                <p:inputTextarea rows="4" cols="50" id="notes" value="#{supInvoiceController.invoice.comment}" placeholder="#{messages.TermsAndConditions}" autoResize="false"/>
+                                <p:inputTextarea rows="4" cols="50" id="notes" value="#{billController.invoice.comment}" placeholder="#{messages.TermsAndConditions}" autoResize="false"/>
                             </div> 
                         </div> 
                     </div>
@@ -356,7 +356,7 @@
                                 <p:outputLabel value="#{messages.Journal}" for="invoiceJournal"/>
                             </div> 
                             <div class="col-md-3point5">
-                                <p:selectOneMenu id="invoiceJournal" class="fullWidth required" value="#{supInvoiceController.invoice.journal}" required="true" requiredMessage="#{messages.JournalRequired}" converter="journalConverter">   
+                                <p:selectOneMenu id="invoiceJournal" class="fullWidth required" value="#{billController.invoice.journal}" required="true" requiredMessage="#{messages.JournalRequired}" converter="journalConverter">   
                                     <f:selectItem  itemLabel="&#160;" />
                                     <f:selectItems value="#{journalController.billJournals}"
                                                    var="journal"
@@ -368,9 +368,9 @@
                                 <p:outputLabel value="#{messages.Account}" for="invoiceAccount"/>
                             </div>
                             <div class="col-md-3point5 ">
-                                <p:selectOneMenu id="invoiceAccount" class="fullWidth required" value="#{supInvoiceController.invoice.account}" required="true" requiredMessage="#{messages.AccountRequired}" converter="accountConverter" >   
+                                <p:selectOneMenu id="invoiceAccount" class="fullWidth required" value="#{billController.invoice.account}" required="true" requiredMessage="#{messages.AccountRequired}" converter="accountConverter" >   
                                     <f:selectItem  itemLabel="&#160;" />
-                                    <f:selectItems value="#{supInvoiceController.billAccounts}"
+                                    <f:selectItems value="#{billController.billAccounts}"
                                                    var="account"
                                                    itemValue="#{account}"
                                                    itemLabel="#{account.name.toString()}"/>
@@ -384,7 +384,7 @@
                                 <p:dataTable id="invoiceTaxes"
                                              binding="#{invoiceTaxess}"
                                              class="fit-content-table"
-                                             value="#{supInvoiceController.invoice.invoiceTaxes}"
+                                             value="#{billController.invoice.invoiceTaxes}"
                                              var="item"
                                              rowKey="#{item.id}">
 
@@ -446,7 +446,7 @@
                          paginator="true"
                          paginatorAlwaysVisible="true"
                          paginatorPosition="top"
-                         selection="#{supInvoiceController.supplier}"
+                         selection="#{billController.supplier}"
                          selectionMode="single"
                          widgetVar="PartnerTable"
                          rows="#{messages.DialogMaxRows}">
@@ -463,7 +463,7 @@
                 <p:ajax event="page" oncomplete="updateTable(partnersTableId);"/>
                 <p:ajax event="sort" oncomplete="updateTable(partnersTableId);"/>
                 <p:ajax event="filter" global="false" onstart="showSearchLoader();" oncomplete="updateTable(partnersTableId); hideSearchLoader();"/>      
-                <p:ajax event="rowSelect" resetValues="true"  listener="#{supInvoiceController.onSelectSupplier}" onstart="PF('PartnerList').hide(); PF('PartnerTable').clearFilters();" update=":InvoiceForm:partnerMenu"/>
+                <p:ajax event="rowSelect" resetValues="true"  listener="#{billController.onSelectVendor}" onstart="PF('PartnerList').hide(); PF('PartnerTable').clearFilters();" update=":InvoiceForm:partnerMenu"/>
 
                 
                  <p:column>
@@ -510,7 +510,7 @@
                          paginator="true"
                          paginatorAlwaysVisible="true"
                          paginatorPosition="top"
-                         selection="#{supInvoiceController.product}"
+                         selection="#{billController.product}"
                          selectionMode="single"
                          widgetVar="ProductTable"
                          rows="#{messages.DialogMaxRows}">
@@ -527,7 +527,7 @@
                 <p:ajax event="page" oncomplete="updateTable(productsTableId);"/>
                 <p:ajax event="sort" oncomplete="updateTable(productsTableId);"/>
                 <p:ajax event="filter" global="false" onstart="showSearchLoader();" oncomplete="updateTable(productsTableId); hideSearchLoader();"/>           
-                <p:ajax event="rowSelect" process="@this" resetValues="true" listener="#{supInvoiceController.onSelectProduct}" onstart="PF('ProductList').hide(); PF('ProductTable').clearFilters();"/>
+                <p:ajax event="rowSelect" process="@this" resetValues="true" listener="#{billController.onSelectProduct}" onstart="PF('ProductList').hide(); PF('ProductTable').clearFilters();"/>
                 
                  <p:column>
                     <f:facet name="header">

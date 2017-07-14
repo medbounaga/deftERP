@@ -9,34 +9,34 @@
 
     <ui:include src="/sc/confirmation.xhtml"/>
     <div class="row">
-        <div class="col-md-12 card z-depth-1 tool-bar" jsf:rendered="#{empty supInvoiceController.partialListType}" >
+        <div class="col-md-12 card z-depth-1 tool-bar" jsf:rendered="#{empty billController.partialListType}" >
             <div class="form-nav">
                 <span class="form-nav-item">#{messages.VendorBills}</span>  
                 <i class="fa fa-chevron-circle-right form-nav-icon" aria-hidden="true"></i>
-                <span class="form-nav-item">#{supInvoiceController.invoice.name}</span>   
+                <span class="form-nav-item">#{billController.invoice.name}</span>   
             </div>
         </div>
-        <div class="col-md-12 card z-depth-1 tool-bar" jsf:rendered="#{supInvoiceController.partialListType == 'partner'}" >
+        <div class="col-md-12 card z-depth-1 tool-bar" jsf:rendered="#{billController.partialListType == 'partner'}" >
             <div class="form-nav">
-                <p:link  class="form-nav-item form-link" value="#{supInvoiceController.invoice.partner.name}"  outcome="/sc/supplier/index">
-                    <f:param name="id" value="#{supInvoiceController.invoice.partner.id}"/>
+                <p:link  class="form-nav-item form-link" value="#{billController.invoice.partner.name}"  outcome="/sc/supplier/index">
+                    <f:param name="id" value="#{billController.invoice.partner.id}"/>
                 </p:link> 
                 <i class="fa fa-chevron-circle-right form-nav-icon" aria-hidden="true"></i>
                 <span class="form-nav-item">#{messages.Bills}</span>  
                 <i class="fa fa-chevron-circle-right form-nav-icon" aria-hidden="true"></i>
-                <span class="form-nav-item">#{supInvoiceController.invoice.name}</span> 
+                <span class="form-nav-item">#{billController.invoice.name}</span> 
             </div>
         </div>
 
-        <div class="col-md-12 card z-depth-1 tool-bar" jsf:rendered="#{supInvoiceController.partialListType == 'purchaseOrder'}" >
+        <div class="col-md-12 card z-depth-1 tool-bar" jsf:rendered="#{billController.partialListType == 'purchaseOrder'}" >
             <div class="form-nav">
-                <p:link  class="form-nav-item form-link" value="#{supInvoiceController.invoice.purchaseOrder.name}"  outcome="/sc/purchaseOrder/index">
-                    <f:param name="id" value="#{supInvoiceController.invoice.purchaseOrder.id}"/>
+                <p:link  class="form-nav-item form-link" value="#{billController.invoice.purchaseOrder.name}"  outcome="/sc/purchaseOrder/index">
+                    <f:param name="id" value="#{billController.invoice.purchaseOrder.id}"/>
                 </p:link> 
                 <i class="fa fa-chevron-circle-right form-nav-icon" aria-hidden="true"></i>
                 <span class="form-nav-item">#{messages.Bills}</span>  
                 <i class="fa fa-chevron-circle-right form-nav-icon" aria-hidden="true"></i>
-                <span class="form-nav-item">#{supInvoiceController.invoice.name}</span>
+                <span class="form-nav-item">#{billController.invoice.name}</span>
             </div>
         </div>
     </div> 
@@ -51,47 +51,47 @@
             <p:commandButton 
                 class="waves-effect waves-light btn btn-primary" 
                 value="#{messages.Edit}" 
-                actionListener="#{supInvoiceController.prepareUpdateBill}"  
+                actionListener="#{billController.prepareUpdateBill}"  
                 update=":mainForm:itemForm, :mainForm:itemList" 
-                rendered="#{(supInvoiceController.invoice.state != 'Cancelled')}" />               
+                rendered="#{(billController.invoice.state != 'Cancelled')}" />               
             <p:commandButton 
                 class="waves-effect waves-light btn btn-primary" 
                 value="#{messages.Create}" 
-                actionListener="#{supInvoiceController.prepareCreateBill}" 
+                actionListener="#{billController.prepareCreateBill}" 
                 update=":mainForm:itemForm, :mainForm:itemList" /> 
             <p:commandButton 
                 class="waves-effect waves-light btn btn-primary" 
                 value="#{messages.Delete}" 
-                actionListener="#{supInvoiceController.deleteBill}" 
+                actionListener="#{billController.deleteBill}" 
                 update=":mainForm:itemForm, :mainForm:itemList">
                 <p:confirm header="#{messages.ConfirmationHeader}"  message="#{messages.ConfirmMessage}" icon="ui-icon-alert"/>
             </p:commandButton>
             <p:commandButton 
                 class="waves-effect waves-light btn btn-primary" 
                 value="#{messages.Duplicate}" 
-                actionListener="#{supInvoiceController.duplicateBill}" 
+                actionListener="#{billController.duplicateBill}" 
                 update=":mainForm:itemForm, :mainForm:itemList"/>
             <p:commandButton  
                 value="#{messages.RegisterPayment}"
                 process="@this"
                 resetValues="true"
                 class="waves-effect waves-light btn btn-primary"
-                actionListener="#{supInvoiceController.preparePayment}" 
+                actionListener="#{billController.preparePayment}" 
                 update=":mainForm:itemForm, :mainForm:itemList :paymentForm"
-                rendered="#{(supInvoiceController.invoice.state == 'Open')}" 
+                rendered="#{(billController.invoice.state == 'Open')}" 
                 oncomplete="if (!args.validationFailed) {PF('PaymentDialog').show()}"/>
             <p:commandButton
                 value="#{messages.Validate}" 
                 process="@this"
-                rendered="#{(supInvoiceController.invoice.state == 'Draft')}" 
+                rendered="#{(billController.invoice.state == 'Draft')}" 
                 class="waves-effect waves-light btn btn-primary"
-                actionListener="#{supInvoiceController.validateBill}" 
+                actionListener="#{billController.validateBill}" 
                 update=":mainForm:itemForm, :mainForm:itemList"/>        
             <p:commandButton 
                 value="#{messages.CancelBill}" 
-                rendered="#{supInvoiceController.invoice.state != 'Cancelled'}" 
+                rendered="#{billController.invoice.state != 'Cancelled'}" 
                 class="waves-effect waves-light btn btn-primary"
-                actionListener="#{supInvoiceController.cancelBill}" 
+                actionListener="#{billController.cancelBill}" 
                 update=":mainForm:itemForm, :mainForm:itemList">
                 <p:confirm header="#{messages.ConfirmationHeader}"  message="#{messages.ConfirmMessage}" icon="ui-icon-alert"/>
             </p:commandButton>
@@ -100,7 +100,7 @@
                 ajax="false"
                 class="waves-effect waves-light btn btn-primary"
                 process="@this"
-                actionListener="#{supInvoiceController.printBill}"/> 
+                actionListener="#{billController.printBill}"/> 
         </div>
     </div>
 
@@ -108,16 +108,16 @@
     <div class="row">
         <div class="col-md-12 card z-depth-1 tool-bar item-dependencies">
 
-            <button class="btn btn-default single-item-dependency" jsf:outcome="/sc/purchaseOrder/index" jsf:rendered="#{supInvoiceController.invoice.purchaseOrder != null}"> 
-                <f:param name="id"  value="#{supInvoiceController.invoice.purchaseOrder.id}"/>
+            <button class="btn btn-default single-item-dependency" jsf:outcome="/sc/purchaseOrder/index" jsf:rendered="#{billController.invoice.purchaseOrder != null}"> 
+                <f:param name="id"  value="#{billController.invoice.purchaseOrder.id}"/>
                 <span class="fa fa-bars icon z-depth-1"/>
                 <span class="name">
                     #{messages.PurchaseOrder}
                 </span>  
             </button>
 
-            <button class="btn btn-default single-item-dependency" jsf:outcome="/sc/journalEntry/index" jsf:rendered="#{supInvoiceController.invoice.journalEntry != null}" > 
-                <f:param name="id"  value="#{supInvoiceController.invoice.journalEntry.id}"/>
+            <button class="btn btn-default single-item-dependency" jsf:outcome="/sc/journalEntry/index" jsf:rendered="#{billController.invoice.journalEntry != null}" > 
+                <f:param name="id"  value="#{billController.invoice.journalEntry.id}"/>
                 <span class="fa fa-bars icon z-depth-1"/>
                 <span class="name">
                     #{messages.JournalEntry}
@@ -128,7 +128,7 @@
 
     <div class="row">  
         <div class="col-md-10 col-md-offset-1 form-body card z-depth-2">
-            <div class="row outstanding-payments-alert" jsf:rendered="#{(supInvoiceController.invoice.residual > 0) and (not empty supInvoiceController.outstandingPayments) and (supInvoiceController.invoice.state != 'Draft')}">
+            <div class="row outstanding-payments-alert" jsf:rendered="#{(billController.invoice.residual > 0) and (not empty billController.outstandingPayments) and (billController.invoice.state != 'Draft')}">
                 #{messages.OutstandingDebitsAlert1}
                 <a href="#outstanding" class="alert-info-link" onclick="return false;">
                     #{messages.OutstandingDebitsAlert2}
@@ -138,18 +138,18 @@
             <div class="row">
                 <div class="col-md-5">
                     <div id="form-name">
-                        #{supInvoiceController.invoice.name}
+                        #{billController.invoice.name}
                     </div>
                 </div>
                 <div class="col-md-2">
                     <div class="form-pagination">
-                        <p:commandLink class="left-arrow" actionListener="#{supInvoiceController.previousInvoice}" process="@this" update=":mainForm:itemForm, :mainForm:itemList" oncomplete="setNextFormURL('id',formId)"> 
+                        <p:commandLink class="left-arrow" actionListener="#{billController.previousInvoice}" process="@this" update=":mainForm:itemForm, :mainForm:itemList" oncomplete="setNextFormURL('id',formId)"> 
                             <span class="fa fa-chevron-left" aria-hidden="true"/> 
                         </p:commandLink>    
                         <div class="form-number">
-                            <span>#{supInvoiceController.invoiceIndex} / #{supInvoiceController.invoices.size()}</span>
+                            <span>#{billController.invoiceIndex} / #{billController.invoices.size()}</span>
                         </div>
-                        <p:commandLink class="right-arrow" actionListener="#{supInvoiceController.nextInvoice}" process="@this" update=":mainForm:itemForm, :mainForm:itemList" oncomplete="setNextFormURL('id',formId)"> 
+                        <p:commandLink class="right-arrow" actionListener="#{billController.nextInvoice}" process="@this" update=":mainForm:itemForm, :mainForm:itemList" oncomplete="setNextFormURL('id',formId)"> 
                             <span class="fa fa-chevron-right" aria-hidden="true"/> 
                         </p:commandLink> 
                     </div>
@@ -158,16 +158,16 @@
 
                 <div class="col-md-5">
                     <div id="form-status"  class="z-depth-1">
-                        <span jsf:rendered="#{supInvoiceController.invoice.state == 'Open'}">
+                        <span jsf:rendered="#{billController.invoice.state == 'Open'}">
                             #{messages.Open} 
                         </span>
-                        <span jsf:rendered="#{supInvoiceController.invoice.state == 'Draft'}">
+                        <span jsf:rendered="#{billController.invoice.state == 'Draft'}">
                             #{messages.Draft} 
                         </span>
-                        <span jsf:rendered="#{supInvoiceController.invoice.state == 'Paid'}">
+                        <span jsf:rendered="#{billController.invoice.state == 'Paid'}">
                             #{messages.Paid} 
                         </span>
-                        <span jsf:rendered="#{supInvoiceController.invoice.state == 'Cancelled'}">
+                        <span jsf:rendered="#{billController.invoice.state == 'Cancelled'}">
                             #{messages.Cancelled} 
                         </span>
                     </div>
@@ -180,8 +180,8 @@
                             <span class="form-data-label font-2">#{messages.Vendor}</span>
                         </div> 
                         <div class="col-md-7">
-                            <a  class="form-data-value font-1 form-link" value="#{supInvoiceController.invoice.partner.name}"  jsf:outcome="/sc/supplier/index">
-                                <f:param name="id" value="#{supInvoiceController.invoice.partner.id}"/>
+                            <a  class="form-data-value font-1 form-link" value="#{billController.invoice.partner.name}"  jsf:outcome="/sc/supplier/index">
+                                <f:param name="id" value="#{billController.invoice.partner.id}"/>
                             </a>
                         </div>
                     </div>
@@ -190,7 +190,7 @@
                             <span class="form-data-label font-2">#{messages.VendorReference}</span>
                         </div> 
                         <div class="col-md-7">
-                            <h:outputText class="form-data-value font-1" value="#{supInvoiceController.invoice.reference}"/>
+                            <h:outputText class="form-data-value font-1" value="#{billController.invoice.reference}"/>
                         </div>
                     </div>
                 </div>
@@ -200,7 +200,7 @@
                             <span class="form-data-label font-2">#{messages.BillDate}</span>
                         </div>
                         <div class="col-md-7">
-                            <h:outputText class="form-data-value font-1"  value="#{supInvoiceController.invoice.date}">
+                            <h:outputText class="form-data-value font-1"  value="#{billController.invoice.date}">
                                 <f:convertDateTime pattern="MM-dd-yyyy"/>
                             </h:outputText>
                         </div>
@@ -210,7 +210,7 @@
                             <span class="form-data-label font-2">#{messages.Origin}</span>
                         </div>
                         <div class="col-md-7">
-                            <h:outputText class="form-data-value font-1" value="#{supInvoiceController.invoice.origin}"/>
+                            <h:outputText class="form-data-value font-1" value="#{billController.invoice.origin}"/>
                         </div>
                     </div>
                 </div>
@@ -229,7 +229,7 @@
                             <p:dataTable id="invoiceLines"
                                          binding="#{vendorInvoiceLines}"
                                          class="fit-content-table"
-                                         value="#{supInvoiceController.invoice.invoiceLines}"
+                                         value="#{billController.invoice.invoiceLines}"
                                          var="item"
                                          rowKey="#{item.id}">
 
@@ -292,7 +292,7 @@
                                             <h:outputText class="font-1" value="#{messages.UntaxedAmount}"/>
                                         </div> 
                                         <div class="col-md-5">
-                                            <h:outputText class="font-1" id="amountUntaxed" value="#{messages.Currency} #{supInvoiceController.invoice.amountUntaxed}"/>                       
+                                            <h:outputText class="font-1" id="amountUntaxed" value="#{messages.Currency} #{billController.invoice.amountUntaxed}"/>                       
                                         </div>
                                     </div>
                                     <div class="row form-data-1 line-breaks-1">
@@ -300,7 +300,7 @@
                                             <h:outputText class="font-1" value="#{messages.Taxes}"/>
                                         </div> 
                                         <div class="col-md-5">
-                                            <h:outputText class="font-1" id="amountTax" value="#{messages.Currency} #{supInvoiceController.invoice.amountTax}"/>
+                                            <h:outputText class="font-1" id="amountTax" value="#{messages.Currency} #{billController.invoice.amountTax}"/>
                                         </div>
                                     </div>
 
@@ -309,12 +309,12 @@
                                             <h:outputText class="font-3" value="#{messages.Total}"/>
                                         </div> 
                                         <div class="col-md-5 form-data-value">
-                                            <h:outputText class="font-3" id="amountTotal" value="#{messages.Currency} #{supInvoiceController.invoice.amountTotal}"/>
+                                            <h:outputText class="font-3" id="amountTotal" value="#{messages.Currency} #{billController.invoice.amountTotal}"/>
                                         </div>
                                     </div> 
 
-                                    <div class="invoice-payments" rendered="#{not empty supInvoiceController.invoice.invoicePayments}">
-                                        <ui:repeat value="#{supInvoiceController.invoice.invoicePayments}" var="item">
+                                    <div class="invoice-payments" rendered="#{not empty billController.invoice.invoicePayments}">
+                                        <ui:repeat value="#{billController.invoice.invoicePayments}" var="item">
                                             <div class="row invoice-payment">
                                                 <div class="col-md-1">
                                                     <a data-toggle="dropdown" class="dropdown-toggle fa fa-info-circle form-link" href="#"/>
@@ -390,11 +390,11 @@
                                             <h:outputText class="font-4" value="#{messages.AmountDue}"/>
                                         </div> 
                                         <div class="col-md-5 form-data-value">
-                                            <h:outputText class="font-4" value="#{messages.Currency} #{supInvoiceController.invoice.residual}"/>
+                                            <h:outputText class="font-4" value="#{messages.Currency} #{billController.invoice.residual}"/>
                                         </div>
                                     </div> 
 
-                                    <div class="row" id="outstanding" jsf:rendered="#{(supInvoiceController.invoice.residual > 0) and (not empty supInvoiceController.outstandingPayments) and (supInvoiceController.invoice.state != 'Draft')}">
+                                    <div class="row" id="outstanding" jsf:rendered="#{(billController.invoice.residual > 0) and (not empty billController.outstandingPayments) and (billController.invoice.state != 'Draft')}">
                                         <div class="col-md-12">
                                             <div class="row line-breaks-1">
                                                 <div class="col-md-12">
@@ -402,9 +402,9 @@
                                                 </div>
                                             </div>           
                                             <div class="row">
-                                                <ui:repeat value="#{supInvoiceController.outstandingPayments}" var="item">
+                                                <ui:repeat value="#{billController.outstandingPayments}" var="item">
                                                     <div class="col-md-2 outstanding-payments-add">
-                                                        <p:commandLink class="left form-link"  value="#{messages.Add}" actionListener="#{supInvoiceController.payUsingOutstandingPayment(item.id)}" process="@this" update=":mainForm:itemForm, :mainForm:itemList"/>  
+                                                        <p:commandLink class="left form-link"  value="#{messages.Add}" actionListener="#{billController.payUsingOutstandingPayment(item.id)}" process="@this" update=":mainForm:itemForm, :mainForm:itemList"/>  
                                                     </div>
                                                     <div class="col-md-5">                    
                                                         <h:outputText class="left" value="#{item.name}"/>
@@ -420,7 +420,7 @@
                             </div> 
                             <div class="row">
                                 <div class="col-md-4">
-                                    <h:outputText id="notes" value="#{supInvoiceController.invoice.comment}"/>
+                                    <h:outputText id="notes" value="#{billController.invoice.comment}"/>
                                 </div> 
                             </div>
                         </div>
@@ -434,7 +434,7 @@
                                             <span class="form-value">#{messages.Journal}</span>
                                         </div>
                                         <div class="col-md-7 form-data-value">
-                                            <h:outputText value="#{supInvoiceController.invoice.journal.name}"/>
+                                            <h:outputText value="#{billController.invoice.journal.name}"/>
                                         </div>
                                     </div>
                                 </div> 
@@ -444,7 +444,7 @@
                                             <span>#{messages.Account}</span>
                                         </div>
                                         <div class="col-md-7 form-data-value">
-                                            <h:outputText value="#{supInvoiceController.invoice.account.name}"/>
+                                            <h:outputText value="#{billController.invoice.account.name}"/>
                                         </div>
                                     </div>
                                 </div>  
@@ -456,7 +456,7 @@
                                     <p:dataTable id="invoiceTaxes"
                                                  binding="#{invoiceTaxes}"
                                                  class="fit-content-table"
-                                                 value="#{supInvoiceController.invoice.invoiceTaxes}"
+                                                 value="#{billController.invoice.invoiceTaxes}"
                                                  var="item"
                                                  rowKey="#{item.id}">
 
@@ -512,7 +512,7 @@
         tableId = '#{invoiceTaxes.clientId}';
         addEmptyRow(tableId);
 
-        var formId = "#{supInvoiceController.invoice.id}";
+        var formId = "#{billController.invoice.id}";
         setFormURL('id', formId);
 
         setActiveTab();

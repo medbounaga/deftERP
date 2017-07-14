@@ -31,10 +31,10 @@
         <h:outputScript library="scripts" name="materialize.min.js"/>
 
         <f:metadata>
-            <f:viewParam name="purchase" value="#{supInvoiceController.purchaseId}"/>
-            <f:viewParam name="p" value="#{supInvoiceController.partnerId}"/>
-            <f:viewParam name="id" value="#{supInvoiceController.invoiceId}"/> 
-            <f:viewAction action="#{supInvoiceController.resolveRequestParams}"/>
+            <f:viewParam name="purchase" value="#{billController.purchaseId}"/>
+            <f:viewParam name="p" value="#{billController.vendorId}"/>
+            <f:viewParam name="id" value="#{billController.billId}"/> 
+            <f:viewAction action="#{billController.resolveRequestParams}"/>
         </f:metadata>
 
     </h:head>
@@ -67,7 +67,7 @@
                         </div> 
                         <div id="backdrop" onclick="backdropClicked();"/> 
                         <div jsf:id="itemForm"> 
-                            <ui:include src="#{supInvoiceController.currentForm}"/>
+                            <ui:include src="#{billController.currentForm}"/>
                         </div>         
                     </h:form>       
                     <ui:include src="/sc/supInvoice/paymentDialog.xhtml"/> 
