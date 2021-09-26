@@ -1,4 +1,4 @@
-package com.defterp.modules.accounting.constants;
+package com.defterp.modules.accounting.enums;
 
 public enum InvoiceStatus {
 
