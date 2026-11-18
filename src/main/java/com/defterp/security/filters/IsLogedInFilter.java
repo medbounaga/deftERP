@@ -21,7 +21,7 @@ import javax.servlet.annotation.WebFilter;
  * github.com/medbounaga
  */
 
-@WebFilter(filterName = "isLogedInFilter")
+@WebFilter(filterName = "isLogedInFilter", urlPatterns = {"/sc/*"})
 public class IsLogedInFilter implements Filter {
 
     @Inject
@@ -55,10 +55,12 @@ public class IsLogedInFilter implements Filter {
             System.out.println("Redirect");
             String contextPath = ((HttpServletRequest) request).getContextPath();
             ((HttpServletRequest) request).getRequestDispatcher(loginPage).forward(request, response);
+            return;
         }else if(userSessionController != null && userSessionController.isLoggedIn() && !facesRequest.equals("partial/ajax") && url.contains(loginPage) ){
             System.out.println("Redirect");
             String contextPath = ((HttpServletRequest) request).getContextPath();
             ((HttpServletResponse) response).sendRedirect(contextPath + homePage);       
+            return;
         }
 
         chain.doFilter(request, response);
